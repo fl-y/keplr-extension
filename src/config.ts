@@ -30,7 +30,7 @@ export const EmbedChainInfos: ChainInfo[] = [
     bech32Config: defaultBech32Config("hub"),
     currencies: ["hub"],
     feeCurrencies: ["hub"],
-    faucetUrl: "http://34.94.36.216:8000"
+    faucetUrl: "http://104.198.69.192:8000"
   },
   {
     rpc: "https://node-astrocanvas-1.keplr.app/rpc",
@@ -46,7 +46,7 @@ export const EmbedChainInfos: ChainInfo[] = [
     bech32Config: defaultBech32Config("astro"),
     currencies: ["astro"],
     feeCurrencies: ["astro"],
-    faucetUrl: "http://35.235.73.59:8000"
+    faucetUrl: "http://35.188.145.186:8000"
   }
 ];
 
