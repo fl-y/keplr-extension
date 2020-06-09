@@ -505,6 +505,14 @@ export const SendPage: FunctionComponent<RouteComponentProps> = observer(
       [closeAddressBook, setValue]
     );
 
+    const gasPriceStepForTamagotchi = useMemo(() => {
+      return {
+        low: new Dec("0.0001"),
+        average: new Dec("0.00025"),
+        high: new Dec("0.0004")
+      };
+    }, []);
+
     return (
       <HeaderLayout
         showChainName
@@ -793,7 +801,11 @@ export const SendPage: FunctionComponent<RouteComponentProps> = observer(
                   name="fee"
                   error={errors.fee && errors.fee.message}
                   currency={feeCurrency!}
-                  gasPriceStep={DefaultGasPriceStep}
+                  gasPriceStep={
+                    chainStore.chainInfo.chainId.includes("tamagotchi")
+                      ? gasPriceStepForTamagotchi
+                      : DefaultGasPriceStep
+                  }
                   gas={gasForSendMsg}
                 />
               </FormContext>
