@@ -1,5 +1,5 @@
-import { action, observable } from "mobx";
-import { AxiosInstance } from "axios";
+import { action, observable, onBecomeObserved, onBecomeUnobserved } from "mobx";
+import Axios, { AxiosInstance, CancelToken, CancelTokenSource } from "axios";
 import { actionAsync, task } from "mobx-utils";
 import { KVStore } from "../../../../common/kvstore";
 
@@ -32,11 +32,78 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
   @observable.ref
   private _error?: Readonly<QueryError<E>>;
 
+  private _isStarted: boolean = false;
+
+  private cancelToken?: CancelTokenSource;
+
+  private observedCount: number = 0;
+
+  protected constructor(protected readonly instance: AxiosInstance) {
+    onBecomeObserved(this, "_response", this.becomeObserved);
+    onBecomeObserved(this, "isFetching", this.becomeObserved);
+    onBecomeObserved(this, "_error", this.becomeObserved);
+
+    onBecomeUnobserved(this, "_response", this.becomeUnobserved);
+    onBecomeUnobserved(this, "isFetching", this.becomeUnobserved);
+    onBecomeUnobserved(this, "_error", this.becomeUnobserved);
+  }
+
+  private becomeObserved = (): void => {
+    if (this.observedCount === 0) {
+      this.start();
+    }
+    this.observedCount++;
+  };
+
+  private becomeUnobserved = (): void => {
+    this.observedCount--;
+    if (this.observedCount === 0) {
+      this.stop();
+    }
+  };
+
+  public get isObserved(): boolean {
+    return this.observedCount > 0;
+  }
+
+  private start() {
+    if (!this._isStarted) {
+      if (this.canStart()) {
+        this._isStarted = true;
+        this.fetch();
+      }
+    }
+  }
+
+  private stop() {
+    if (this.isStarted) {
+      this.onStop();
+      this._isStarted = false;
+    }
+  }
+
+  public get isStarted(): boolean {
+    return this._isStarted;
+  }
+
+  protected canStart(): boolean {
+    return true;
+  }
+
+  protected onStop() {
+    this.cancel();
+  }
+
   @actionAsync
   async fetch(): Promise<void> {
-    // If response is fetching, do nothing.
-    if (this.isFetching) {
+    // If not started, do nothing.
+    if (!this.isStarted) {
       return;
+    }
+
+    // If response is fetching, cancel the previous query.
+    if (this.isFetching) {
+      this.cancel();
     }
 
     this.isFetching = true;
@@ -56,12 +123,19 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     }
 
     try {
-      const response = await task(this.fetchResponse());
+      this.cancelToken = Axios.CancelToken.source();
+
+      const response = await task(this.fetchResponse(this.cancelToken.token));
       this.setResponse(response);
       // Clear the error if fetching succeeds.
       this.setError(undefined);
       await task(this.saveResponse(response));
     } catch (e) {
+      // If canceld, do nothing.
+      if (Axios.isCancel(e)) {
+        return;
+      }
+
       // If error is from Axios, and get response.
       if (e.response) {
         const error: QueryError<E> = {
@@ -92,14 +166,11 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
       }
     } finally {
       this.isFetching = false;
+      this.cancelToken = undefined;
     }
   }
 
   public get response() {
-    if (!this._response && !this._error) {
-      this.fetch();
-    }
-
     return this._response;
   }
 
@@ -117,7 +188,15 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     this._error = error;
   }
 
-  protected abstract fetchResponse(): Promise<QueryResponse<T>>;
+  public cancel(): void {
+    if (this.cancelToken) {
+      this.cancelToken.cancel();
+    }
+  }
+
+  protected abstract fetchResponse(
+    cancelToken: CancelToken
+  ): Promise<QueryResponse<T>>;
 
   protected abstract async saveResponse(
     response: Readonly<QueryResponse<T>>
@@ -129,7 +208,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
 }
 
 /**
- * ObservableQuery defines the base class to query the result from endpoint.
+ * ObservableQuery defines the event class to query the result from endpoint.
  * This supports the stale state if previous query exists.
  */
 export class ObservableQuery<
@@ -138,14 +217,18 @@ export class ObservableQuery<
 > extends ObservableQueryBase<T, E> {
   constructor(
     private readonly kvStore: KVStore,
-    private readonly instance: AxiosInstance,
-    private readonly url: string
+    instance: AxiosInstance,
+    private url: string
   ) {
-    super();
+    super(instance);
   }
 
-  protected async fetchResponse(): Promise<QueryResponse<T>> {
-    const result = await task(this.instance.get<T>(this.url));
+  protected async fetchResponse(
+    cancelToken: CancelToken
+  ): Promise<QueryResponse<T>> {
+    const result = await this.instance.get<T>(this.url, {
+      cancelToken
+    });
     return {
       data: result.data,
       status: result.status,
@@ -175,5 +258,29 @@ export class ObservableQuery<
       };
     }
     return undefined;
+  }
+}
+
+export class ObservableQueryMap<T = unknown, E = unknown> {
+  protected map = observable.map<string, ObservableQuery<T, E>>(
+    {},
+    {
+      deep: false
+    }
+  );
+
+  constructor(
+    private readonly creater: (key: string) => ObservableQuery<T, E>
+  ) {}
+
+  get(key: string): ObservableQuery<T, E> {
+    if (!this.map.has(key)) {
+      const query = this.creater(key);
+
+      this.map.set(key, query);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.map.get(key)!;
   }
 }
