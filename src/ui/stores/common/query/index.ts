@@ -1,7 +1,16 @@
-import { action, observable, onBecomeObserved, onBecomeUnobserved } from "mobx";
+import {
+  action,
+  computed,
+  observable,
+  ObservableMap,
+  onBecomeObserved,
+  onBecomeUnobserved,
+  runInAction
+} from "mobx";
 import Axios, { AxiosInstance, CancelToken, CancelTokenSource } from "axios";
 import { actionAsync, task } from "mobx-utils";
 import { KVStore } from "../../../../common/kvstore";
+import { DeepReadonly } from "utility-types";
 
 type QueryError<E> = {
   status: number;
@@ -27,7 +36,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
   private _response?: Readonly<QueryResponse<T>>;
 
   @observable
-  public isFetching: boolean = false;
+  public isFetching!: boolean;
 
   @observable.ref
   private _error?: Readonly<QueryError<E>>;
@@ -38,7 +47,16 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
 
   private observedCount: number = 0;
 
-  protected constructor(protected readonly instance: AxiosInstance) {
+  @observable.ref
+  protected _instance!: AxiosInstance;
+
+  protected constructor(instance: AxiosInstance) {
+    runInAction(() => {
+      this.isFetching = false;
+    });
+
+    this.setInstance(instance);
+
     onBecomeObserved(this, "_response", this.becomeObserved);
     onBecomeObserved(this, "isFetching", this.becomeObserved);
     onBecomeObserved(this, "_error", this.becomeObserved);
@@ -94,6 +112,17 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     this.cancel();
   }
 
+  @computed
+  protected get instance(): DeepReadonly<AxiosInstance> {
+    return this._instance;
+  }
+
+  @action
+  protected setInstance(instance: AxiosInstance) {
+    this._instance = instance;
+    this.fetch();
+  }
+
   @actionAsync
   async fetch(): Promise<void> {
     // If not started, do nothing.
@@ -107,6 +136,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     }
 
     this.isFetching = true;
+    this.cancelToken = Axios.CancelToken.source();
 
     // If there is no existing response, try to load saved reponse.
     if (!this._response) {
@@ -123,8 +153,6 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     }
 
     try {
-      this.cancelToken = Axios.CancelToken.source();
-
       const response = await task(this.fetchResponse(this.cancelToken.token));
       this.setResponse(response);
       // Clear the error if fetching succeeds.
@@ -215,12 +243,27 @@ export class ObservableQuery<
   T = unknown,
   E = unknown
 > extends ObservableQueryBase<T, E> {
+  @observable
+  protected _url!: string;
+
   constructor(
-    private readonly kvStore: KVStore,
+    protected readonly kvStore: KVStore,
     instance: AxiosInstance,
-    private url: string
+    url: string
   ) {
     super(instance);
+
+    this.setUrl(url);
+  }
+
+  get url(): string {
+    return this._url;
+  }
+
+  @action
+  protected setUrl(url: string) {
+    this._url = url;
+    this.fetch();
   }
 
   protected async fetchResponse(
@@ -262,10 +305,14 @@ export class ObservableQuery<
 }
 
 export class ObservableQueryMap<T = unknown, E = unknown> {
-  protected map = observable.map<string, ObservableQuery<T, E>>(
-    {},
-    {
-      deep: false
+  protected map: ObservableMap<string, ObservableQuery<T, E>> = runInAction(
+    () => {
+      return observable.map<string, ObservableQuery<T, E>>(
+        {},
+        {
+          deep: false
+        }
+      );
     }
   );
 
@@ -277,7 +324,9 @@ export class ObservableQueryMap<T = unknown, E = unknown> {
     if (!this.map.has(key)) {
       const query = this.creater(key);
 
-      this.map.set(key, query);
+      runInAction(() => {
+        this.map.set(key, query);
+      });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
