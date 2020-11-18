@@ -53,9 +53,8 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
   protected constructor(instance: AxiosInstance) {
     runInAction(() => {
       this.isFetching = false;
+      this._instance = instance;
     });
-
-    this.setInstance(instance);
 
     onBecomeObserved(this, "_response", this.becomeObserved);
     onBecomeObserved(this, "isFetching", this.becomeObserved);
@@ -112,15 +111,13 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     this.cancel();
   }
 
+  // Return the instance.
+  // You can memorize this by using @computed if you need to override this.
+  // NOTE: If this getter returns the different instance with previous instance.
+  // It will be used in the latter fetching.
   @computed
   protected get instance(): DeepReadonly<AxiosInstance> {
     return this._instance;
-  }
-
-  @action
-  protected setInstance(instance: AxiosInstance) {
-    this._instance = instance;
-    this.fetch();
   }
 
   @actionAsync
