@@ -1,25 +1,35 @@
-import { ObservableQuery, ObservableQueryMap } from "../common/query";
 import { SupplyTotal } from "./types";
 import { KVStore } from "../../../common/kvstore";
-import { AxiosInstance } from "axios";
+import {
+  ChainGetter,
+  ObservableChainQuery,
+  ObservableChainQueryMap
+} from "./chain-query";
 
-export class ObservableQuerySupplyTotal extends ObservableQueryMap<
+export class ObservableQuerySupplyTotal extends ObservableChainQueryMap<
   SupplyTotal
 > {
   constructor(
-    private readonly kvStore: KVStore,
-    private readonly instance: AxiosInstance
+    protected readonly kvStore: KVStore,
+    protected readonly chainId: string,
+    protected readonly chainGetter: ChainGetter
   ) {
-    super((denom: string) => {
-      return new ObservableQuery<SupplyTotal>(
+    super(kvStore, chainId, chainGetter, (denom: string) => {
+      return new ObservableChainQuery<SupplyTotal>(
         this.kvStore,
-        this.instance,
+        this.chainId,
+        this.chainGetter,
         `/supply/total/${denom}`
       );
     });
   }
 
-  getQueryDenom(denom: string): ObservableQuery<SupplyTotal> {
+  getQueryDenom(denom: string): ObservableChainQuery<SupplyTotal> {
     return this.get(denom);
+  }
+
+  getQueryStakeDenom(): ObservableChainQuery<SupplyTotal> {
+    const chainInfo = this.chainGetter.getChain(this.chainId);
+    return this.get(chainInfo.stakeCurrency.coinMinimalDenom);
   }
 }

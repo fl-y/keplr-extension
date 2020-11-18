@@ -1,65 +1,48 @@
-import { action, observable } from "mobx";
+import { observable, ObservableMap, runInAction } from "mobx";
 import { ObservableQuery } from "../common/query";
 import { KVStore } from "../../../common/kvstore";
-import Axios, { AxiosInstance } from "axios";
-import { StoreEvent } from "../common/event";
 import { MintingInflation, StakingPool, SupplyTotal } from "./types";
 import { DeepReadonly } from "utility-types";
-import { ChainInfo } from "../../../background/chains";
 import { ObservableQuerySupplyTotal } from "./supply";
 import { ObservableQueryInflation } from "./inflation";
+import { ObservableQueryRewards } from "./rewards";
+import { ChainGetter, ObservableChainQuery } from "./chain-query";
 
-export class Queries implements StoreEvent {
-  protected readonly _queryMint: ObservableQuery<MintingInflation>;
-  protected readonly _queryPool: ObservableQuery<StakingPool>;
+export class Queries {
+  protected readonly _queryMint: ObservableChainQuery<MintingInflation>;
+  protected readonly _queryPool: ObservableChainQuery<StakingPool>;
   protected readonly _querySupplyTotal: ObservableQuerySupplyTotal;
   protected readonly _queryInflation: ObservableQueryInflation;
+  protected readonly _queryRewards: ObservableQueryRewards;
 
-  @observable.ref
-  protected _chainInfo!: ChainInfo;
-
-  @observable.ref
-  protected _chainInfos: ChainInfo[] = [];
-
-  constructor(kvStore: KVStore, chainInfo: ChainInfo) {
-    const instance = Axios.create({
-      ...{
-        baseURL: chainInfo.rest
-      },
-      ...chainInfo.restConfig
-    });
-
-    this._queryMint = new ObservableQuery(
+  constructor(kvStore: KVStore, chainId: string, chainGetter: ChainGetter) {
+    this._queryMint = new ObservableChainQuery(
       kvStore,
-      instance,
+      chainId,
+      chainGetter,
       "/minting/inflation"
     );
-    this._queryPool = new ObservableQuery(kvStore, instance, "/staking/pool");
-    this._querySupplyTotal = new ObservableQuerySupplyTotal(kvStore, instance);
+    this._queryPool = new ObservableChainQuery(
+      kvStore,
+      chainId,
+      chainGetter,
+      "/staking/pool"
+    );
+    this._querySupplyTotal = new ObservableQuerySupplyTotal(
+      kvStore,
+      chainId,
+      chainGetter
+    );
     this._queryInflation = new ObservableQueryInflation(
-      chainInfo.stakeCurrency.coinMinimalDenom,
       this._queryMint,
       this._queryPool,
       this._querySupplyTotal
     );
-  }
-
-  @action
-  onSetChainInfo(info: ChainInfo) {
-    this._chainInfo = info;
-  }
-
-  @action
-  onSetChainInfos(infos: ChainInfo[]) {
-    this._chainInfos = infos;
-  }
-
-  get chainInfo(): DeepReadonly<ChainInfo> {
-    return this._chainInfo;
-  }
-
-  get chainInfos(): DeepReadonly<ChainInfo[]> {
-    return this._chainInfos;
+    this._queryRewards = new ObservableQueryRewards(
+      kvStore,
+      chainId,
+      chainGetter
+    );
   }
 
   getQueryMint(): DeepReadonly<ObservableQuery<MintingInflation>> {
@@ -79,72 +62,33 @@ export class Queries implements StoreEvent {
   getQueryInflation(): DeepReadonly<ObservableQueryInflation> {
     return this._queryInflation;
   }
+
+  getQueryRewards(): DeepReadonly<ObservableQueryRewards> {
+    return this._queryRewards;
+  }
 }
 
-export class QueriesStore implements StoreEvent {
-  protected queriesMap = observable.map<string, Queries>(
-    {},
-    {
-      deep: false
-    }
-  );
-
-  // Assume that this field will be set by `onSetChainInfo` right after the contructor.
-  protected chainInfo!: ChainInfo;
-
-  protected chainInfos: ChainInfo[] = [];
-
-  constructor(protected readonly kvStore: KVStore) {}
-
-  onSetChainInfo(info: ChainInfo) {
-    this.chainInfo = info;
-
-    this.queriesMap.forEach(queries => {
-      if (queries.onSetChainInfo) {
-        queries.onSetChainInfo(info);
+export class QueriesStore {
+  protected queriesMap: ObservableMap<string, Queries> = runInAction(() => {
+    return observable.map<string, Queries>(
+      {},
+      {
+        deep: false
       }
-    });
-  }
-
-  onSetChainInfos(infos: ChainInfo[]) {
-    this.chainInfos = infos;
-
-    this.queriesMap.forEach(queries => {
-      if (queries.onSetChainInfos) {
-        queries.onSetChainInfos(infos);
-      }
-    });
-  }
-
-  protected getChainInfo(chainId: string): ChainInfo {
-    const chainInfo = this.chainInfos.find(
-      chainInfo => chainInfo.chainId === chainId
     );
-    if (!chainInfo) {
-      throw new Error(`Unknown chain id: ${chainId}`);
-    }
-    return chainInfo;
-  }
+  });
 
-  protected getRestInstance(chainId: string): AxiosInstance {
-    const chainInfo = this.getChainInfo(chainId);
-    return Axios.create({
-      ...{
-        baseURL: chainInfo.rest
-      },
-      ...chainInfo.restConfig
-    });
-  }
-
-  get current(): DeepReadonly<Queries> {
-    return this.get(this.chainInfo.chainId);
-  }
+  constructor(
+    protected readonly kvStore: KVStore,
+    protected readonly chainGetter: ChainGetter
+  ) {}
 
   get(chainId: string): DeepReadonly<Queries> {
     if (!this.queriesMap.has(chainId)) {
-      const queries = new Queries(this.kvStore, this.getChainInfo(chainId));
-      queries.onSetChainInfos(this.chainInfos);
-      this.queriesMap.set(chainId, queries);
+      const queries = new Queries(this.kvStore, chainId, this.chainGetter);
+      runInAction(() => {
+        this.queriesMap.set(chainId, queries);
+      });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

@@ -280,19 +280,23 @@ export class ObservableQuery<
     };
   }
 
+  protected getCacheKey(): string {
+    return `${this.instance.name}-${
+      this.instance.defaults.baseURL
+    }${this.instance.getUri({
+      url: this.url
+    })}`;
+  }
+
   protected async saveResponse(
     response: Readonly<QueryResponse<T>>
   ): Promise<void> {
-    const key = `${this.instance.name}-${this.instance.getUri({
-      url: this.url
-    })}`;
+    const key = this.getCacheKey();
     await this.kvStore.set(key, response);
   }
 
   protected async loadStaledResponse(): Promise<QueryResponse<T> | undefined> {
-    const key = `${this.instance.name}-${this.instance.getUri({
-      url: this.url
-    })}`;
+    const key = this.getCacheKey();
     const response = await this.kvStore.get<QueryResponse<T>>(key);
     if (response) {
       return {

@@ -19,3 +19,21 @@ export type SupplyTotal = {
   // Int
   result: string;
 };
+
+export type CoinPrimitive = {
+  denom: string;
+  amount: string;
+};
+
+export type Rewards = {
+  height: string;
+  result: {
+    rewards: DelegatorReward[] | null;
+    total: CoinPrimitive[];
+  };
+};
+
+export type DelegatorReward = {
+  validator_address: string;
+  reward: CoinPrimitive[] | null;
+};

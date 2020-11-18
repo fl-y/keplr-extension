@@ -1,15 +1,14 @@
-import { ObservableQuery } from "../common/query";
 import { computed } from "mobx";
 import { Dec } from "@chainapsis/cosmosjs/common/decimal";
 import { DecUtils } from "../../../common/dec-utils";
 import { ObservableQuerySupplyTotal } from "./supply";
 import { MintingInflation, StakingPool } from "./types";
+import { ObservableChainQuery } from "./chain-query";
 
 export class ObservableQueryInflation {
   constructor(
-    private readonly stakingDenom: string,
-    private readonly _queryMint: ObservableQuery<MintingInflation>,
-    private readonly _queryPool: ObservableQuery<StakingPool>,
+    private readonly _queryMint: ObservableChainQuery<MintingInflation>,
+    private readonly _queryPool: ObservableChainQuery<StakingPool>,
     private readonly _querySupplyTotal: ObservableQuerySupplyTotal
   ) {}
 
@@ -17,7 +16,7 @@ export class ObservableQueryInflation {
     return (
       this._queryMint.error ??
       this._queryPool.error ??
-      this._querySupplyTotal.getQueryDenom(this.stakingDenom).error
+      this._querySupplyTotal.getQueryStakeDenom().error
     );
   }
 
@@ -25,7 +24,7 @@ export class ObservableQueryInflation {
     return (
       this._queryMint.isFetching ||
       this._queryPool.isFetching ||
-      this._querySupplyTotal.getQueryDenom(this.stakingDenom).isFetching
+      this._querySupplyTotal.getQueryStakeDenom().isFetching
     );
   }
 
@@ -39,16 +38,14 @@ export class ObservableQueryInflation {
       );
       if (
         this._queryPool.response &&
-        this._querySupplyTotal.getQueryDenom(this.stakingDenom).response
+        this._querySupplyTotal.getQueryStakeDenom().response
       ) {
         const bondedToken = new Dec(
           this._queryPool.response.data.result.bonded_tokens
         );
         const total = new Dec(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          this._querySupplyTotal.getQueryDenom(
-            this.stakingDenom
-          ).response!.data.result
+          this._querySupplyTotal.getQueryStakeDenom().response!.data.result
         );
         if (total.gt(new Dec(0))) {
           const ratio = bondedToken.quo(total);
