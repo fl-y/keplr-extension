@@ -37,3 +37,7 @@ export type DelegatorReward = {
   validator_address: string;
   reward: CoinPrimitive[] | null;
 };
+
+export type Balances = {
+  result: CoinPrimitive[];
+};
