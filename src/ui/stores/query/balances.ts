@@ -6,6 +6,7 @@ import { computed } from "mobx";
 import { CoinPretty } from "../../../common/units";
 import { Currency } from "../../../common/currency";
 import { Int } from "@chainapsis/cosmosjs/common/int";
+import { StoreUtils } from "../common/utils";
 
 export class ObservableQueryBalancesInner extends ObservableChainQuery<
   Balances
@@ -44,7 +45,10 @@ export class ObservableQueryBalancesInner extends ObservableChainQuery<
       [chainInfo.stakeCurrency.coinMinimalDenom]: chainInfo.stakeCurrency
     };
 
-    const result = this.getBalancesFromCurrencies(currencyMap);
+    const result = StoreUtils.getBalancesFromCurrencies(
+      currencyMap,
+      this.response?.data.result ?? []
+    );
     if (result.length === 0) {
       return new CoinPretty(chainInfo.stakeCurrency.coinDenom, new Int(0));
     }
@@ -66,7 +70,10 @@ export class ObservableQueryBalancesInner extends ObservableChainQuery<
       return obj;
     }, {});
 
-    return this.getBalancesFromCurrencies(currenciesMap);
+    return StoreUtils.getBalancesFromCurrencies(
+      currenciesMap,
+      this.response?.data.result ?? []
+    );
   }
 
   @computed
@@ -86,30 +93,10 @@ export class ObservableQueryBalancesInner extends ObservableChainQuery<
       return obj;
     }, {});
 
-    return this.getBalancesFromCurrencies(currenciesMap);
-  }
-
-  protected getBalancesFromCurrencies(currenciesMap: {
-    [denom: string]: Currency;
-  }) {
-    if (!this.response) {
-      return [];
-    }
-
-    // TODO: Handle the contract token.
-    const result: CoinPretty[] = [];
-    for (const bal of this.response.data.result) {
-      const currency = currenciesMap[bal.denom];
-      if (currency) {
-        result.push(
-          new CoinPretty(currency.coinDenom, new Int(bal.amount))
-            .precision(currency.coinDecimals)
-            .maxDecimals(currency.coinDecimals)
-        );
-      }
-    }
-
-    return result;
+    return StoreUtils.getBalancesFromCurrencies(
+      currenciesMap,
+      this.response?.data.result ?? []
+    );
   }
 }
 

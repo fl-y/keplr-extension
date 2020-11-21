@@ -6,3 +6,8 @@ export interface ChainGetter {
   // so it is possible to detect the chain info changed without any additional effort.
   getChain(chainId: string): ChainInfo;
 }
+
+export type CoinPrimitive = {
+  denom: string;
+  amount: string;
+};
