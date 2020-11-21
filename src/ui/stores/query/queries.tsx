@@ -6,8 +6,9 @@ import { DeepReadonly } from "utility-types";
 import { ObservableQuerySupplyTotal } from "./supply";
 import { ObservableQueryInflation } from "./inflation";
 import { ObservableQueryRewards } from "./rewards";
-import { ChainGetter, ObservableChainQuery } from "./chain-query";
+import { ObservableChainQuery } from "./chain-query";
 import { ObservableQueryBalances } from "./balances";
+import { ChainGetter } from "../common/types";
 
 export class Queries {
   protected readonly _queryMint: ObservableChainQuery<MintingInflation>;

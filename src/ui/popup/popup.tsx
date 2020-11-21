@@ -52,7 +52,21 @@ import { InitLedgerNotifiyHandler } from "../../background/ledger/foreground";
 import { BackgroundTxProvider } from "./background-tx-provider";
 import { AddTokenPage } from "./pages/setting/token/add";
 
+import { init as initProvider } from "../../content-scripts/inject/init";
+import { Keplr } from "../../content-scripts/inject/common";
+import { PopupWalletProvider } from "./wallet-provider";
+import { CosmJSOfflineSigner } from "../../content-scripts/inject/cosmjs-offline-signer";
+import { KeplrEnigmaUtils } from "../../content-scripts/inject/enigma-utils";
+
 currencyInit(LanguageToFiatCurrency);
+
+// Inject the wallet provider.
+initProvider(
+  new Keplr(),
+  new PopupWalletProvider(),
+  (chainId: string) => new CosmJSOfflineSigner(chainId),
+  (chainId: string) => new KeplrEnigmaUtils(chainId)
+);
 
 // Make sure that icon file will be included in bundle
 require("./public/assets/temp-icon.svg");

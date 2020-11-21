@@ -5,13 +5,14 @@ import {
   GetPubkeyMsg
 } from "../../background/secret-wasm";
 import { BACKGROUND_PORT } from "../../common/message/constant";
+import { SecretUtils } from "secretjs/types/enigmautils";
 
 const Buffer = require("buffer/").Buffer;
 
 /**
  * KeplrEnigmaUtils duplicates the public methods that are supported on secretjs's EnigmaUtils class.
  */
-export class KeplrEnigmaUtils {
+export class KeplrEnigmaUtils implements SecretUtils {
   constructor(private readonly chainId: string) {}
 
   public getPubkey = async (): Promise<Uint8Array> => {

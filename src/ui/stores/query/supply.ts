@@ -1,10 +1,7 @@
 import { SupplyTotal } from "./types";
 import { KVStore } from "../../../common/kvstore";
-import {
-  ChainGetter,
-  ObservableChainQuery,
-  ObservableChainQueryMap
-} from "./chain-query";
+import { ObservableChainQuery, ObservableChainQueryMap } from "./chain-query";
+import { ChainGetter } from "../common/types";
 
 export class ObservableQuerySupplyTotal extends ObservableChainQueryMap<
   SupplyTotal

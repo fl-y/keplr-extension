@@ -1,10 +1,7 @@
 import { Rewards } from "./types";
 import { KVStore } from "../../../common/kvstore";
-import {
-  ChainGetter,
-  ObservableChainQuery,
-  ObservableChainQueryMap
-} from "./chain-query";
+import { ObservableChainQuery, ObservableChainQueryMap } from "./chain-query";
+import { ChainGetter } from "../common/types";
 
 export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
   protected bech32Address: string;

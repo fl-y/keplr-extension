@@ -1,10 +1,7 @@
-import {
-  ChainGetter,
-  ObservableChainQuery,
-  ObservableChainQueryMap
-} from "./chain-query";
+import { ObservableChainQuery, ObservableChainQueryMap } from "./chain-query";
 import { KVStore } from "../../../common/kvstore";
 import { Balances } from "./types";
+import { ChainGetter } from "../common/types";
 
 export class ObservableQueryBalancesInner extends ObservableChainQuery<
   Balances

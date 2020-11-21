@@ -2,7 +2,6 @@ import {
   action,
   computed,
   observable,
-  ObservableMap,
   onBecomeObserved,
   onBecomeUnobserved,
   runInAction
@@ -11,6 +10,7 @@ import Axios, { AxiosInstance, CancelToken, CancelTokenSource } from "axios";
 import { actionAsync, task } from "mobx-utils";
 import { KVStore } from "../../../../common/kvstore";
 import { DeepReadonly } from "utility-types";
+import { HasMapStore } from "../map";
 
 type QueryError<E> = {
   status: number;
@@ -305,32 +305,10 @@ export class ObservableQuery<
   }
 }
 
-export class ObservableQueryMap<T = unknown, E = unknown> {
-  protected map: ObservableMap<string, ObservableQuery<T, E>> = runInAction(
-    () => {
-      return observable.map<string, ObservableQuery<T, E>>(
-        {},
-        {
-          deep: false
-        }
-      );
-    }
-  );
-
-  constructor(
-    private readonly creater: (key: string) => ObservableQuery<T, E>
-  ) {}
-
-  get(key: string): ObservableQuery<T, E> {
-    if (!this.map.has(key)) {
-      const query = this.creater(key);
-
-      runInAction(() => {
-        this.map.set(key, query);
-      });
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.map.get(key)!;
+export class ObservableQueryMap<T = unknown, E = unknown> extends HasMapStore<
+  ObservableQuery<T, E>
+> {
+  constructor(creater: (key: string) => ObservableQuery<T, E>) {
+    super(creater);
   }
 }

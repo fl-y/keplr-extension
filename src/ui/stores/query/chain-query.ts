@@ -1,15 +1,9 @@
 import { ObservableQuery } from "../common/query";
 import { KVStore } from "../../../common/kvstore";
 import Axios, { AxiosInstance } from "axios";
-import { ChainInfo } from "../../../background/chains";
-import { computed, observable, ObservableMap, runInAction } from "mobx";
-
-export interface ChainGetter {
-  // Return the chain info matched with chain id.
-  // Expect that this method will return the chain info reactively,
-  // so it is possible to detect the chain info changed without any additional effort.
-  getChain(chainId: string): ChainInfo;
-}
+import { computed } from "mobx";
+import { ChainGetter } from "../common/types";
+import { HasMapStore } from "../common/map";
 
 export class ObservableChainQuery<
   T = unknown,
@@ -57,36 +51,16 @@ export class ObservableChainQuery<
   }
 }
 
-export class ObservableChainQueryMap<T = unknown, E = unknown> {
-  protected map: ObservableMap<
-    string,
-    ObservableChainQuery<T, E>
-  > = runInAction(() => {
-    return observable.map<string, ObservableChainQuery<T, E>>(
-      {},
-      {
-        deep: false
-      }
-    );
-  });
-
+export class ObservableChainQueryMap<
+  T = unknown,
+  E = unknown
+> extends HasMapStore<ObservableChainQuery<T, E>> {
   constructor(
     protected readonly kvStore: KVStore,
     protected readonly chainId: string,
     protected readonly chainGetter: ChainGetter,
-    private readonly creater: (key: string) => ObservableChainQuery<T, E>
-  ) {}
-
-  get(key: string): ObservableChainQuery<T, E> {
-    if (!this.map.has(key)) {
-      const query = this.creater(key);
-
-      runInAction(() => {
-        this.map.set(key, query);
-      });
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.map.get(key)!;
+    creater: (key: string) => ObservableChainQuery<T, E>
+  ) {
+    super(creater);
   }
 }
