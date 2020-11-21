@@ -165,6 +165,13 @@ const handleRequestAccessMsg: (
   keeper: ChainsKeeper
 ) => InternalHandler<ReqeustAccessMsg> = keeper => {
   return async (env, msg) => {
+    // If the requested app origin is the extension itself, do nothing.
+    if (
+      new URL(msg.appOrigin).origin === new URL(env.extensionBaseURL).origin
+    ) {
+      return;
+    }
+
     await keeper.requestAccess(env.extensionBaseURL, msg.id, msg.chainId, [
       msg.appOrigin
     ]);
