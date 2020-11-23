@@ -12,14 +12,14 @@ import { KVStore } from "../../../../common/kvstore";
 import { DeepReadonly } from "utility-types";
 import { HasMapStore } from "../map";
 
-type QueryError<E> = {
+export type QueryError<E> = {
   status: number;
   statusText: string;
   message: string;
   data?: E;
 };
 
-type QueryResponse<T> = {
+export type QueryResponse<T> = {
   status: number;
   data: T;
   staled: boolean;
@@ -85,10 +85,8 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
 
   private start() {
     if (!this._isStarted) {
-      if (this.canStart()) {
-        this._isStarted = true;
-        this.fetch();
-      }
+      this._isStarted = true;
+      this.onStart();
     }
   }
 
@@ -103,12 +101,16 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     return this._isStarted;
   }
 
-  protected canStart(): boolean {
-    return true;
+  protected onStart() {
+    this.fetch();
   }
 
   protected onStop() {
     this.cancel();
+  }
+
+  protected canFetch(): boolean {
+    return true;
   }
 
   // Return the instance.
@@ -124,6 +126,10 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
   async fetch(): Promise<void> {
     // If not started, do nothing.
     if (!this.isStarted) {
+      return;
+    }
+
+    if (!this.canFetch()) {
       return;
     }
 

@@ -46,11 +46,16 @@ export class IntPretty {
     return pretty;
   }
 
-  toString(): string {
+  toDec(): Dec {
     let dec = new Dec(this.int);
     if (this.options.precision) {
       dec = dec.quo(DecUtils.getPrecisionDec(this.options.precision));
     }
+    return dec;
+  }
+
+  toString(): string {
+    const dec = this.toDec();
 
     let result = "";
     if (!this.options.shrink) {
