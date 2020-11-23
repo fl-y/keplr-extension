@@ -9,6 +9,7 @@ import { ObservableQueryRewards } from "./rewards";
 import { ObservableChainQuery } from "./chain-query";
 import { ObservableQueryBalances } from "./balances";
 import { ChainGetter } from "../common/types";
+import { ObservableQueryDelegations } from "./delegations";
 
 export class Queries {
   protected readonly _queryMint: ObservableChainQuery<MintingInflation>;
@@ -17,6 +18,7 @@ export class Queries {
   protected readonly _queryInflation: ObservableQueryInflation;
   protected readonly _queryRewards: ObservableQueryRewards;
   protected readonly _queryBalances: ObservableQueryBalances;
+  protected readonly _queryDelegations: ObservableQueryDelegations;
 
   constructor(kvStore: KVStore, chainId: string, chainGetter: ChainGetter) {
     this._queryMint = new ObservableChainQuery(
@@ -51,6 +53,11 @@ export class Queries {
       chainId,
       chainGetter
     );
+    this._queryDelegations = new ObservableQueryDelegations(
+      kvStore,
+      chainId,
+      chainGetter
+    );
   }
 
   getQueryMint(): DeepReadonly<ObservableQuery<MintingInflation>> {
@@ -77,6 +84,10 @@ export class Queries {
 
   getQueryBalances(): DeepReadonly<ObservableQueryBalances> {
     return this._queryBalances;
+  }
+
+  getQueryDelegations(): DeepReadonly<ObservableQueryDelegations> {
+    return this._queryDelegations;
   }
 }
 

@@ -36,5 +36,20 @@ export type DelegatorReward = {
 };
 
 export type Balances = {
+  height: string;
   result: CoinPrimitive[];
+};
+
+export type Delegations = {
+  height: string;
+  result: Delegation[];
+};
+
+export type Delegation = {
+  delegator_address: string;
+  validator_address: string;
+  // Dec
+  shares: string;
+  // Int
+  balance: string;
 };
