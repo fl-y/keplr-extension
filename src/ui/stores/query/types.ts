@@ -51,5 +51,30 @@ export type Delegation = {
   // Dec
   shares: string;
   // Int
-  balance: string;
+  balance:
+    | string
+    // There is difference according to the cosmos-sdk's version.
+    // But, latter is the latest version.
+    | {
+        denom: string;
+        amount: string;
+      };
+};
+
+export type UnbondingDelegations = {
+  height: string;
+  result: UnbondingDelegation[];
+};
+
+export type UnbondingDelegation = {
+  delegator_address: string;
+  validator_address: string;
+  entries: [
+    {
+      creation_height: string;
+      completion_time: string;
+      initial_balance: string;
+      balance: string;
+    }
+  ];
 };
