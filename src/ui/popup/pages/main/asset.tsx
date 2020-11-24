@@ -1,17 +1,13 @@
-import React, { FunctionComponent, useEffect } from "react";
+import React, { FunctionComponent } from "react";
 
 import { Dec } from "@chainapsis/cosmosjs/common/decimal";
 
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import styleAsset from "./asset.module.scss";
-import { CoinUtils } from "../../../../common/coin-utils";
-import {
-  Currency,
-  FiatCurrency,
-  getFiatCurrencyFromLanguage
-} from "../../../../common/currency";
-
+import { ToolTip } from "../../../components/tooltip";
+import { FormattedMessage, useIntl } from "react-intl";
+import { getFiatCurrencyFromLanguage } from "../../../../common/currency";
 import { useLanguage } from "../../language";
 import { DecUtils } from "../../../../common/dec-utils";
 
@@ -111,75 +107,70 @@ const LazyDoughnut = React.lazy(async () => {
 
   return { default: module.Doughnut };
 });
-import { Int } from "@chainapsis/cosmosjs/common/int";
-import { Price } from "../../stores/price";
-import { ToolTip } from "../../../components/tooltip";
-import { FormattedMessage, useIntl } from "react-intl";
 
-export const AssetStakedChartView: FunctionComponent<{
-  fiat: Price | undefined;
-  fiatCurrency: FiatCurrency;
-  stakeCurrency: Currency;
-  available: Int;
-  staked: Int;
-  loadingIndicator?: React.ReactElement;
-}> = ({
-  fiat,
-  fiatCurrency,
-  stakeCurrency,
-  available,
-  staked,
-  loadingIndicator
-}) => {
+export const AssetStakedChartView: FunctionComponent = observer(() => {
+  const { chainStore, accountStore, queriesStore, priceStoreV2 } = useStore();
+
   const intl = useIntl();
+
+  const language = useLanguage();
+
+  const fiatCurrency = getFiatCurrencyFromLanguage(language.language);
+
+  const current = chainStore.chainInfo;
+  const stakeCurrency = current.stakeCurrency;
 
   const hasCoinGeckoId = stakeCurrency.coinGeckoId != null;
 
-  const availableDec = new Dec(available, stakeCurrency.coinDecimals);
-  const stakedDec = new Dec(staked, stakeCurrency.coinDecimals);
-  const totalDec = availableDec.add(stakedDec);
+  const queries = queriesStore.get(current.chainId);
+
+  const balancesQuery = queries
+    .getQueryBalances()
+    .getQueryBech32Address(accountStore.bech32Address);
+
+  const stakable = balancesQuery.stakable.upperCase(true);
+
+  const delegated = queries
+    .getQueryDelegations()
+    .getQueryBech32Address(accountStore.bech32Address)
+    .total.upperCase(true);
+
+  const unbonding = queries
+    .getQueryUnbondingDelegations()
+    .getQueryBech32Address(accountStore.bech32Address)
+    .total.upperCase(true);
+
+  const stakedSum = delegated.add(unbonding);
+
+  const total = stakable.add(stakedSum);
+
+  const stakablePrice = priceStoreV2.calculatePrice(
+    stakeCurrency.coinGeckoId || "",
+    fiatCurrency.currency,
+    stakable
+  );
+  const stakedSumPrice = priceStoreV2.calculatePrice(
+    stakeCurrency.coinGeckoId || "",
+    fiatCurrency.currency,
+    stakedSum
+  );
+
+  const totalPrice = priceStoreV2.calculatePrice(
+    stakeCurrency.coinGeckoId || "",
+    fiatCurrency.currency,
+    total
+  );
 
   // If fiat value is fetched, show the value that is multiplied with amount and fiat value.
   // If not, just show the amount of asset.
   const data: number[] = [
-    fiat && !fiat.value.equals(new Dec(0))
-      ? parseFloat(availableDec.mul(fiat.value).toString())
-      : parseFloat(availableDec.toString()),
-    fiat && !fiat.value.equals(new Dec(0))
-      ? parseFloat(stakedDec.mul(fiat.value).toString())
-      : parseFloat(stakedDec.toString())
+    stakablePrice
+      ? parseFloat(stakablePrice.toDec().toString())
+      : parseFloat(stakable.toDec().toString()),
+    stakedSumPrice
+      ? parseFloat(stakedSumPrice.toDec().toString())
+      : parseFloat(stakedSum.toString())
   ];
-
-  // Show the chart's label as coin if price is not fetched.
-  let labels: string[] = [
-    `${CoinUtils.shrinkDecimals(
-      available,
-      stakeCurrency.coinDecimals,
-      0,
-      6
-    )} ${stakeCurrency.coinDenom.toUpperCase()}`,
-    `${CoinUtils.shrinkDecimals(
-      staked,
-      stakeCurrency.coinDecimals,
-      0,
-      6
-    )} ${stakeCurrency.coinDenom.toUpperCase()}`
-  ];
-  // Else if price is fetched, show the label as price.
-  if (hasCoinGeckoId && fiat && !fiat.value.equals(new Dec(0))) {
-    labels = [
-      fiatCurrency.symbol +
-        DecUtils.trim(
-          fiatCurrency.parse(
-            parseFloat(fiat.value.mul(availableDec).toString())
-          )
-        ),
-      fiatCurrency.symbol +
-        DecUtils.trim(
-          fiatCurrency.parse(parseFloat(fiat.value.mul(stakedDec).toString()))
-        )
-    ];
-  }
 
   return (
     <React.Fragment>
@@ -189,25 +180,33 @@ export const AssetStakedChartView: FunctionComponent<{
             <FormattedMessage id="main.account.chart.total-balance" />
           </div>
           <div className={styleAsset.small}>
-            {fiat && !fiat.value.equals(new Dec(0))
-              ? fiatCurrency.symbol +
-                DecUtils.trim(
-                  fiatCurrency.parse(
-                    parseFloat(fiat.value.mul(totalDec).toString())
-                  )
-                )
-              : hasCoinGeckoId
-              ? "?"
-              : `${CoinUtils.shrinkDecimals(
-                  available.add(staked),
-                  stakeCurrency.coinDecimals,
-                  0,
-                  3
-                )} ${stakeCurrency.coinDenom.toUpperCase()}`}
+            {!hasCoinGeckoId
+              ? total.toString()
+              : totalPrice
+              ? totalPrice.toString()
+              : total.toString()}
           </div>
-          {loadingIndicator ? (
-            <div className={styleAsset.indicatorIcon}>{loadingIndicator}</div>
-          ) : null}
+          <div className={styleAsset.indicatorIcon}>
+            <React.Fragment>
+              {balancesQuery.isFetching ? (
+                <i className="fas fa-spinner fa-spin" />
+              ) : balancesQuery.error ? (
+                <ToolTip
+                  tooltip={
+                    balancesQuery.error?.message ||
+                    balancesQuery.error?.statusText
+                  }
+                  theme="dark"
+                  trigger="hover"
+                  options={{
+                    placement: "top"
+                  }}
+                >
+                  <i className="fas fa-exclamation-triangle text-danger" />
+                </ToolTip>
+              ) : null}
+            </React.Fragment>
+          </div>
         </div>
         <React.Suspense fallback={<div style={{ height: "150px" }} />}>
           <LazyDoughnut
@@ -237,33 +236,37 @@ export const AssetStakedChartView: FunctionComponent<{
               },
               tooltips: {
                 callbacks: {
-                  // Don't show the label.
-                  label: (item, chartData) => {
-                    let total = 0;
-                    let data: number[] = [];
-                    if (chartData.datasets?.length) {
-                      data = (chartData.datasets[0].data as number[]) ?? [];
-                    }
-                    total = data.reduce((a, b) => a + b, 0) ?? 0;
-
-                    let suffix = "";
-                    if (total && item.index != null && data[item.index]) {
-                      let ratioDec = new Dec(data[item.index].toString())
-                        .quo(new Dec(total.toString()))
-                        .mul(DecUtils.getPrecisionDec(3));
-
-                      if (item.index > 0) {
-                        ratioDec = new Dec(ratioDec.roundUp());
+                  label: item => {
+                    let ratio = new Dec(0);
+                    // There are only two labels (stakable, staked (including unbondings)).
+                    if (item.index === 0) {
+                      if (!total.toDec().equals(new Dec(0))) {
+                        ratio = stakable
+                          .toDec()
+                          .quo(total.toDec())
+                          .mul(DecUtils.getPrecisionDec(2));
                       }
 
-                      suffix += ` (${ratioDec
-                        .quo(DecUtils.getPrecisionDec(1))
-                        .toString(1)}%)`;
+                      return `${
+                        stakablePrice
+                          ? stakablePrice.toString()
+                          : stakable.separator("").toString()
+                      } (${ratio.toString(1)}%)`;
+                    } else if (item.index === 1) {
+                      if (!total.toDec().equals(new Dec(0))) {
+                        ratio = stakedSum
+                          .toDec()
+                          .quo(total.toDec())
+                          .mul(DecUtils.getPrecisionDec(2));
+                      }
+
+                      return `${
+                        stakedSumPrice
+                          ? stakedSumPrice.toString()
+                          : stakedSum.separator("").toString()
+                      } (${ratio.toString(1)}%)`;
                     }
 
-                    if (item.index != null) {
-                      return " " + labels[item.index] + suffix;
-                    }
                     return "Unexpected error";
                   }
                 }
@@ -287,12 +290,7 @@ export const AssetStakedChartView: FunctionComponent<{
               color: "#525f7f"
             }}
           >
-            {`${CoinUtils.shrinkDecimals(
-              available,
-              stakeCurrency.coinDecimals,
-              0,
-              4
-            )} ${stakeCurrency.coinDenom.toUpperCase()}`}
+            {stakable.shrink(true).toString()}
           </div>
         </div>
         <div className={styleAsset.legend}>
@@ -308,83 +306,19 @@ export const AssetStakedChartView: FunctionComponent<{
             style={{
               color: "#525f7f"
             }}
-          >{`${CoinUtils.shrinkDecimals(
-            staked,
-            stakeCurrency.coinDecimals,
-            0,
-            4
-          )} ${stakeCurrency.coinDenom.toUpperCase()}`}</div>
+          >
+            {stakedSum.shrink(true).toString()}
+          </div>
         </div>
       </div>
     </React.Fragment>
   );
-};
+});
 
-export const AssetView: FunctionComponent = observer(() => {
-  const { chainStore, accountStore, priceStore } = useStore();
-  const language = useLanguage();
-
-  const fiatCurrency = getFiatCurrencyFromLanguage(language.language);
-
-  useEffect(() => {
-    const coinGeckoId = chainStore.chainInfo.stakeCurrency.coinGeckoId;
-
-    if (coinGeckoId != null && !priceStore.hasFiat(fiatCurrency.currency)) {
-      priceStore.fetchValue([fiatCurrency.currency], [coinGeckoId]);
-    }
-  }, [
-    chainStore.chainInfo.stakeCurrency.coinGeckoId,
-    fiatCurrency.currency,
-    language.language,
-    priceStore
-  ]);
-
-  const fiat = priceStore.getValue(
-    fiatCurrency.currency,
-    chainStore.chainInfo.stakeCurrency.coinGeckoId
-  );
-
-  const stakeCurrency = chainStore.chainInfo.stakeCurrency;
-
-  const availableAmount = CoinUtils.amountOf(
-    accountStore.assets,
-    stakeCurrency.coinMinimalDenom
-  );
-
-  const stakedAmount = accountStore.stakedAsset
-    ? accountStore.stakedAsset.amount
-    : new Int(0);
-
+export const AssetView: FunctionComponent = () => {
   return (
     <div className={styleAsset.containerAsset}>
-      <AssetStakedChartView
-        fiat={fiat}
-        fiatCurrency={fiatCurrency}
-        stakeCurrency={stakeCurrency}
-        available={availableAmount}
-        staked={stakedAmount}
-        loadingIndicator={
-          <React.Fragment>
-            {accountStore.isAssetFetching ? (
-              <i className="fas fa-spinner fa-spin" />
-            ) : accountStore.lastAssetFetchingError ? (
-              <ToolTip
-                tooltip={
-                  accountStore.lastAssetFetchingError.message ??
-                  accountStore.lastAssetFetchingError.toString()
-                }
-                theme="dark"
-                trigger="hover"
-                options={{
-                  placement: "top"
-                }}
-              >
-                <i className="fas fa-exclamation-triangle text-danger" />
-              </ToolTip>
-            ) : null}
-          </React.Fragment>
-        }
-      />
+      <AssetStakedChartView />
     </div>
   );
-});
+};

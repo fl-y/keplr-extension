@@ -1,4 +1,4 @@
-import { observable, action } from "mobx";
+import { observable, action, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
 
 import { RootStore } from "../root";
@@ -32,7 +32,8 @@ export class ChainStore {
   public allCurrencies!: Currency[];
 
   // Indicate whether the chain store is initializing.
-  private isIntializing = false;
+  @observable
+  public isIntializing!: boolean;
 
   // Defer setting chain right after init is complete.
   private deferChainSet: string = "";
@@ -42,6 +43,10 @@ export class ChainStore {
     private readonly embedChainInfos: ChainInfo[]
   ) {
     this.setAllCurrencies([]);
+
+    runInAction(() => {
+      this.isIntializing = false;
+    });
 
     this.setChainList(
       this.embedChainInfos.map(chainInfo => {
@@ -53,6 +58,18 @@ export class ChainStore {
     );
 
     this.setChain(this.chainList[0].chainId);
+  }
+
+  public getChain(chainId: string): ChainInfo {
+    const chainInfo = this.chainList.find(chainInfo => {
+      return chainInfo.chainId === chainId;
+    });
+
+    if (!chainInfo) {
+      throw new Error(`Unknown chain id ${chainId}`);
+    }
+
+    return chainInfo;
   }
 
   @action
