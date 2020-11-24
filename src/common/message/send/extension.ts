@@ -14,4 +14,18 @@ export class InExtensionMessageRequester implements MessageRequester {
       msg
     });
   }
+
+  async sendMessageToTab<M extends Message<unknown>>(
+    tabId: number,
+    port: string,
+    msg: M
+  ): Promise<M extends Message<infer R> ? R : never> {
+    msg.validateBasic();
+
+    return await browser.tabs.sendMessage(tabId, {
+      port,
+      type: msg.type(),
+      msg
+    });
+  }
 }

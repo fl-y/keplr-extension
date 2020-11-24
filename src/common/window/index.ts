@@ -14,7 +14,7 @@ const lastWindowIds: Record<string, number | undefined> = {};
 export async function openWindow(
   url: string,
   channel: string = "default"
-): Promise<number | undefined> {
+): Promise<number> {
   const option = {
     width: PopupSize.width,
     height: PopupSize.height,
@@ -57,7 +57,8 @@ export async function openWindow(
     }
   }
 
-  return lastWindowIds[channel];
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return lastWindowIds[channel]!;
 }
 
 export function closeWindow(channel: string) {

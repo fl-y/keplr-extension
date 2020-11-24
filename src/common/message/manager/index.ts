@@ -1,13 +1,18 @@
 import { Message } from "../message";
 import { Handler } from "../handler";
 import { Result } from "../interfaces";
-import { Env, MessageSender } from "../types";
+import { Env, FnRequestInteraction, MessageSender } from "../types";
+import { InExtensionMessageRequester } from "../send/extension";
+import { APP_PORT } from "../constant";
+import { openWindow } from "../../window";
 
 export class MessageManager {
   private registeredMsgType: Map<
     string,
     { new (): Message<unknown> }
   > = new Map();
+  protected static inExtensionMsgRequester = new InExtensionMessageRequester();
+
   private registeredHandler: Map<string, Handler> = new Map();
 
   protected port = "";
@@ -46,13 +51,64 @@ export class MessageManager {
     browser.runtime.onMessageExternal.removeListener(this.onMessage);
   }
 
-  protected produceEnv(): Env {
-    return {
+  protected produceEnv(sender: MessageSender): Env {
+    const envOmit = {
       extensionId: browser.runtime.id,
-      extensionBaseURL: browser.runtime.getURL("/"),
-      // TODO
-      requestInteraction: undefined as any
+      extensionBaseURL: browser.runtime.getURL("/")
     };
+
+    return {
+      ...envOmit,
+      requestInteraction: this.makeInterfactionFunc(envOmit, sender)
+    };
+  }
+
+  protected makeInterfactionFunc(
+    env: Omit<Env, "requestInteraction">,
+    sender: MessageSender
+  ): FnRequestInteraction {
+    const isInternal = this.checkMessageIsInternal(env, sender);
+
+    const openAndSendMsg: FnRequestInteraction = async (url, msg, options) => {
+      url = browser.runtime.getURL(url);
+
+      const windowId = await openWindow(url, options?.channel);
+      const window = await browser.windows.get(windowId, {
+        populate: true
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const tabId = window.tabs![0].id!;
+
+      return await MessageManager.inExtensionMsgRequester.sendMessageToTab(
+        tabId,
+        APP_PORT,
+        msg
+      );
+    };
+
+    if (isInternal) {
+      // If msg is from external (probably from webpage), it opens the popup for extension and send the msg back to the tab opened.
+      return openAndSendMsg;
+    } else {
+      // If msg is from the extension itself, it can send the msg back to the extension itself.
+      // In this case, this expects that there is only one extension popup have been opened.
+      return async (url, msg, options) => {
+        if (options?.forceOpenWindow) {
+          return await openAndSendMsg(url, msg, options);
+        }
+
+        url = browser.runtime.getURL(url);
+
+        const windows = browser.extension.getViews({ type: "popup" });
+        windows[0].location.href = url;
+
+        return await MessageManager.inExtensionMsgRequester.sendMessage(
+          APP_PORT,
+          msg
+        );
+      };
+    }
   }
 
   protected checkOriginIsValid(
@@ -72,7 +128,10 @@ export class MessageManager {
     return url.origin === message.origin;
   }
 
-  protected checkMessageIsInternal(env: Env, sender: MessageSender): boolean {
+  protected checkMessageIsInternal(
+    env: Omit<Env, "requestInteraction">,
+    sender: MessageSender
+  ): boolean {
     if (!sender.url) {
       return false;
     }
@@ -152,8 +211,8 @@ export class MessageManager {
 
       try {
         if (
-          !this.checkMessageIsInternal(this.produceEnv(), sender) &&
-          !msg.approveExternal(this.produceEnv(), sender)
+          !this.checkMessageIsInternal(this.produceEnv(sender), sender) &&
+          !msg.approveExternal(this.produceEnv(sender), sender)
         ) {
           sendResponse({
             error: "Permission rejected"
@@ -213,7 +272,7 @@ export class MessageManager {
       }
 
       try {
-        const promise = Promise.resolve(handler(this.produceEnv(), msg));
+        const promise = Promise.resolve(handler(this.produceEnv(sender), msg));
         promise
           .then(result => {
             sendResponse({
