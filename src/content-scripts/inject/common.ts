@@ -27,8 +27,6 @@ import { MessageRequester } from "../../common/message";
 import { toHex } from "@cosmjs/encoding";
 import { TxBuilderConfigPrimitive } from "../../background/keyring/types";
 
-const Buffer = require("buffer/").Buffer;
-
 export class Keplr {
   constructor(protected readonly msgRequester: MessageRequester) {}
 
@@ -38,9 +36,12 @@ export class Keplr {
   }
 
   async enable(chainId: string) {
-    const random = new Uint8Array(4);
-    crypto.getRandomValues(random);
-    const id = Buffer.from(random).toString("hex");
+    const bytes = new Uint8Array(8);
+    const id: string = Array.from(crypto.getRandomValues(bytes))
+      .map(value => {
+        return value.toString(16);
+      })
+      .join("");
 
     await this.msgRequester.sendMessage(
       BACKGROUND_PORT,
@@ -105,7 +106,7 @@ export class Keplr {
   ): Promise<void> {
     const msg = new RequestBackgroundTxMsg(
       chainId,
-      Buffer.from(txBytes).toString("hex"),
+      toHex(txBytes),
       mode,
       isRestAPI
     );
@@ -120,7 +121,7 @@ export class Keplr {
   ): Promise<ResultBroadcastTx | ResultBroadcastTxCommit> {
     const msg = new RequestBackgroundTxWithResultMsg(
       chainId,
-      Buffer.from(txBytes).toString("hex"),
+      toHex(txBytes),
       mode,
       isRestAPI
     );
