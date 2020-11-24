@@ -1,6 +1,6 @@
-import { listenAndProxyMessages } from "../common/message";
+import { InjectedMessageRequester } from "../common/message/send/inject";
 
-listenAndProxyMessages();
+InjectedMessageRequester.startProxy();
 
 const container = document.head || document.documentElement;
 const scriptElement = document.createElement("script");

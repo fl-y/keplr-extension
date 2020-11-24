@@ -49,7 +49,9 @@ export class MessageManager {
   protected produceEnv(): Env {
     return {
       extensionId: browser.runtime.id,
-      extensionBaseURL: browser.runtime.getURL("/")
+      extensionBaseURL: browser.runtime.getURL("/"),
+      // TODO
+      requestInteraction: undefined as any
     };
   }
 

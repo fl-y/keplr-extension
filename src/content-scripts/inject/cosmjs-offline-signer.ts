@@ -7,23 +7,18 @@ import {
   SignResponse,
   StdSignDoc
 } from "@cosmjs/launchpad";
-import { toHex, fromHex } from "@cosmjs/encoding";
-import {
-  GetKeyMsg,
-  RequestSignMsg,
-  RequestTxBuilderConfigMsg
-} from "../../background/keyring";
-import { sendMessage } from "../../common/message/send";
-import { BACKGROUND_PORT } from "../../common/message/constant";
+import { fromHex } from "@cosmjs/encoding";
 import { feeFromString } from "../../background/keyring/utils";
-
-const Buffer = require("buffer/").Buffer;
+import { Keplr } from "./common";
 
 export class CosmJSOfflineSigner implements OfflineSigner {
-  constructor(private readonly chainId: string) {}
+  constructor(
+    protected readonly chainId: string,
+    protected readonly keplr: Keplr
+  ) {}
 
   async getAccounts(): Promise<AccountData[]> {
-    const key = await sendMessage(BACKGROUND_PORT, new GetKeyMsg(this.chainId));
+    const key = await this.keplr.getKey(this.chainId);
 
     return [
       {
@@ -39,38 +34,25 @@ export class CosmJSOfflineSigner implements OfflineSigner {
     signerAddress: string,
     signDoc: StdSignDoc
   ): Promise<SignResponse> {
-    const key = await sendMessage(BACKGROUND_PORT, new GetKeyMsg(this.chainId));
+    if (this.chainId !== signDoc.chain_id) {
+      throw new Error("Unmatched chain id with the offline signer");
+    }
+
+    const key = await this.keplr.getKey(signDoc.chain_id);
 
     if (key.bech32Address !== signerAddress) {
       throw new Error("Unknown signer address");
     }
 
-    if (this.chainId !== signDoc.chain_id) {
-      throw new Error("Unmatched chain id with the offline signer");
-    }
-
-    const random = new Uint8Array(4);
-    crypto.getRandomValues(random);
-    const id = Buffer.from(random).toString("hex");
-
-    const requestTxBuilderConfigMsg = new RequestTxBuilderConfigMsg(
-      {
-        chainId: signDoc.chain_id,
-        accountNumber: signDoc.account_number,
-        sequence: signDoc.sequence,
-        gas: signDoc.fee.gas,
-        fee: signDoc.fee.amount
-          .map(coin => `${coin.amount} ${coin.denom}`)
-          .join(","),
-        memo: signDoc.memo
-      },
-      id,
-      true
-    );
-    const txConfig = await sendMessage(
-      BACKGROUND_PORT,
-      requestTxBuilderConfigMsg
-    );
+    const txConfig = await this.keplr.getTxConfig(signDoc.chain_id, {
+      accountNumber: signDoc.account_number,
+      sequence: signDoc.sequence,
+      gas: signDoc.fee.gas,
+      fee: signDoc.fee.amount
+        .map(coin => `${coin.amount} ${coin.denom}`)
+        .join(","),
+      memo: signDoc.memo
+    });
 
     let feeAmountCoins: Coin[];
     const feeAmount = feeFromString(txConfig.config.fee);
@@ -104,14 +86,11 @@ export class CosmJSOfflineSigner implements OfflineSigner {
       memo: txConfig.config.memo
     };
 
-    const requestSignMsg = new RequestSignMsg(
+    const signature = await this.keplr.sign(
       signDoc.chain_id,
-      id,
       signerAddress,
-      toHex(serializeSignDoc(newSignDoc)),
-      true
+      serializeSignDoc(newSignDoc)
     );
-    const signature = await sendMessage(BACKGROUND_PORT, requestSignMsg);
 
     return {
       signed: newSignDoc,

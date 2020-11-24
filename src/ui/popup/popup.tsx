@@ -57,14 +57,17 @@ import { Keplr } from "../../content-scripts/inject/common";
 import { PopupWalletProvider } from "./wallet-provider";
 import { CosmJSOfflineSigner } from "../../content-scripts/inject/cosmjs-offline-signer";
 import { KeplrEnigmaUtils } from "../../content-scripts/inject/enigma-utils";
+import { InExtensionMessageRequester } from "../../common/message/send/extension";
 
 currencyInit(LanguageToFiatCurrency);
 
+const keplr = new Keplr(new InExtensionMessageRequester());
+
 // Inject the wallet provider.
 initProvider(
-  new Keplr(),
+  keplr,
   new PopupWalletProvider(),
-  (chainId: string) => new CosmJSOfflineSigner(chainId),
+  (chainId: string) => new CosmJSOfflineSigner(chainId, keplr),
   (chainId: string) => new KeplrEnigmaUtils(chainId)
 );
 

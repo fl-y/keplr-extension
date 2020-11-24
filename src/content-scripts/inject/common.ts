@@ -3,7 +3,6 @@ import {
   ReqeustAccessMsg,
   SuggestChainInfoMsg
 } from "../../background/chains/messages";
-import { sendMessage } from "../../common/message/send";
 import { BACKGROUND_PORT } from "../../common/message/constant";
 import {
   RequestBackgroundTxMsg,
@@ -13,18 +12,29 @@ import {
   ResultBroadcastTx,
   ResultBroadcastTxCommit
 } from "@chainapsis/cosmosjs/rpc/tx";
-import { EnableKeyRingMsg, KeyRingStatus } from "../../background/keyring";
+import {
+  EnableKeyRingMsg,
+  GetKeyMsg,
+  KeyRingStatus,
+  RequestSignMsg,
+  RequestTxBuilderConfigMsg
+} from "../../background/keyring";
 import {
   GetSecret20ViewingKey,
   SuggestTokenMsg
 } from "../../background/tokens/messages";
+import { MessageRequester } from "../../common/message";
+import { toHex } from "@cosmjs/encoding";
+import { TxBuilderConfigPrimitive } from "../../background/keyring/types";
 
 const Buffer = require("buffer/").Buffer;
 
 export class Keplr {
+  constructor(protected readonly msgRequester: MessageRequester) {}
+
   async experimentalSuggestChain(chainInfo: SuggestingChainInfo) {
     const msg = new SuggestChainInfoMsg(chainInfo, true);
-    await sendMessage(BACKGROUND_PORT, msg);
+    await this.msgRequester.sendMessage(BACKGROUND_PORT, msg);
   }
 
   async enable(chainId: string) {
@@ -32,20 +42,56 @@ export class Keplr {
     crypto.getRandomValues(random);
     const id = Buffer.from(random).toString("hex");
 
-    await sendMessage(
+    await this.msgRequester.sendMessage(
       BACKGROUND_PORT,
       new ReqeustAccessMsg(id, chainId, window.location.origin)
     );
 
     const msg = new EnableKeyRingMsg(chainId);
-    const result = await sendMessage(BACKGROUND_PORT, msg);
+    const result = await this.msgRequester.sendMessage(BACKGROUND_PORT, msg);
     if (result.status !== KeyRingStatus.UNLOCKED) {
       throw new Error("Keyring not unlocked");
     }
   }
 
+  async getKey(chainId: string) {
+    const msg = new GetKeyMsg(chainId);
+    return await this.msgRequester.sendMessage(BACKGROUND_PORT, msg);
+  }
+
+  async getTxConfig(chainId: string, config: TxBuilderConfigPrimitive) {
+    const bytes = new Uint8Array(8);
+    const id: string = Array.from(crypto.getRandomValues(bytes))
+      .map(value => {
+        return value.toString(16);
+      })
+      .join("");
+
+    const msg = new RequestTxBuilderConfigMsg(
+      {
+        chainId,
+        ...config
+      },
+      id,
+      true
+    );
+    return await this.msgRequester.sendMessage(BACKGROUND_PORT, msg);
+  }
+
+  async sign(chainId: string, signer: string, message: Uint8Array) {
+    const bytes = new Uint8Array(8);
+    const id: string = Array.from(crypto.getRandomValues(bytes))
+      .map(value => {
+        return value.toString(16);
+      })
+      .join("");
+
+    const msg = new RequestSignMsg(chainId, id, signer, toHex(message), true);
+    return await this.msgRequester.sendMessage(BACKGROUND_PORT, msg);
+  }
+
   async suggestToken(chainId: string, contractAddress: string) {
-    await sendMessage(
+    await this.msgRequester.sendMessage(
       BACKGROUND_PORT,
       new SuggestTokenMsg(chainId, contractAddress)
     );
@@ -63,7 +109,7 @@ export class Keplr {
       mode,
       isRestAPI
     );
-    await sendMessage(BACKGROUND_PORT, msg);
+    await this.msgRequester.sendMessage(BACKGROUND_PORT, msg);
   }
 
   async requestTxWithResult(
@@ -78,14 +124,14 @@ export class Keplr {
       mode,
       isRestAPI
     );
-    return await sendMessage(BACKGROUND_PORT, msg);
+    return await this.msgRequester.sendMessage(BACKGROUND_PORT, msg);
   }
 
   async getSecret20ViewingKey(
     chainId: string,
     contractAddress: string
   ): Promise<string> {
-    return await sendMessage(
+    return await this.msgRequester.sendMessage(
       BACKGROUND_PORT,
       new GetSecret20ViewingKey(chainId, contractAddress)
     );

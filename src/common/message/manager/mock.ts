@@ -16,7 +16,9 @@ export class MockMessageManager extends MessageManager {
   protected produceEnv(): Env {
     return {
       extensionId: this.extensionId,
-      extensionBaseURL: this.extensionBaseURL
+      extensionBaseURL: this.extensionBaseURL,
+      // TODO
+      requestInteraction: undefined as any
     };
   }
 

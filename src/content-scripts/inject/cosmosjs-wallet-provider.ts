@@ -1,20 +1,11 @@
 import { Key, WalletProvider } from "@chainapsis/cosmosjs/core/walletProvider";
 import { Context } from "@chainapsis/cosmosjs/core/context";
-import {
-  EnableKeyRingMsg,
-  GetKeyMsg,
-  KeyRingStatus,
-  RequestSignMsg,
-  RequestTxBuilderConfigMsg
-} from "../../background/keyring";
-import { sendMessage } from "../../common/message";
-import { BACKGROUND_PORT } from "../../common/message/constant";
 import { TxBuilderConfig } from "@chainapsis/cosmosjs/core/txBuilder";
 import {
   txBuilderConfigFromPrimitive,
   txBuilderConfigToPrimitive
 } from "../../background/keyring/utils";
-import { ReqeustAccessMsg } from "../../background/chains/messages";
+import { Keplr } from "./common";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Manifest = require("../../manifest.json");
@@ -25,32 +16,20 @@ export class CosmosJSWalletProvider implements WalletProvider {
   public readonly identifier: string = "keplr-extension";
   public readonly version: string = Manifest.version;
 
+  constructor(protected readonly keplr: Keplr) {}
+
   /**
    * Request access to the user's accounts. Wallet can ask the user to approve or deny access. If user deny access, it will throw error.
    */
   async enable(context: Context): Promise<void> {
-    const random = new Uint8Array(4);
-    crypto.getRandomValues(random);
-    const id = Buffer.from(random).toString("hex");
-
-    await sendMessage(
-      BACKGROUND_PORT,
-      new ReqeustAccessMsg(id, context.get("chainId"), window.location.origin)
-    );
-
-    const msg = new EnableKeyRingMsg(context.get("chainId"));
-    const result = await sendMessage(BACKGROUND_PORT, msg);
-    if (result.status !== KeyRingStatus.UNLOCKED) {
-      throw new Error("Keyring not unlocked");
-    }
+    return this.keplr.enable(context.get("chainId"));
   }
 
   /**
    * Get array of keys that includes bech32 address string, address bytes and public key from wallet if user have approved the access.
    */
   async getKeys(context: Context): Promise<Key[]> {
-    const msg = new GetKeyMsg(context.get("chainId"));
-    const key = await sendMessage(BACKGROUND_PORT, msg);
+    const key = await this.keplr.getKey(context.get("chainId"));
     return Promise.resolve([
       {
         algo: key.algo,
@@ -71,22 +50,9 @@ export class CosmosJSWalletProvider implements WalletProvider {
     context: Context,
     config: TxBuilderConfig
   ): Promise<TxBuilderConfig> {
-    const random = new Uint8Array(4);
-    crypto.getRandomValues(random);
-    const id = Buffer.from(random).toString("hex");
-
-    const requestTxBuilderConfigMsg = new RequestTxBuilderConfigMsg(
-      {
-        chainId: context.get("chainId"),
-        ...txBuilderConfigToPrimitive(config)
-      },
-      id,
-      true
-    );
-
-    const result = await sendMessage(
-      BACKGROUND_PORT,
-      requestTxBuilderConfigMsg
+    const result = await this.keplr.getTxConfig(
+      context.get("chainId"),
+      txBuilderConfigToPrimitive(config)
     );
 
     return txBuilderConfigFromPrimitive(result.config);
@@ -100,19 +66,11 @@ export class CosmosJSWalletProvider implements WalletProvider {
     bech32Address: string,
     message: Uint8Array
   ): Promise<Uint8Array> {
-    const random = new Uint8Array(4);
-    crypto.getRandomValues(random);
-    const id = Buffer.from(random).toString("hex");
-
-    const requestSignMsg = new RequestSignMsg(
+    const result = await this.keplr.sign(
       context.get("chainId"),
-      id,
       bech32Address,
-      Buffer.from(message).toString("hex"),
-      true
+      message
     );
-
-    const result = await sendMessage(BACKGROUND_PORT, requestSignMsg);
 
     return new Uint8Array(Buffer.from(result.signatureHex, "hex"));
   }
