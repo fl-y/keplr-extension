@@ -46,6 +46,13 @@ export class IntPretty {
     return pretty;
   }
 
+  add(target: IntPretty): IntPretty {
+    const pretty = this.clone();
+    // TODO: Handle the precision of target.
+    pretty.int = pretty.int.add(target.int);
+    return pretty;
+  }
+
   toDec(): Dec {
     let dec = new Dec(this.int);
     if (this.options.precision) {
@@ -60,6 +67,11 @@ export class IntPretty {
     let result = "";
     if (!this.options.shrink) {
       result = dec.toString(this.options.maxDecimals);
+      if (this.options.maxDecimals === 0) {
+        // XXX: There is a bug that the result of `Dec`.toString(0) has the "."
+        // This should be fixed in the `cosmosjs` soon.
+        result = result.replace(".", "");
+      }
     } else {
       result = CoinUtils.shrinkDecimals(
         this.int,

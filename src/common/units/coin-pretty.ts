@@ -88,6 +88,12 @@ export class CoinPretty {
     return pretty;
   }
 
+  add(target: CoinPretty): CoinPretty {
+    const pretty = this.clone();
+    pretty.intPretty = pretty.intPretty.add(target.intPretty);
+    return pretty;
+  }
+
   toDec(): Dec {
     return this.intPretty.toDec();
   }
