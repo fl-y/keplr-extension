@@ -10,6 +10,7 @@ import { LedgerKeeper } from "../ledger/keeper";
 import { BIP44HDPath } from "./types";
 import { ChainUpdaterKeeper } from "../updater/keeper";
 import { ChainInfo } from "../chains";
+import { Env } from "../../common/message";
 
 const Buffer = require("buffer/").Buffer;
 
@@ -221,6 +222,7 @@ export class KeyRing {
   }
 
   public async createLedgerKey(
+    env: Env,
     password: string,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
@@ -230,7 +232,10 @@ export class KeyRing {
     }
 
     // Get public key first
-    this.ledgerPublicKey = await this.ledgerKeeper.getPublicKey(bip44HDPath);
+    this.ledgerPublicKey = await this.ledgerKeeper.getPublicKey(
+      env,
+      bip44HDPath
+    );
 
     const keyStore = await KeyRing.CreateLedgerKeyStore(
       this.ledgerPublicKey,
@@ -523,6 +528,7 @@ export class KeyRing {
   }
 
   public async sign(
+    env: Env,
     chainId: string,
     defaultCoinType: number,
     message: Uint8Array
@@ -543,6 +549,7 @@ export class KeyRing {
       }
 
       return await this.ledgerKeeper.sign(
+        env,
         KeyRing.getKeyStoreBIP44Path(this.keyStore),
         pubKey,
         message
@@ -623,6 +630,7 @@ export class KeyRing {
   }
 
   public async addLedgerKey(
+    env: Env,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
   ): Promise<MultiKeyStoreInfoWithSelected> {
@@ -631,7 +639,7 @@ export class KeyRing {
     }
 
     // Get public key first
-    const publicKey = await this.ledgerKeeper.getPublicKey(bip44HDPath);
+    const publicKey = await this.ledgerKeeper.getPublicKey(env, bip44HDPath);
 
     const keyStore = await KeyRing.CreateLedgerKeyStore(
       publicKey,

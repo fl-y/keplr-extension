@@ -80,11 +80,13 @@ export class MessageManager {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const tabId = window.tabs![0].id!;
 
-      return await MessageManager.inExtensionMsgRequester.sendMessageToTab(
-        tabId,
-        APP_PORT,
-        msg
-      );
+      if (msg) {
+        return await MessageManager.inExtensionMsgRequester.sendMessageToTab(
+          tabId,
+          APP_PORT,
+          msg
+        );
+      }
     };
 
     if (isInternal) {
@@ -103,10 +105,12 @@ export class MessageManager {
         const windows = browser.extension.getViews({ type: "popup" });
         windows[0].location.href = url;
 
-        return await MessageManager.inExtensionMsgRequester.sendMessage(
-          APP_PORT,
-          msg
-        );
+        if (msg) {
+          return await MessageManager.inExtensionMsgRequester.sendMessage(
+            APP_PORT,
+            msg
+          );
+        }
       };
     }
   }

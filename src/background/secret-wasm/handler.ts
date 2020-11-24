@@ -31,7 +31,9 @@ const handleGetPubkeyMsg: (
       msg.origin
     );
 
-    return Buffer.from(await keeper.getPubkey(msg.chainId)).toString("hex");
+    return Buffer.from(await keeper.getPubkey(env, msg.chainId)).toString(
+      "hex"
+    );
   };
 };
 
@@ -47,7 +49,7 @@ const handleReqeustEncryptMsg: (
 
     // TODO: Should ask for user whether approve or reject to encrypt.
     return Buffer.from(
-      await keeper.encrypt(msg.chainId, msg.contractCodeHash, msg.msg)
+      await keeper.encrypt(env, msg.chainId, msg.contractCodeHash, msg.msg)
     ).toString("hex");
   };
 };
@@ -65,6 +67,7 @@ const handleRequestDecryptMsg: (
     // XXX: Is there need to ask for user whether approve or reject to decrypt?
     return Buffer.from(
       await keeper.decrypt(
+        env,
         msg.chainId,
         Buffer.from(msg.cipherTextHex, "hex"),
         Buffer.from(msg.nonceHex, "hex")

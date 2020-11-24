@@ -12,9 +12,9 @@ import {
   LedgerSignCompletedMsg
 } from "./foreground";
 import { AsyncWaitGroup } from "../../common/async-wait-group";
-import { openWindow } from "../../common/window";
 import { BIP44HDPath } from "../keyring/types";
 import { KVStore } from "../../common/kvstore";
+import { Env } from "../../common/message";
 
 const Buffer = require("buffer/").Buffer;
 
@@ -25,8 +25,8 @@ export class LedgerKeeper {
 
   constructor(private readonly kvStore: KVStore) {}
 
-  async getPublicKey(bip44HDPath: BIP44HDPath): Promise<Uint8Array> {
-    return await this.useLedger(async ledger => {
+  async getPublicKey(env: Env, bip44HDPath: BIP44HDPath): Promise<Uint8Array> {
+    return await this.useLedger(env, async ledger => {
       try {
         // Cosmos App on Ledger doesn't support the coin type other than 118.
         return await ledger.getPublicKey([
@@ -43,11 +43,12 @@ export class LedgerKeeper {
   }
 
   async sign(
+    env: Env,
     bip44HDPath: BIP44HDPath,
     expectedPubKey: Uint8Array,
     message: Uint8Array
   ): Promise<Uint8Array> {
-    return await this.useLedger(async ledger => {
+    return await this.useLedger(env, async ledger => {
       try {
         const pubKey = await ledger.getPublicKey([
           44,
@@ -82,8 +83,8 @@ export class LedgerKeeper {
     });
   }
 
-  async useLedger<T>(fn: (ledger: Ledger) => Promise<T>): Promise<T> {
-    const ledger = await this.initLedger();
+  async useLedger<T>(env: Env, fn: (ledger: Ledger) => Promise<T>): Promise<T> {
+    const ledger = await this.initLedger(env);
     try {
       return await fn(ledger);
     } finally {
@@ -91,7 +92,7 @@ export class LedgerKeeper {
     }
   }
 
-  async initLedger(): Promise<Ledger> {
+  async initLedger(env: Env): Promise<Ledger> {
     if (this.previousInitAborter) {
       this.previousInitAborter(
         new Error(
@@ -134,7 +135,7 @@ export class LedgerKeeper {
         return ledger;
       } catch (e) {
         console.log(e);
-        await this.notifyNeedInitializeLedger();
+        await this.notifyNeedInitializeLedger(env);
 
         await Promise.race([
           this.initWG.wait(),
@@ -155,12 +156,12 @@ export class LedgerKeeper {
     }
   }
 
-  async notifyNeedInitializeLedger() {
+  async notifyNeedInitializeLedger(env: Env) {
     await sendMessage(APP_PORT, new LedgerInitFailedMsg());
-    await openWindow(
-      browser.runtime.getURL("popup.html#/ledger-grant"),
-      "ledger"
-    );
+    await env.requestInteraction("popup.html#/ledger-grant", undefined, {
+      forceOpenWindow: true,
+      channel: "ledger"
+    });
   }
 
   async resumeInitLedger() {

@@ -235,9 +235,10 @@ const handleAddPrivateKeyMsg: (
 const handleCreateLedgerKeyMsg: (
   keeper: KeyRingKeeper
 ) => InternalHandler<CreateLedgerKeyMsg> = keeper => {
-  return async (_, msg) => {
+  return async (env, msg) => {
     return {
       status: await keeper.createLedgerKey(
+        env,
         msg.password,
         msg.meta,
         msg.bip44HDPath
@@ -249,8 +250,8 @@ const handleCreateLedgerKeyMsg: (
 const handleAddLedgerKeyMsg: (
   keeper: KeyRingKeeper
 ) => InternalHandler<AddLedgerKeyMsg> = keeper => {
-  return async (_, msg) => {
-    return await keeper.addLedgerKey(msg.meta, msg.bip44HDPath);
+  return async (env, msg) => {
+    return await keeper.addLedgerKey(env, msg.meta, msg.bip44HDPath);
   };
 };
 
@@ -376,6 +377,7 @@ const handleRequestSignMsg: (
     return {
       signatureHex: Buffer.from(
         await keeper.requestSign(
+          env,
           env.extensionBaseURL,
           msg.chainId,
           new Uint8Array(Buffer.from(msg.messageHex, "hex")),

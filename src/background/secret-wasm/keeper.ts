@@ -5,6 +5,7 @@ import { Crypto } from "../keyring/crypto";
 import { KVStore } from "../../common/kvstore";
 import { ChainInfo } from "../chains";
 import { AccAddress } from "@chainapsis/cosmosjs/common/address";
+import { Env } from "../../common/message";
 
 const Buffer = require("buffer/").Buffer;
 
@@ -15,7 +16,7 @@ export class SecretWasmKeeper {
     private readonly keyRingKeeper: KeyRingKeeper
   ) {}
 
-  async getPubkey(chainId: string): Promise<Uint8Array> {
+  async getPubkey(env: Env, chainId: string): Promise<Uint8Array> {
     const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
 
     const keyRingType = await this.keyRingKeeper.getKeyRingType();
@@ -23,7 +24,7 @@ export class SecretWasmKeeper {
       throw new Error("Key ring is not initialized");
     }
 
-    const seed = await this.getSeed(chainInfo);
+    const seed = await this.getSeed(env, chainInfo);
 
     // TODO: Handle the rest config.
     const utils = new EnigmaUtils(chainInfo.rest, seed);
@@ -31,6 +32,7 @@ export class SecretWasmKeeper {
   }
 
   async encrypt(
+    env: Env,
     chainId: string,
     contractCodeHash: string,
     msg: object
@@ -46,7 +48,7 @@ export class SecretWasmKeeper {
     // Otherwise, it will lost the encryption/decryption key if Keplr is uninstalled or local storage is cleared.
     // For now, use the signature of some string to generate the seed.
     // It need to more research.
-    const seed = await this.getSeed(chainInfo);
+    const seed = await this.getSeed(env, chainInfo);
 
     // TODO: Handle the rest config.
     const utils = new EnigmaUtils(chainInfo.rest, seed);
@@ -55,6 +57,7 @@ export class SecretWasmKeeper {
   }
 
   async decrypt(
+    env: Env,
     chainId: string,
     ciphertext: Uint8Array,
     nonce: Uint8Array
@@ -70,7 +73,7 @@ export class SecretWasmKeeper {
     // Otherwise, it will lost the encryption/decryption key if Keplr is uninstalled or local storage is cleared.
     // For now, use the signature of some string to generate the seed.
     // It need to more research.
-    const seed = await this.getSeed(chainInfo);
+    const seed = await this.getSeed(env, chainInfo);
 
     // TODO: Handle the rest config.
     const utils = new EnigmaUtils(chainInfo.rest, seed);
@@ -78,7 +81,7 @@ export class SecretWasmKeeper {
     return await utils.decrypt(ciphertext, nonce);
   }
 
-  private async getSeed(chainInfo: ChainInfo): Promise<Uint8Array> {
+  private async getSeed(env: Env, chainInfo: ChainInfo): Promise<Uint8Array> {
     const key = await this.keyRingKeeper.getKey(chainInfo.chainId);
 
     const storeKey = `seed-${chainInfo.chainId}-${new AccAddress(
@@ -94,6 +97,7 @@ export class SecretWasmKeeper {
     const seed = Crypto.sha256(
       Buffer.from(
         await this.keyRingKeeper.sign(
+          env,
           chainInfo.chainId,
           Buffer.from(
             JSON.stringify({

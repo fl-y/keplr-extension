@@ -23,6 +23,7 @@ import Axios from "axios";
 import { AccAddress } from "@chainapsis/cosmosjs/common/address";
 import { ChainInfo } from "../chains";
 import { BaseAccount } from "@chainapsis/cosmosjs/common/baseAccount";
+import { Env } from "../../common/message";
 
 export interface KeyHex {
   algo: string;
@@ -168,11 +169,12 @@ export class KeyRingKeeper {
   }
 
   async createLedgerKey(
+    env: Env,
     password: string,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
   ): Promise<KeyRingStatus> {
-    await this.keyRing.createLedgerKey(password, meta, bip44HDPath);
+    await this.keyRing.createLedgerKey(env, password, meta, bip44HDPath);
     return this.keyRing.status;
   }
 
@@ -245,6 +247,7 @@ export class KeyRingKeeper {
   }
 
   async requestSign(
+    env: Env,
     extensionBaseURL: string,
     chainId: string,
     message: Uint8Array,
@@ -254,6 +257,7 @@ export class KeyRingKeeper {
   ): Promise<Uint8Array> {
     if (skipApprove) {
       return await this.keyRing.sign(
+        env,
         chainId,
         await this.chainsKeeper.getChainCoinType(chainId),
         message
@@ -268,6 +272,7 @@ export class KeyRingKeeper {
 
     await this.signApprover.request(id, { chainId, message });
     return await this.keyRing.sign(
+      env,
       chainId,
       await this.chainsKeeper.getChainCoinType(chainId),
       message
@@ -291,8 +296,13 @@ export class KeyRingKeeper {
     this.signApprover.reject(id);
   }
 
-  async sign(chainId: string, message: Uint8Array): Promise<Uint8Array> {
+  async sign(
+    env: Env,
+    chainId: string,
+    message: Uint8Array
+  ): Promise<Uint8Array> {
     return this.keyRing.sign(
+      env,
       chainId,
       await this.chainsKeeper.getChainCoinType(chainId),
       message
@@ -315,10 +325,11 @@ export class KeyRingKeeper {
   }
 
   async addLedgerKey(
+    env: Env,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
   ): Promise<MultiKeyStoreInfoWithSelected> {
-    return this.keyRing.addLedgerKey(meta, bip44HDPath);
+    return this.keyRing.addLedgerKey(env, meta, bip44HDPath);
   }
 
   public async changeKeyStoreFromMultiKeyStore(
