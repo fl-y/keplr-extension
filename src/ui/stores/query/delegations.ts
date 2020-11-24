@@ -50,7 +50,11 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
 
     let totalBalance = new Int(0);
     for (const delegation of this.response.data.result) {
-      totalBalance = totalBalance.add(new Int(delegation.balance));
+      if (typeof delegation.balance === "string") {
+        totalBalance = totalBalance.add(new Int(delegation.balance));
+      } else {
+        totalBalance = totalBalance.add(new Int(delegation.balance.amount));
+      }
     }
 
     return new CoinPretty(stakeCurrency.coinDenom, totalBalance)
