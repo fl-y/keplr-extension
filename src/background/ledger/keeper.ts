@@ -3,7 +3,7 @@ import { Ledger } from "./ledger";
 import delay from "delay";
 
 import { sendMessage } from "../../common/message/send";
-import { POPUP_PORT } from "../../common/message/constant";
+import { APP_PORT } from "../../common/message/constant";
 import {
   LedgerGetPublicKeyCompletedMsg,
   LedgerInitAbortedMsg,
@@ -37,7 +37,7 @@ export class LedgerKeeper {
           bip44HDPath.addressIndex
         ]);
       } finally {
-        sendMessage(POPUP_PORT, new LedgerGetPublicKeyCompletedMsg());
+        sendMessage(APP_PORT, new LedgerGetPublicKeyCompletedMsg());
       }
     });
   }
@@ -73,10 +73,10 @@ export class LedgerKeeper {
           ],
           message
         );
-        sendMessage(POPUP_PORT, new LedgerSignCompletedMsg(false));
+        sendMessage(APP_PORT, new LedgerSignCompletedMsg(false));
         return signature;
       } catch (e) {
-        sendMessage(POPUP_PORT, new LedgerSignCompletedMsg(true));
+        sendMessage(APP_PORT, new LedgerSignCompletedMsg(true));
         throw e;
       }
     });
@@ -141,7 +141,7 @@ export class LedgerKeeper {
           (async () => {
             // If ledger is not initied in 3 minutes, abort it.
             await delay(3 * 60 * 1000);
-            await sendMessage(POPUP_PORT, new LedgerInitAbortedMsg());
+            await sendMessage(APP_PORT, new LedgerInitAbortedMsg());
             throw new Error("Ledger init timeout");
           })(),
           aborter.wait(),
@@ -156,7 +156,7 @@ export class LedgerKeeper {
   }
 
   async notifyNeedInitializeLedger() {
-    await sendMessage(POPUP_PORT, new LedgerInitFailedMsg());
+    await sendMessage(APP_PORT, new LedgerInitFailedMsg());
     await openWindow(
       browser.runtime.getURL("popup.html#/ledger-grant"),
       "ledger"
@@ -164,7 +164,7 @@ export class LedgerKeeper {
   }
 
   async resumeInitLedger() {
-    await sendMessage(POPUP_PORT, new LedgerInitResumedMsg());
+    await sendMessage(APP_PORT, new LedgerInitResumedMsg());
 
     if (this.initWG.isLocked) {
       this.initWG.done();
@@ -190,7 +190,7 @@ export class LedgerKeeper {
       }
 
       if (!find) {
-        await sendMessage(POPUP_PORT, new LedgerInitAbortedMsg());
+        await sendMessage(APP_PORT, new LedgerInitAbortedMsg());
         throw new Error("Ledger init aborted");
       }
 

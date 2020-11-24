@@ -8,7 +8,7 @@ import {
 } from "@chainapsis/cosmosjs/rpc/tx";
 import { ChainsKeeper } from "../chains/keeper";
 import { sendMessage } from "../../common/message/send";
-import { POPUP_PORT } from "../../common/message/constant";
+import { APP_PORT } from "../../common/message/constant";
 import { TxCommittedMsg } from "./foreground";
 
 const Buffer = require("buffer/").Buffer;
@@ -142,7 +142,7 @@ export class BackgroundTxKeeper {
 
       try {
         // Notify the tx is committed.
-        sendMessage(POPUP_PORT, new TxCommittedMsg(chainId));
+        sendMessage(APP_PORT, new TxCommittedMsg(chainId));
       } catch {
         // No matter if error is thrown.
       }

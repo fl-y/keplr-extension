@@ -47,7 +47,7 @@ import * as BackgroundTxResult from "../../background/tx/foreground";
 import { AdditonalIntlMessages, LanguageToFiatCurrency } from "../../config";
 import { init as currencyInit } from "../../common/currency";
 import { MessageManager } from "../../common/message/manager";
-import { POPUP_PORT } from "../../common/message/constant";
+import { APP_PORT } from "../../common/message/constant";
 import { InitLedgerNotifiyHandler } from "../../background/ledger/foreground";
 import { BackgroundTxProvider } from "./background-tx-provider";
 import { AddTokenPage } from "./pages/setting/token/add";
@@ -147,7 +147,7 @@ const backgroundTxNotifiyKeepr = new BackgroundTxResult.BackgroundTxNotifyKeeper
   }
 );
 BackgroundTxResult.init(messageManager, backgroundTxNotifiyKeepr);
-messageManager.listen(POPUP_PORT);
+messageManager.listen(APP_PORT);
 
 const StateRenderer: FunctionComponent = observer(() => {
   const { keyRingStore } = useStore();
