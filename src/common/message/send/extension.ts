@@ -21,7 +21,7 @@ export class InExtensionMessageRequester implements MessageRequester {
   }
 
   async sendMessageToTab<M extends Message<unknown>>(
-    tabId: number,
+    _tabId: number,
     port: string,
     msg: M
   ): Promise<M extends Message<infer R> ? R : never> {
@@ -32,7 +32,7 @@ export class InExtensionMessageRequester implements MessageRequester {
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
-    return await browser.tabs.sendMessage(tabId, {
+    return await browser.runtime.sendMessage({
       port,
       type: msg.type(),
       msg
