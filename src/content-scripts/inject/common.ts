@@ -36,7 +36,7 @@ export class Keplr {
   }
 
   async enable(chainId: string) {
-    const bytes = new Uint8Array(8);
+    const bytes = new Uint8Array(4);
     const id: string = Array.from(crypto.getRandomValues(bytes))
       .map(value => {
         return value.toString(16);
