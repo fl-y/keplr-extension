@@ -15,6 +15,10 @@ export class InteractionKeeper {
     type: string,
     data: unknown
   ): Promise<void> {
+    if (!type) {
+      throw new Error("Type should not be empty");
+    }
+
     const interactionWaitingData = this.addDataToMap(type, data);
 
     const msg = new PushInteractionDataMsg(interactionWaitingData);
