@@ -89,6 +89,22 @@ export class MessageManager {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const tabId = window.tabs![0].id!;
 
+      // Wait until that tab is loaded
+      await (async () => {
+        const tab = await browser.tabs.get(tabId);
+        if (tab.status === "complete") {
+          return;
+        }
+
+        return new Promise(resolve => {
+          browser.tabs.onUpdated.addListener((_tabId, changeInfo) => {
+            if (tabId === _tabId && changeInfo.status === "complete") {
+              resolve();
+            }
+          });
+        });
+      })();
+
       if (msg) {
         return await MessageManager.inExtensionMsgRequester.sendMessageToTab(
           tabId,
