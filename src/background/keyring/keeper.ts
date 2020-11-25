@@ -24,6 +24,8 @@ import { AccAddress } from "@chainapsis/cosmosjs/common/address";
 import { ChainInfo } from "../chains";
 import { BaseAccount } from "@chainapsis/cosmosjs/common/baseAccount";
 import { Env } from "../../common/message";
+import { InteractionKeeper } from "../interaction/keeper";
+import { EnableKeyRingMsg } from "./messages";
 
 export interface KeyHex {
   algo: string;
@@ -40,8 +42,6 @@ interface SignMessage {
 export class KeyRingKeeper {
   private readonly keyRing: KeyRing;
 
-  private readonly unlockApprover: AsyncApprover;
-
   private readonly txBuilderApprover: AsyncApprover<
     TxBuilderConfigPrimitiveWithChainId,
     TxBuilderConfigPrimitive
@@ -52,6 +52,7 @@ export class KeyRingKeeper {
   constructor(
     embedChainInfos: ChainInfo[],
     kvStore: KVStore,
+    protected readonly interactionKeeper: InteractionKeeper,
     public readonly chainsKeeper: ChainsKeeper,
     ledgerKeeper: LedgerKeeper,
     private readonly windowOpener: (url: string) => void,
@@ -59,9 +60,6 @@ export class KeyRingKeeper {
   ) {
     this.keyRing = new KeyRing(embedChainInfos, kvStore, ledgerKeeper);
 
-    this.unlockApprover = new AsyncApprover({
-      defaultTimeout: approverTimeout != null ? approverTimeout : 3 * 60 * 1000
-    });
     this.txBuilderApprover = new AsyncApprover<
       TxBuilderConfigPrimitiveWithChainId,
       TxBuilderConfigPrimitive
@@ -73,7 +71,7 @@ export class KeyRingKeeper {
     });
   }
 
-  async enable(extensionBaseURL: string): Promise<KeyRingStatus> {
+  async enable(env: Env): Promise<KeyRingStatus> {
     if (this.keyRing.status === KeyRingStatus.EMPTY) {
       throw new Error("key doesn't exist");
     }
@@ -83,8 +81,12 @@ export class KeyRingKeeper {
     }
 
     if (this.keyRing.status === KeyRingStatus.LOCKED) {
-      this.windowOpener(`${extensionBaseURL}popup.html#/?external=true`);
-      await this.unlockApprover.request("unlock");
+      await this.interactionKeeper.waitApprove(
+        env,
+        "popup.html#/?external=true",
+        EnableKeyRingMsg.type(),
+        {}
+      );
       return this.keyRing.status;
     }
 
@@ -185,11 +187,6 @@ export class KeyRingKeeper {
 
   async unlock(password: string): Promise<KeyRingStatus> {
     await this.keyRing.unlock(password);
-    try {
-      this.unlockApprover.approve("unlock");
-    } catch {
-      // noop
-    }
 
     return this.keyRing.status;
   }

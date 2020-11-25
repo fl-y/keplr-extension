@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useState } from "react";
 
 import { Input } from "../../../components/form";
 
@@ -12,36 +12,18 @@ import useForm from "react-hook-form";
 import { EmptyLayout } from "../../layouts/empty-layout";
 
 import style from "./style.module.scss";
-import queryString from "query-string";
 
 import { FormattedMessage, useIntl } from "react-intl";
-import {
-  disableScroll,
-  enableScroll,
-  fitWindow
-} from "../../../../common/window";
-import { useLocation } from "react-router";
+import { useInteractionInfo } from "../../../hooks/use-interaction-info";
 
 interface FormData {
   password: string;
 }
 
 export const LockPage: FunctionComponent = observer(() => {
-  const location = useLocation();
-
   const intl = useIntl();
 
-  const query = queryString.parse(location.search);
-  const external = query.external ?? false;
-
-  useEffect(() => {
-    if (external) {
-      fitWindow();
-      disableScroll();
-    } else {
-      enableScroll();
-    }
-  }, [external]);
+  const ineractionInfo = useInteractionInfo();
 
   const { register, handleSubmit, setError, errors } = useForm<FormData>({
     defaultValues: {
@@ -49,7 +31,7 @@ export const LockPage: FunctionComponent = observer(() => {
     }
   });
 
-  const { keyRingStore } = useStore();
+  const { keyRingStore, interactionStore } = useStore();
   const [loading, setLoading] = useState(false);
 
   return (
@@ -60,7 +42,11 @@ export const LockPage: FunctionComponent = observer(() => {
           setLoading(true);
           try {
             await keyRingStore.unlock(data.password);
-            if (external) {
+            interactionStore.approveEnableKeyring();
+            if (
+              ineractionInfo.interaction &&
+              !ineractionInfo.interactionInternal
+            ) {
               window.close();
             }
           } catch (e) {

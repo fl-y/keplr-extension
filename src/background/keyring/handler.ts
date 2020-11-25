@@ -142,7 +142,7 @@ const handleEnableKeyRingMsg: (
     await keeper.chainsKeeper.getChainInfo(msg.chainId);
 
     return {
-      status: await keeper.enable(env.extensionBaseURL)
+      status: await keeper.enable(env)
     };
   };
 };

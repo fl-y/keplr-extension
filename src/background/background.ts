@@ -50,6 +50,7 @@ Ledger.init(messageManager, ledgerKeeper);
 const keyRingKeeper = new KeyRing.KeyRingKeeper(
   EmbedChainInfos,
   new BrowserKVStore("keyring"),
+  interactionKeeper,
   chainsKeeper,
   ledgerKeeper,
   openWindow

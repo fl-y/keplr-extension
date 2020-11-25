@@ -8,6 +8,8 @@ import { QueriesStore } from "../../stores/query/queries";
 import { BrowserKVStore } from "../../../common/kvstore";
 import { AccountStore as AccountStoreV2 } from "../../stores/account";
 import { CoinGeckoPriceStore } from "../../stores/price";
+import { InteractionStore } from "./interaction";
+import { InExtensionMessageRequester } from "../../../common/message/send/extension";
 
 export class RootStore {
   public chainStore: ChainStore;
@@ -18,6 +20,7 @@ export class RootStore {
   public queriesStore: QueriesStore;
   public accountStoreV2: AccountStoreV2;
   public priceStoreV2: CoinGeckoPriceStore;
+  public interactionStore: InteractionStore;
 
   constructor() {
     // Order is important.
@@ -42,6 +45,10 @@ export class RootStore {
         symbol: "₩"
       }
     });
+
+    this.interactionStore = new InteractionStore(
+      new InExtensionMessageRequester()
+    );
 
     this.chainStore.init();
     this.keyRingStore.restore();

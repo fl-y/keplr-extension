@@ -43,6 +43,7 @@ import { LedgerGrantPage, LedgerInitIndicator } from "./pages/ledger";
 
 import * as LedgerInit from "../../background/ledger/foreground";
 import * as BackgroundTxResult from "../../background/tx/foreground";
+import * as InteractionForeground from "../../background/interaction/foreground/internal";
 
 import { AdditonalIntlMessages, LanguageToFiatCurrency } from "../../config";
 import { init as currencyInit } from "../../common/currency";
@@ -147,6 +148,20 @@ const backgroundTxNotifiyKeepr = new BackgroundTxResult.BackgroundTxNotifyKeeper
   }
 );
 BackgroundTxResult.init(messageManager, backgroundTxNotifiyKeepr);
+const interactionForegroundKeeper = new InteractionForeground.InteractionForegroundKeeper(
+  {
+    onInteractionDataReceived: data => {
+      window.dispatchEvent(
+        new CustomEvent("interactionDataReceived", {
+          detail: {
+            data
+          }
+        })
+      );
+    }
+  }
+);
+InteractionForeground.init(messageManager, interactionForegroundKeeper);
 messageManager.listen(APP_PORT);
 
 const StateRenderer: FunctionComponent = observer(() => {

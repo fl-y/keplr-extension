@@ -69,8 +69,17 @@ export class MessageManager {
   ): FnRequestInteraction {
     const isInternal = this.checkMessageIsInternal(env, sender);
 
+    // Add additional query string for letting the extension know it is for interaction.
+    const queryString = `interaction=true&interactionInternal=${isInternal}`;
+
     const openAndSendMsg: FnRequestInteraction = async (url, msg, options) => {
       url = browser.runtime.getURL(url);
+
+      if (url.includes("?")) {
+        url += "&" + queryString;
+      } else {
+        url += "?" + queryString;
+      }
 
       const windowId = await openWindow(url, options?.channel);
       const window = await browser.windows.get(windowId, {
@@ -101,6 +110,12 @@ export class MessageManager {
         }
 
         url = browser.runtime.getURL(url);
+
+        if (url.includes("?")) {
+          url += "&" + queryString;
+        } else {
+          url += "?" + queryString;
+        }
 
         const windows = browser.extension.getViews({ type: "popup" });
         windows[0].location.href = url;
