@@ -89,7 +89,7 @@ export class MessageManager {
       }
     };
 
-    if (isInternal) {
+    if (!isInternal) {
       // If msg is from external (probably from webpage), it opens the popup for extension and send the msg back to the tab opened.
       return openAndSendMsg;
     } else {
