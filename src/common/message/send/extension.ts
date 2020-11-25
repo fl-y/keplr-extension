@@ -8,6 +8,11 @@ export class InExtensionMessageRequester implements MessageRequester {
   ): Promise<M extends Message<infer R> ? R : never> {
     msg.validateBasic();
 
+    // Set message's origin.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
+    msg["origin"] = window.location.origin;
+
     return await browser.runtime.sendMessage({
       port,
       type: msg.type(),
@@ -21,6 +26,11 @@ export class InExtensionMessageRequester implements MessageRequester {
     msg: M
   ): Promise<M extends Message<infer R> ? R : never> {
     msg.validateBasic();
+
+    // Set message's origin.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
+    msg["origin"] = window.location.origin;
 
     return await browser.tabs.sendMessage(tabId, {
       port,
