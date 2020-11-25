@@ -8,6 +8,7 @@ import * as SecretWasm from "./secret-wasm/internal";
 import * as BackgroundTx from "./tx/internal";
 import * as Updater from "./updater/internal";
 import * as Tokens from "./tokens/internal";
+import * as Interaction from "./interaction/internal";
 
 import { BrowserKVStore } from "../common/kvstore";
 
@@ -16,6 +17,9 @@ import { EmbedAccessOrigins, EmbedChainInfos } from "../config";
 import { openWindow } from "../common/window";
 
 const messageManager = new MessageManager();
+
+const interactionKeeper = new Interaction.InteractionKeeper();
+Interaction.init(messageManager, interactionKeeper);
 
 const persistentMemory = new PersistentMemory.PersistentMemoryKeeper();
 PersistentMemory.init(messageManager, persistentMemory);
