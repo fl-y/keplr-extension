@@ -1,0 +1,15 @@
+{
+  "name": "@keplr/popup",
+  "version": "0.0.1-alpha.0",
+  "main": "build/index.js",
+  "author": "chainapsis",
+  "license": "Apache-2.0",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "test": "mocha -r ts-node/register 'src/**/*.spec.ts'",
+    "lint-test": "eslint \"src/**/*\" && prettier --check \"src/**/*\"",
+    "lint-fix": "eslint --fix \"src/**/*\" && prettier --write \"src/**/*\""
+  }
+}

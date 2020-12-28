@@ -9,3 +9,5 @@ prod
 packages/extension/src/config.var.tsx
 
 yarn-error.log
+
+build
