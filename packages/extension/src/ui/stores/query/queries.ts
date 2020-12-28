@@ -10,7 +10,7 @@ import { ObservableChainQuery } from "./chain-query";
 import { ObservableQueryBalances } from "./balances";
 import { ChainGetter } from "../common/types";
 import { ObservableQueryDelegations } from "./delegations";
-import { ObservableQueryUnbondingDelegations } from "./unbonding_delegations";
+import { ObservableQueryUnbondingDelegations } from "./unbonding-delegations";
 
 export class Queries {
   protected readonly _queryMint: ObservableChainQuery<MintingInflation>;

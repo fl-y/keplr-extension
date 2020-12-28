@@ -66,7 +66,7 @@ const extensionConfig = (env, args) => {
     name: "extension",
     mode: isEnvDevelopment ? "development" : "production",
     // In development environment, turn on source map.
-    devtool: isEnvDevelopment ? "inline-source-map" : false,
+    devtool: isEnvDevelopment ? "cheap-source-map" : false,
     // In development environment, webpack watch the file changes, and recompile
     watch: isEnvDevelopment,
     entry: {
@@ -95,7 +95,8 @@ const extensionConfig = (env, args) => {
             to: "./"
           },
           {
-            from: "node_modules/webextension-polyfill/dist/browser-polyfill.js"
+            from:
+              "../../node_modules/webextension-polyfill/dist/browser-polyfill.js"
           }
         ],
         { copyUnmodified: true }

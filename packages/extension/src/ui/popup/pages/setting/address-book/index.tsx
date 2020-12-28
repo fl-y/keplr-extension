@@ -24,7 +24,7 @@ import { useStore } from "../../../stores";
 import { PageButton } from "../page-button";
 import { AddAddressModal } from "./add-address-modal";
 import { AddressBookData } from "./types";
-import { AddressBookKVStore } from "./kvStore";
+import { AddressBookKVStore } from "./kv-store";
 import { BrowserKVStore } from "../../../../../common/kvstore";
 import { ChainInfo } from "../../../../../background/chains";
 import { shortenAddress } from "../../../../../common/address";

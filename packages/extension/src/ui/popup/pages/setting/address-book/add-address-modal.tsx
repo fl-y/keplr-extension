@@ -8,7 +8,7 @@ import { HeaderLayout } from "../../../layouts/header-layout";
 import { AddressInput, Input, MemoInput } from "../../../../components/form";
 import { Button } from "reactstrap";
 import { AddressBookData } from "./types";
-import { AddressBookKVStore } from "./kvStore";
+import { AddressBookKVStore } from "./kv-store";
 import { ChainInfo } from "../../../../../background/chains";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useTxState, withTxStateProvider } from "../../../../contexts/tx";

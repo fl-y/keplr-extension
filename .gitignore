@@ -6,4 +6,6 @@ dist
 prod
 .gitsecret/keys/random_seed
 !*.secret
-src/config.var.tsx
+packages/extension/src/config.var.tsx
+
+yarn-error.log
