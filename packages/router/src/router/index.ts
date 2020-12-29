@@ -4,7 +4,7 @@ import { Result } from "../interfaces";
 import { EnvProducer, Guard, MessageSender } from "../types";
 import { MessageRegistry } from "../encoding";
 
-export class MessageManager {
+export class Router {
   protected msgRegistry: MessageRegistry = new MessageRegistry();
   protected registeredHandler: Map<string, Handler> = new Map();
 
