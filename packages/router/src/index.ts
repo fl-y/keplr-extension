@@ -3,7 +3,7 @@ export * from "./handler";
 export * from "./interfaces";
 export * from "./types";
 export * from "./message";
-export * from "./sender";
+export * from "./requester";
 export * from "./constant";
 export * from "./encoding";
 export * from "./guard/extension";

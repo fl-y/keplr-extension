@@ -18,7 +18,7 @@ export abstract class Message<R> {
    */
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
-  private resultType: R;
+  protected _: R;
 
   /**
    * ValidateBasic does a simple validation check that

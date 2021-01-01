@@ -1,7 +1,7 @@
 import { Env, FnRequestInteraction, MessageSender } from "../types";
 import { openPopupWindow } from "@keplr/popup";
 import { APP_PORT } from "../constant";
-import { InExtensionMessageRequester } from "../sender/extension";
+import { InExtensionMessageRequester } from "../requester/extension";
 
 export class ExtensionEnv {
   static readonly produceEnv = (sender: MessageSender): Env => {
