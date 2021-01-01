@@ -11,7 +11,7 @@ export class ExtensionEnv {
     const queryString = `interaction=true&interactionInternal=${isInternalMsg}`;
 
     const openAndSendMsg: FnRequestInteraction = async (url, msg, options) => {
-      url = browser.runtime.getURL(url);
+      url = browser.runtime.getURL("/popup.html#/" + url);
 
       if (url.includes("?")) {
         url += "&" + queryString;

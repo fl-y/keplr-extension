@@ -1,5 +1,5 @@
 {
-  "name": "@keplr/cosmos",
+  "name": "@keplr/crypto",
   "version": "0.0.1-alpha.0",
   "main": "build/index.js",
   "author": "chainapsis",
@@ -13,12 +13,15 @@
     "lint-fix": "eslint --fix \"src/**/*\" && prettier --write \"src/**/*\""
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.0.1",
+    "@types/elliptic": "^6.4.12",
     "mocha": "^8.2.1"
   },
   "dependencies": {
-    "@keplr/common": "0.0.1-alpha.0",
-    "@keplr/unit": "0.0.1-alpha.0",
-    "axios": "^0.21.0",
-    "bech32": "^1.1.4"
+    "bip32": "^2.0.6",
+    "bip39": "^3.0.3",
+    "buffer": "^5.4.3",
+    "crypto-js": "^4.0.0",
+    "elliptic": "^6.5.3"
   }
 }

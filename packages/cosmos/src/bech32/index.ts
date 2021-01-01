@@ -1,3 +1,5 @@
+import bech32 from "bech32";
+
 export class Bech32Address {
   static shortenAddress(bech32: string, maxCharacters: number): string {
     if (maxCharacters >= bech32.length) {
@@ -29,5 +31,21 @@ export class Bech32Address {
     }
 
     return prefix + "1" + former + "..." + latter;
+  }
+
+  static validate(bech32Address: string, prefix?: string) {
+    const { prefix: decodedPrefix } = bech32.decode(bech32Address);
+    if (prefix && prefix !== decodedPrefix) {
+      throw new Error(
+        `Unexpected prefix (expected: ${prefix}, actual: ${decodedPrefix})`
+      );
+    }
+  }
+
+  constructor(protected readonly address: Uint8Array) {}
+
+  toBech32(prefix: string): string {
+    const words = bech32.toWords(this.address);
+    return bech32.encode(prefix, words);
   }
 }

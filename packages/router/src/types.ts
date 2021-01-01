@@ -2,13 +2,15 @@ import { Message } from "./message";
 
 export type MessageSender = Pick<browser.runtime.MessageSender, "id" | "url">;
 
+export type FnRequestInteractionOptions = {
+  forceOpenWindow?: boolean;
+  channel?: string;
+};
+
 export type FnRequestInteraction = <M extends Message<unknown>>(
   url: string,
   msg: M,
-  options?: {
-    forceOpenWindow?: boolean;
-    channel?: string;
-  }
+  options?: FnRequestInteractionOptions
 ) => Promise<M extends Message<infer R> ? R : never>;
 
 export interface Env {
