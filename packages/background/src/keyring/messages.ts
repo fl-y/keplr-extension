@@ -5,7 +5,6 @@ import {
   KeyRingStatus,
   MultiKeyStoreInfoWithSelected
 } from "./keyring";
-import { KeyHex } from "./keeper";
 import {
   BIP44HDPath,
   SelectableAccount,
@@ -14,7 +13,7 @@ import {
 } from "./types";
 
 import { Bech32Address } from "@keplr/cosmos";
-import { BIP44 } from "@keplr/types";
+import { BIP44, KeyHex } from "@keplr/types";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bip39 = require("bip39");

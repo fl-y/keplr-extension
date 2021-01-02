@@ -22,13 +22,6 @@ import { Env } from "@keplr/router";
 import { InteractionKeeper } from "../interaction/keeper";
 import { EnableKeyRingMsg } from "./messages";
 
-export interface KeyHex {
-  algo: string;
-  pubKeyHex: string;
-  addressHex: string;
-  bech32Address: string;
-}
-
 export class KeyRingKeeper {
   private readonly keyRing: KeyRing;
 
@@ -159,6 +152,10 @@ export class KeyRingKeeper {
       chainId,
       await this.chainsKeeper.getChainCoinType(chainId)
     );
+  }
+
+  getKeyStoreMeta(key: string): string {
+    return this.keyRing.getKeyStoreMeta(key);
   }
 
   async requestTxBuilderConfig(
