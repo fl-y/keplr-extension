@@ -20,12 +20,13 @@ export * from "./updater";
 export * from "./tokens";
 export * from "./interaction";
 
-import { BrowserKVStore } from "@keplr/common";
+import { KVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
 import { AccessOrigin } from "./chains";
 
 export function init(
   router: Router,
+  storeCreator: (prefix: string) => KVStore,
   embedChainInfos: ChainInfo[],
   embedAccessOrigins: AccessOrigin[]
 ) {
@@ -36,17 +37,17 @@ export function init(
   PersistentMemory.init(router, persistentMemory);
 
   const chainUpdaterKeeper = new Updater.ChainUpdaterKeeper(
-    new BrowserKVStore("updater")
+    storeCreator("updater")
   );
 
   const tokensKeeper = new Tokens.TokensKeeper(
-    new BrowserKVStore("tokens"),
+    storeCreator("tokens"),
     interactionKeeper
   );
   Tokens.init(router, tokensKeeper);
 
   const chainsKeeper = new Chains.ChainsKeeper(
-    new BrowserKVStore("chains"),
+    storeCreator("chains"),
     chainUpdaterKeeper,
     tokensKeeper,
     interactionKeeper,
@@ -56,14 +57,14 @@ export function init(
   Chains.init(router, chainsKeeper);
 
   const ledgerKeeper = new Ledger.LedgerKeeper(
-    new BrowserKVStore("ledger"),
+    storeCreator("ledger"),
     interactionKeeper
   );
   Ledger.init(router, ledgerKeeper);
 
   const keyRingKeeper = new KeyRing.KeyRingKeeper(
     embedChainInfos,
-    new BrowserKVStore("keyring"),
+    storeCreator("keyring"),
     interactionKeeper,
     chainsKeeper,
     ledgerKeeper
@@ -73,7 +74,7 @@ export function init(
   tokensKeeper.init(chainsKeeper, keyRingKeeper);
 
   const secretWasmKeeper = new SecretWasm.SecretWasmKeeper(
-    new BrowserKVStore("secretwasm"),
+    storeCreator("secretwasm"),
     chainsKeeper,
     keyRingKeeper
   );
