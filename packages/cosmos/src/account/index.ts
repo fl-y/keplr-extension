@@ -47,7 +47,10 @@ export class BaseAccount implements Account {
     const baseVestingAccount =
       value.BaseVestingAccount || value.baseVestingAccount;
     if (baseVestingAccount) {
-      value = baseVestingAccount.BaseAccount || baseVestingAccount.baseAccount;
+      value =
+        baseVestingAccount.BaseAccount ||
+        baseVestingAccount.baseAccount ||
+        baseVestingAccount.base_account;
     }
 
     const address = value.address;
