@@ -7,7 +7,8 @@ export class StoreUtils {
     currenciesMap: {
       [denom: string]: Currency;
     },
-    bals: CoinPrimitive[]
+    bals: CoinPrimitive[],
+    inferUnknownCurrency: boolean = true
   ): CoinPretty[] {
     const result: CoinPretty[] = [];
     for (const bal of bals) {
@@ -24,7 +25,7 @@ export class StoreUtils {
             .precision(currency.coinDecimals)
             .maxDecimals(currency.coinDecimals)
         );
-      } else {
+      } else if (inferUnknownCurrency) {
         let amount = bal.amount;
         // Some querying result have the dec amount. But, it is usually negligible.
         if (amount.includes(".")) {
@@ -47,7 +48,8 @@ export class StoreUtils {
       {
         [currency.coinMinimalDenom]: currency
       },
-      bals
+      bals,
+      false
     );
 
     if (result.length === 1) {
