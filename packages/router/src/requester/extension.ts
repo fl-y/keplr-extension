@@ -13,11 +13,13 @@ export class InExtensionMessageRequester implements MessageRequester {
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
-    return await browser.runtime.sendMessage({
-      port,
-      type: msg.type(),
-      msg
-    });
+    return (
+      await browser.runtime.sendMessage({
+        port,
+        type: msg.type(),
+        msg
+      })
+    ).return;
   }
 
   static async sendMessageToTab<M extends Message<unknown>>(
@@ -32,10 +34,12 @@ export class InExtensionMessageRequester implements MessageRequester {
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
-    return await browser.tabs.sendMessage(tabId, {
-      port,
-      type: msg.type(),
-      msg
-    });
+    return (
+      await browser.tabs.sendMessage(tabId, {
+        port,
+        type: msg.type(),
+        msg
+      })
+    ).return;
   }
 }

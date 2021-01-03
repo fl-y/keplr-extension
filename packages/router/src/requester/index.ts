@@ -1,6 +1,9 @@
 import { Message } from "../message";
 import { Result } from "../interfaces";
 
+export * from "./extension";
+export * from "./inject";
+
 function _sendMessage(
   port: string,
   msg: Message<unknown>,
