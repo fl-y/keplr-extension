@@ -129,8 +129,6 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
     .getQueryBalances()
     .getQueryBech32Address(accountInfo.bech32Address);
 
-  console.log(current.chainId, accountInfo.bech32Address);
-
   const stakable = balancesQuery.stakable.balance;
 
   const delegated = queries
