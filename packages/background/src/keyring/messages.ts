@@ -460,7 +460,6 @@ export class RequestSignMsg extends Message<{ signatureHex: string }> {
     public readonly bech32Address: string,
     // Hex encoded message.
     public readonly messageHex: string,
-    public readonly openPopup: boolean,
     public readonly skipApprove: boolean = false
   ) {
     super();

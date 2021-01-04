@@ -1,30 +1,22 @@
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useState
-} from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { Button } from "reactstrap";
 
 import { HeaderLayout } from "../../layouts";
 
 import style from "./style.module.scss";
 
-import queryString from "query-string";
 import { useStore } from "../../stores";
-import { useSignature } from "../../../hooks";
 
 import classnames from "classnames";
 import { DataTab } from "./data-tab";
 import { DetailsTab } from "./details-tab";
 import { FormattedMessage, useIntl } from "react-intl";
-import {
-  disableScroll,
-  enableScroll,
-  fitWindow
-} from "../../../../common/window";
-import { useHistory, useLocation, useRouteMatch } from "react-router";
+
+import { useHistory } from "react-router";
 import { observer } from "mobx-react";
+import { useInteractionInfo } from "../../../hooks/use-interaction-info";
+
+import { Buffer } from "buffer/";
 
 enum Tab {
   Details,
@@ -33,125 +25,44 @@ enum Tab {
 
 export const SignPage: FunctionComponent = observer(() => {
   const history = useHistory();
-  const location = useLocation();
-  const match = useRouteMatch<{
-    id: string;
-  }>();
 
-  const query = queryString.parse(location.search);
-  const external = query.external ?? false;
-
-  useEffect(() => {
-    if (external) {
-      fitWindow();
-      disableScroll();
-    } else {
-      enableScroll();
-    }
-
-    // Close when ledger is aborted if external.
-    if (external) {
-      window.addEventListener("ledgerInitAborted", window.close);
-    }
-
-    return () => {
-      if (external) {
-        window.removeEventListener("ledgerInitAborted", window.close);
-      }
-    };
-  }, [external]);
-
-  const id = match.params.id;
+  const interactionInfo = useInteractionInfo();
 
   const [tab, setTab] = useState<Tab>(Tab.Details);
 
   const intl = useIntl();
 
-  const { chainStore, keyRingStore } = useStore();
+  const { chainStore, keyRingStore, signInteractionStore } = useStore();
 
-  const signing = useSignature(
-    id,
-    useCallback(
-      chainId => {
-        chainStore.setChain(chainId);
-      },
-      [chainStore]
-    )
-  );
+  useEffect(() => {
+    if (signInteractionStore.waitingData) {
+      chainStore.setChain(signInteractionStore.waitingData.chainId);
+    }
+  }, [chainStore, signInteractionStore.waitingData]);
 
   // Approve signing automatically if key type is ledger.
   useEffect(() => {
-    const closeWindowIfExternal = () => {
-      if (external) {
-        window.close();
-      }
-    };
-
     if (keyRingStore.keyRingType === "ledger") {
-      window.addEventListener("ledgerSignCompleted", closeWindowIfExternal);
-
-      if (signing.approve && !signing.requested && !signing.loading) {
-        signing.approve();
+      if (signInteractionStore.waitingData) {
+        signInteractionStore.approve();
       }
     }
+  }, [
+    keyRingStore.keyRingType,
+    signInteractionStore,
+    signInteractionStore.waitingData
+  ]);
 
-    return () => {
-      window.removeEventListener("ledgerSignCompleted", closeWindowIfExternal);
-    };
-  }, [external, keyRingStore.keyRingType, signing]);
-
-  useEffect(() => {
-    // Force reject when closing window.
-    const beforeunload = async () => {
-      if (!signing.loading && external && signing.reject) {
-        await signing.reject();
-      }
-    };
-
-    addEventListener("beforeunload", beforeunload);
-    return () => {
-      removeEventListener("beforeunload", beforeunload);
-    };
-  }, [signing, external]);
-
-  useEffect(() => {
-    return () => {
-      // If id is changed, just reject the prior one.
-      if (external && signing.reject) {
-        signing.reject();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signing.reject, signing.id, external]);
-
-  const onApproveClick = useCallback(async () => {
-    if (signing.approve) {
-      await signing.approve();
-    }
-
-    // If this is called by injected wallet provider. Just close.
-    if (external) {
-      window.close();
-    }
-  }, [signing, external]);
-
-  const onRejectClick = useCallback(async () => {
-    if (signing.reject) {
-      await signing.reject();
-    }
-
-    // If this is called by injected wallet provider. Just close.
-    if (external) {
-      window.close();
-    }
-  }, [signing, external]);
+  const message = signInteractionStore.waitingData
+    ? Buffer.from(signInteractionStore.waitingData.messageHex, "hex").toString()
+    : "";
 
   return (
     <HeaderLayout
       showChainName
       canChangeChainInfo={false}
       onBackButton={
-        !external
+        interactionInfo.interactionInternal
           ? () => {
               history.goBack();
             }
@@ -189,10 +100,8 @@ export const SignPage: FunctionComponent = observer(() => {
           </ul>
         </div>
         <div className={style.tabContainer}>
-          {tab === Tab.Data ? <DataTab message={signing.message} /> : null}
-          {tab === Tab.Details ? (
-            <DetailsTab message={signing.message} />
-          ) : null}
+          {tab === Tab.Data ? <DataTab message={message} /> : null}
+          {tab === Tab.Details ? <DetailsTab message={message} /> : null}
         </div>
         <div style={{ flex: 1 }} />
         <div className={style.buttons}>
@@ -211,13 +120,13 @@ export const SignPage: FunctionComponent = observer(() => {
               <Button
                 className={style.button}
                 color="danger"
-                disabled={
-                  signing.message == null ||
-                  signing.message === "" ||
-                  signing.initializing
-                }
-                data-loading={signing.requested}
-                onClick={onRejectClick}
+                disabled={message === ""}
+                data-loading={signInteractionStore.isLoading}
+                onClick={e => {
+                  e.preventDefault();
+
+                  signInteractionStore.reject();
+                }}
                 outline
               >
                 {intl.formatMessage({
@@ -227,13 +136,13 @@ export const SignPage: FunctionComponent = observer(() => {
               <Button
                 className={style.button}
                 color="primary"
-                disabled={
-                  signing.message == null ||
-                  signing.message === "" ||
-                  signing.initializing
-                }
-                data-loading={signing.requested}
-                onClick={onApproveClick}
+                disabled={message === ""}
+                data-loading={signInteractionStore.isLoading}
+                onClick={e => {
+                  e.preventDefault();
+
+                  signInteractionStore.approve();
+                }}
               >
                 {intl.formatMessage({
                   id: "sign.button.approve"

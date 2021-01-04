@@ -66,7 +66,7 @@ export class Keplr implements IKeplr {
       chainId,
       signer,
       Buffer.from(message).toString("hex"),
-      true
+      false
     );
     return await this.requester.sendMessage(BACKGROUND_PORT, msg);
   }

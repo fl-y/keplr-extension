@@ -66,7 +66,7 @@ export const FeePage: FunctionComponent = withTxStateProvider(
         showChainName
         canChangeChainInfo={false}
         onBackButton={
-          !interactionInfo.interactionInternal
+          interactionInfo.interactionInternal
             ? () => {
                 history.goBack();
               }

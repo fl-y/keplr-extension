@@ -235,7 +235,7 @@ ReactDOM.render(
                       path="/setting/token/add"
                       component={AddTokenPage}
                     />
-                    <Route path="/sign/:id" component={SignPage} />
+                    <Route path="/sign" component={SignPage} />
                     <Route
                       path="/suggest-chain/:chainId"
                       component={ChainSuggestedPage}

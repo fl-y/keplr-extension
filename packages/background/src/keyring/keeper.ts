@@ -20,7 +20,13 @@ import { LedgerKeeper } from "../ledger/keeper";
 import { BIP44, ChainInfo } from "@keplr/types";
 import { Env } from "@keplr/router";
 import { InteractionKeeper } from "../interaction/keeper";
-import { EnableKeyRingMsg, RequestTxBuilderConfigMsg } from "./messages";
+import {
+  EnableKeyRingMsg,
+  RequestSignMsg,
+  RequestTxBuilderConfigMsg
+} from "./messages";
+
+import { Buffer } from "buffer/";
 
 export class KeyRingKeeper {
   private readonly keyRing: KeyRing;
@@ -203,10 +209,15 @@ export class KeyRingKeeper {
       );
     }
 
-    await this.interactionKeeper.waitApprove(env, "/sign", "request-sign", {
-      chainId,
-      message
-    });
+    await this.interactionKeeper.waitApprove(
+      env,
+      "/sign",
+      RequestSignMsg.type(),
+      {
+        chainId,
+        messageHex: Buffer.from(message).toString("hex")
+      }
+    );
 
     return await this.keyRing.sign(
       env,
