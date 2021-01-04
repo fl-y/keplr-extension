@@ -171,6 +171,9 @@ export class KeyRingStore {
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
     this.setKeyRingType(type);
+
+    // Emit the key store changed event manually.
+    window.dispatchEvent(new Event("keplr_keystorechange"));
   }
 
   @actionAsync
