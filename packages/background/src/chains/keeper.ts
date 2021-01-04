@@ -5,6 +5,7 @@ import { ChainUpdaterKeeper } from "../updater/keeper";
 import { TokensKeeper } from "../tokens/keeper";
 import { InteractionKeeper } from "../interaction/keeper";
 import { Env } from "@keplr/router";
+import { ReqeustAccessMsg } from "./messages";
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
@@ -199,10 +200,15 @@ export class ChainsKeeper {
       return;
     }
 
-    await this.interactionKeeper.waitApprove(env, "/access", "request-access", {
-      chainId,
-      origins
-    });
+    await this.interactionKeeper.waitApprove(
+      env,
+      "/access",
+      ReqeustAccessMsg.type(),
+      {
+        chainId,
+        origins
+      }
+    );
 
     for (const origin of origins) {
       await this.addAccessOrigin(chainId, origin);

@@ -2,6 +2,9 @@ import { useLocation } from "react-router";
 
 import queryString from "querystring";
 
+import { disableScroll, fitPopupWindow } from "@keplr/popup";
+import { useEffect } from "react";
+
 export const useInteractionInfo = () => {
   const location = useLocation();
   let search = location.search;
@@ -10,8 +13,17 @@ export const useInteractionInfo = () => {
   }
   const query = queryString.parse(search);
 
-  return {
+  const result = {
     interaction: query.interaction === "true",
     interactionInternal: query.interactionInternal === "true"
   };
+
+  useEffect(() => {
+    if (result.interaction && !result.interactionInternal) {
+      disableScroll();
+      fitPopupWindow();
+    }
+  }, [result.interaction, result.interactionInternal]);
+
+  return result;
 };

@@ -1,5 +1,5 @@
-export interface InteractionWaitingData {
+export interface InteractionWaitingData<T = unknown> {
   id: string;
   type: string;
-  data: unknown;
+  data: T;
 }
