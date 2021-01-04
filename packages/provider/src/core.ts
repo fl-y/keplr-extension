@@ -44,7 +44,7 @@ export class Keplr implements IKeplr {
         chainId,
         ...config
       },
-      true
+      false
     );
     return (await this.requester.sendMessage(BACKGROUND_PORT, msg)).config;
   }

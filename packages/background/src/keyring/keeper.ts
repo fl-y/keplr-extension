@@ -20,7 +20,7 @@ import { LedgerKeeper } from "../ledger/keeper";
 import { BIP44, ChainInfo } from "@keplr/types";
 import { Env } from "@keplr/router";
 import { InteractionKeeper } from "../interaction/keeper";
-import { EnableKeyRingMsg } from "./messages";
+import { EnableKeyRingMsg, RequestTxBuilderConfigMsg } from "./messages";
 
 export class KeyRingKeeper {
   private readonly keyRing: KeyRing;
@@ -174,7 +174,7 @@ export class KeyRingKeeper {
     const result = await this.interactionKeeper.waitApprove(
       env,
       "/fee",
-      "request-tx-builder-config",
+      RequestTxBuilderConfigMsg.type(),
       config
     );
 

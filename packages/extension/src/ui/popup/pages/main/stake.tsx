@@ -1,249 +1,78 @@
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState
-} from "react";
+import React, { FunctionComponent, useMemo, useState } from "react";
 
 import { Button, Tooltip } from "reactstrap";
 
 import { useStore } from "../../stores";
-import { useReward } from "../../../hooks/use-reward";
 
 import { observer } from "mobx-react";
 
 import styleStake from "./stake.module.scss";
 import classnames from "classnames";
-import { Dec } from "@chainapsis/cosmosjs/common/decimal";
-import { Currency } from "../../../../common/currency";
-import { Msg } from "@chainapsis/cosmosjs/core/tx";
-import { MsgWithdrawDelegatorReward } from "@chainapsis/cosmosjs/x/distribution";
-import { AccAddress, ValAddress } from "@chainapsis/cosmosjs/common/address";
-import { useCosmosJS } from "../../../hooks";
-import { PopupWalletProvider } from "../../wallet-provider";
-import { TxBuilderConfig } from "@chainapsis/cosmosjs/core/txBuilder";
-import bigInteger from "big-integer";
-import { Coin } from "@chainapsis/cosmosjs/common/coin";
-import { Int } from "@chainapsis/cosmosjs/common/int";
-import { CoinUtils } from "../../../../common/coin-utils";
+import { Dec } from "@keplr/unit";
 
 import { useNotification } from "../../../components/notification";
 
 import { useHistory } from "react-router";
 
 import { FormattedMessage } from "react-intl";
-import { useInflationInfo } from "../../../hooks/use-inflation-info";
-import { useStakingPool } from "../../../hooks/use-staking-pool";
-import { useSupplyTotal } from "../../../hooks/use-supply-total";
-import { DecUtils } from "../../../../common/dec-utils";
 
 export const StakeView: FunctionComponent = observer(() => {
   const history = useHistory();
-  const { chainStore, accountStore, keyRingStore } = useStore();
-
-  const [walletProvider, setWalletProvider] = useState(
-    // Skip the approving for withdrawing rewards.
-    new PopupWalletProvider({
-      onRequestTxBuilderConfig: (chainId: string) => {
-        history.push(`/fee/${chainId}`);
-      }
-    })
-  );
-  useEffect(() => {
-    if (
-      keyRingStore.keyRingType === "ledger" &&
-      walletProvider.signApprover == null
-    ) {
-      // If the key type is ledger, don't skip the signing page.
-      // Skipping signing will conflict the users because they can't see the progress if siging page is not shown.
-      setWalletProvider(
-        new PopupWalletProvider(
-          {
-            onRequestTxBuilderConfig: (chainId: string) => {
-              history.push(`/fee/${chainId}`);
-            }
-          },
-          {
-            onRequestSignature: (id: string) => {
-              history.push(`/sign/${id}`);
-            }
-          }
-        )
-      );
-    } else if (
-      keyRingStore.keyRingType !== "ledger" &&
-      walletProvider.signApprover
-    ) {
-      setWalletProvider(
-        new PopupWalletProvider({
-          onRequestTxBuilderConfig: (chainId: string) => {
-            history.push(`/fee/${chainId}`);
-          }
-        })
-      );
-    }
-  }, [history, keyRingStore.keyRingType, walletProvider.signApprover]);
-  const cosmosJS = useCosmosJS(chainStore.chainInfo, walletProvider, {
-    useBackgroundTx: true
-  });
+  const { chainStore, accountStoreV2, queriesStore } = useStore();
+  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
+  const queries = queriesStore.get(chainStore.chainInfo.chainId);
 
   const notification = useNotification();
 
-  const inflation = useInflationInfo(chainStore.chainInfo.rest);
-  const stakingPool = useStakingPool(chainStore.chainInfo.rest);
-  const supply = useSupplyTotal(
-    chainStore.chainInfo.rest,
-    chainStore.chainInfo.stakeCurrency.coinMinimalDenom
-  );
+  const inflation = queries.getQueryInflation();
+  const rewards = queries
+    .getQueryRewards()
+    .getQueryBech32Address(accountInfo.bech32Address);
+  const stakableReward = rewards.stakableReward;
+  const stakable = queries
+    .getQueryBalances()
+    .getQueryBech32Address(accountInfo.bech32Address).stakable;
 
-  const apr = useMemo(() => {
-    if (inflation.inflation && !inflation.fetching) {
-      if (
-        stakingPool.pool &&
-        !stakingPool.fetching &&
-        supply.result &&
-        !supply.fetching
-      ) {
-        let dec = inflation.inflation.mulTruncate(DecUtils.getPrecisionDec(2));
-        const bondedToken = new Dec(stakingPool.pool.bonded_tokens);
-        const total = new Dec(supply.result);
-        if (total.gt(new Dec(0))) {
-          const stakingRatio = bondedToken.quo(new Dec(supply.result));
+  const isRewardExist = rewards.rewards.length > 0;
 
-          dec = dec.quo(stakingRatio);
-        }
-        return dec;
-      } else {
-        return inflation.inflation.mulTruncate(DecUtils.getPrecisionDec(2));
-      }
-    } else {
-      return undefined;
-    }
-  }, [
-    inflation.fetching,
-    inflation.inflation,
-    stakingPool.fetching,
-    stakingPool.pool,
-    supply.fetching,
-    supply.result
-  ]);
+  const isStakableExist = useMemo(() => {
+    return stakable.balance.toDec().gt(new Dec(0));
+  }, [stakable.balance]);
 
-  const reward = useReward(
-    chainStore.chainInfo.rest,
-    accountStore.bech32Address,
-    chainStore.chainInfo.restConfig
-  );
-
-  const rewardExist = useMemo(() => {
-    const rewards = reward.rewards;
-    if (rewards.length > 0 && cosmosJS.addresses.length > 0) {
-      for (const r of rewards) {
-        if (r.reward) {
-          for (const reward of r.reward) {
-            const dec = new Dec(reward.amount);
-            if (dec.truncate().gt(new Int(0))) {
-              return true;
+  const withdrawAllRewards = () => {
+    if (accountInfo.isReadyToSendMsgs) {
+      accountInfo.sendWithdrawDelegationRewardMsgs(
+        rewards.pendingRewardValidatorAddresses,
+        {
+          amount: [{ denom: "uatom", amount: "1" }],
+          gas: (
+            rewards.pendingRewardValidatorAddresses.length * 140000
+          ).toString()
+        },
+        "",
+        "block",
+        () => {
+          history.replace("/");
+        },
+        (e: Error) => {
+          console.log(e.message);
+          notification.push({
+            type: "warning",
+            placement: "top-center",
+            duration: 5,
+            content: `Fail to withdraw rewards: ${e.message}`,
+            canDelete: true,
+            transition: {
+              duration: 0.25
             }
-          }
+          });
         }
-      }
+      );
     }
-
-    return false;
-  }, [cosmosJS.addresses.length, reward.rewards]);
-
-  const withdrawAllRewards = useCallback(() => {
-    if (reward.rewards.length > 0 && accountStore.bech32Address) {
-      const msgs: Msg[] = [];
-
-      for (const r of reward.rewards) {
-        let rewardExist = false;
-        if (r.reward) {
-          for (const reward of r.reward) {
-            const dec = new Dec(reward.amount);
-            if (dec.truncate().gt(new Int(0))) {
-              rewardExist = true;
-              break;
-            }
-          }
-        }
-
-        if (rewardExist) {
-          const msg = new MsgWithdrawDelegatorReward(
-            AccAddress.fromBech32(
-              accountStore.bech32Address,
-              chainStore.chainInfo.bech32Config.bech32PrefixAccAddr
-            ),
-            ValAddress.fromBech32(
-              r.validator_address,
-              chainStore.chainInfo.bech32Config.bech32PrefixValAddr
-            )
-          );
-
-          msgs.push(msg);
-        }
-      }
-
-      if (msgs.length > 0) {
-        if (cosmosJS.sendMsgs) {
-          const config: TxBuilderConfig = {
-            gas: bigInteger(140000 * msgs.length),
-            memo: "",
-            fee: new Coin(
-              chainStore.chainInfo.stakeCurrency.coinMinimalDenom,
-              new Int("1000")
-            )
-          };
-
-          cosmosJS.sendMsgs(
-            msgs,
-            config,
-            () => {
-              history.replace("/");
-            },
-            e => {
-              history.replace("/");
-              notification.push({
-                placement: "top-center",
-                type: "warning",
-                duration: 5,
-                content: `Fail to withdraw rewards: ${e.message}`,
-                canDelete: true,
-                transition: {
-                  duration: 0.25
-                }
-              });
-            },
-            "commit"
-          );
-        }
-      }
-    }
-  }, [
-    reward.rewards,
-    accountStore.bech32Address,
-    chainStore.chainInfo.bech32Config.bech32PrefixAccAddr,
-    chainStore.chainInfo.bech32Config.bech32PrefixValAddr,
-    chainStore.chainInfo.stakeCurrency.coinMinimalDenom,
-    cosmosJS,
-    history,
-    notification
-  ]);
-
-  let isRewardExist = false;
-  let rewardCurrency: Currency | undefined;
-  if (reward.totalReward && reward.totalReward.length > 0) {
-    rewardCurrency = chainStore.allCurrencies.find(currency => {
-      return currency.coinMinimalDenom === reward.totalReward[0].denom;
-    });
-    isRewardExist = rewardCurrency != null;
-  }
+  };
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
-  const toogleTooltip = useCallback(() => {
-    setTooltipOpen(!tooltipOpen);
-  }, [tooltipOpen]);
+  const toogleTooltip = () => setTooltipOpen(value => !value);
 
   return (
     <div>
@@ -271,31 +100,30 @@ export const StakeView: FunctionComponent = observer(() => {
                   styleStake.paragraphMain
                 )}
               >
-                {`${CoinUtils.shrinkDecimals(
-                  new Dec(reward.totalReward[0].amount).truncate(),
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  rewardCurrency!.coinDecimals,
-                  0,
-                  6
-                )} ${
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  rewardCurrency!.coinDenom
-                }`}
+                {stakableReward
+                  .shrink(true)
+                  .maxDecimals(6)
+                  .toString()}
+                {rewards.isFetching ? (
+                  <span>
+                    <i className="fas fa-spinner fa-spin" />
+                  </span>
+                ) : null}
               </p>
             </div>
             <div style={{ flex: 1 }} />
-            <Button
-              className={styleStake.button}
-              color="primary"
-              size="sm"
-              disabled={
-                cosmosJS == null || cosmosJS.sendMsgs == null || !rewardExist
-              }
-              onClick={withdrawAllRewards}
-              data-loading={cosmosJS.loading}
-            >
-              <FormattedMessage id="main.stake.button.claim-rewards" />
-            </Button>
+            {
+              <Button
+                className={styleStake.button}
+                color="primary"
+                size="sm"
+                disabled={!accountInfo.isReadyToSendMsgs}
+                onClick={withdrawAllRewards}
+                data-loading={accountInfo.isSendingMsg}
+              >
+                <FormattedMessage id="main.stake.button.claim-rewards" />
+              </Button>
+            }
           </div>
           <hr className={styleStake.hr} />
         </>
@@ -326,13 +154,15 @@ export const StakeView: FunctionComponent = observer(() => {
               values={{
                 apr: (
                   <React.Fragment>
-                    {apr ? (
-                      DecUtils.trim(apr ? apr.toString(1) : "0")
-                    ) : (
+                    {inflation.inflation
+                      .trim(true)
+                      .maxDecimals(2)
+                      .toString()}
+                    {inflation.isFetching ? (
                       <span>
                         <i className="fas fa-spinner fa-spin" />
                       </span>
-                    )}
+                    ) : null}
                   </React.Fragment>
                 )
               }}
@@ -345,7 +175,7 @@ export const StakeView: FunctionComponent = observer(() => {
           target="_blank"
           rel="noopener noreferrer"
           onClick={e => {
-            if (accountStore.assets.length === 0) {
+            if (!isStakableExist) {
               e.preventDefault();
             }
           }}
@@ -358,7 +188,7 @@ export const StakeView: FunctionComponent = observer(() => {
           <Button
             id="btn-stake"
             className={classnames(styleStake.button, {
-              disabled: accountStore.assets.length === 0
+              disabled: !isStakableExist
             })}
             color="primary"
             size="sm"
@@ -366,7 +196,7 @@ export const StakeView: FunctionComponent = observer(() => {
           >
             <FormattedMessage id="main.stake.button.stake" />
           </Button>
-          {accountStore.assets.length === 0 ? (
+          {!isStakableExist ? (
             <Tooltip
               placement="bottom"
               isOpen={tooltipOpen}
