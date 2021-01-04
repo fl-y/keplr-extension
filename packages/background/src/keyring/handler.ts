@@ -18,7 +18,8 @@ import {
   AddLedgerKeyMsg,
   CreateLedgerKeyMsg,
   GetKeyStoreBIP44SelectablesMsg,
-  SetKeyStoreCoinTypeMsg
+  SetKeyStoreCoinTypeMsg,
+  RestoreKeyRingMsg
 } from "./messages";
 import { KeyRingKeeper } from "./keeper";
 import { Bech32Address } from "@keplr/cosmos";
@@ -30,6 +31,8 @@ export const getHandler: (keeper: KeyRingKeeper) => Handler = (
 ) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
+      case RestoreKeyRingMsg:
+        return handleRestoreKeyRingMsg(keeper)(env, msg as RestoreKeyRingMsg);
       case EnableKeyRingMsg:
         return handleEnableKeyRingMsg(keeper)(env, msg as EnableKeyRingMsg);
       case DeleteKeyRingMsg:
@@ -89,6 +92,14 @@ export const getHandler: (keeper: KeyRingKeeper) => Handler = (
       default:
         throw new Error("Unknown msg type");
     }
+  };
+};
+
+const handleRestoreKeyRingMsg: (
+  keeper: KeyRingKeeper
+) => InternalHandler<RestoreKeyRingMsg> = keeper => {
+  return async (_env, _msg) => {
+    return await keeper.restore();
   };
 };
 
@@ -218,10 +229,9 @@ const handleGetKeyMsg: (
   keeper: KeyRingKeeper
 ) => InternalHandler<GetKeyMsg> = keeper => {
   return async (env, msg) => {
-    const getKeyMsg = msg as GetKeyMsg;
-    await keeper.checkAccessOrigin(env, getKeyMsg.chainId, getKeyMsg.origin);
+    await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
 
-    const key = await keeper.getKey(getKeyMsg.chainId);
+    const key = await keeper.getKey(msg.chainId);
 
     return {
       name: keeper.getKeyStoreMeta("name"),
@@ -229,7 +239,7 @@ const handleGetKeyMsg: (
       pubKeyHex: Buffer.from(key.pubKey).toString("hex"),
       addressHex: Buffer.from(key.address).toString("hex"),
       bech32Address: new Bech32Address(key.address).toBech32(
-        (await keeper.chainsKeeper.getChainInfo(getKeyMsg.chainId)).bech32Config
+        (await keeper.chainsKeeper.getChainInfo(msg.chainId)).bech32Config
           .bech32PrefixAccAddr
       )
     };

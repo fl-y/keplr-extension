@@ -10,11 +10,11 @@ import { HashRouter, Route } from "react-router-dom";
 import { AccessPage } from "./pages/access";
 import { RegisterPage } from "./pages/register";
 import { MainPage } from "./pages/main";
-// import { LockPage } from "./pages/lock";
+import { LockPage } from "./pages/lock";
 import { SendPage } from "./pages/send";
 import { SetKeyRingPage } from "./pages/setting/keyring";
 
-// import { Banner } from "./components/banner";
+import { Banner } from "./components/banner";
 
 import {
   NotificationProvider,
@@ -26,8 +26,8 @@ import { LoadingIndicatorProvider } from "../components/loading-indicator";
 import { configure } from "mobx";
 import { observer } from "mobx-react";
 
-import { StoreProvider } from "./stores";
-// import { KeyRingStatus } from "./stores/keyring";
+import { StoreProvider, useStore } from "./stores";
+import { KeyRingStatus } from "./stores/keyring";
 import { SignPage } from "./pages/sign";
 import { FeePage } from "./pages/fee";
 import { ChainSuggestedPage } from "./pages/chain/suggest";
@@ -43,7 +43,6 @@ import { LedgerGrantPage, LedgerInitIndicator } from "./pages/ledger";
 
 import * as LedgerInit from "../../background/ledger/foreground";
 import * as BackgroundTxResult from "../../background/tx/foreground";
-import * as InteractionForeground from "../../background/interaction/foreground/internal";
 
 import { AdditonalIntlMessages, LanguageToFiatCurrency } from "../../config";
 import { init as currencyInit } from "../../common/currency";
@@ -136,25 +135,9 @@ const backgroundTxNotifiyKeepr = new BackgroundTxResult.BackgroundTxNotifyKeeper
   }
 );
 BackgroundTxResult.init(messageManager, backgroundTxNotifiyKeepr);
-const interactionForegroundKeeper = new InteractionForeground.InteractionForegroundKeeper(
-  {
-    onInteractionDataReceived: data => {
-      window.dispatchEvent(
-        new CustomEvent("interactionDataReceived", {
-          detail: {
-            data
-          }
-        })
-      );
-    }
-  }
-);
-InteractionForeground.init(messageManager, interactionForegroundKeeper);
 messageManager.listen(APP_PORT);
 
 const StateRenderer: FunctionComponent = observer(() => {
-  return <MainPage />;
-  /*
   const { keyRingStore } = useStore();
 
   if (keyRingStore.status === KeyRingStatus.UNLOCKED) {
@@ -188,7 +171,6 @@ const StateRenderer: FunctionComponent = observer(() => {
   } else {
     return <div>Unknown status</div>;
   }
-   */
 });
 
 ReactDOM.render(
@@ -202,6 +184,7 @@ ReactDOM.render(
                 <BackgroundTxProvider>
                   <LedgerInitIndicator>
                     <Route exact path="/" component={StateRenderer} />
+                    <Route exact path="/unlock" component={LockPage} />
                     <Route exact path="/access" component={AccessPage} />
                     <Route exact path="/register" component={RegisterPage} />
                     <Route exact path="/send" component={SendPage} />

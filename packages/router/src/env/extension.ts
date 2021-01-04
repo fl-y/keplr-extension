@@ -11,6 +11,10 @@ export class ExtensionEnv {
     const queryString = `interaction=true&interactionInternal=${isInternalMsg}`;
 
     const openAndSendMsg: FnRequestInteraction = async (url, msg, options) => {
+      if (url.startsWith("/")) {
+        url = url.slice(1);
+      }
+
       url = browser.runtime.getURL("/popup.html#/" + url);
 
       if (url.includes("?")) {
@@ -68,7 +72,11 @@ export class ExtensionEnv {
           return await openAndSendMsg(url, msg, options);
         }
 
-        url = browser.runtime.getURL(url);
+        if (url.startsWith("/")) {
+          url = url.slice(1);
+        }
+
+        url = browser.runtime.getURL("/popup.html#/" + url);
 
         if (url.includes("?")) {
           url += "&" + queryString;
@@ -77,6 +85,7 @@ export class ExtensionEnv {
         }
 
         const windows = browser.extension.getViews({ type: "popup" });
+        console.log(url);
         windows[0].location.href = url;
 
         return await new InExtensionMessageRequester().sendMessage(

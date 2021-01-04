@@ -18,13 +18,15 @@ import {
   CreateLedgerKeyMsg,
   AddLedgerKeyMsg,
   GetKeyStoreBIP44SelectablesMsg,
-  SetKeyStoreCoinTypeMsg
+  SetKeyStoreCoinTypeMsg,
+  RestoreKeyRingMsg
 } from "./messages";
 import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
 import { KeyRingKeeper } from "./keeper";
 
 export function init(router: Router, keeper: KeyRingKeeper): void {
+  router.registerMessage(RestoreKeyRingMsg);
   router.registerMessage(EnableKeyRingMsg);
   router.registerMessage(DeleteKeyRingMsg);
   router.registerMessage(ShowKeyRingMsg);

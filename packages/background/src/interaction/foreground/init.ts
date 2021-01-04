@@ -4,7 +4,7 @@ import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
 import { InteractionForegroundKeeper } from "./keeper";
 
-export function init(
+export function interactionForegroundInit(
   router: Router,
   keeper: InteractionForegroundKeeper
 ): void {

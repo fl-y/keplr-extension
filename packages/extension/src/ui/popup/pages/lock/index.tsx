@@ -31,7 +31,7 @@ export const LockPage: FunctionComponent = observer(() => {
     }
   });
 
-  const { keyRingStore, interactionStore } = useStore();
+  const { keyRingStore } = useStore();
   const [loading, setLoading] = useState(false);
 
   return (
@@ -42,7 +42,6 @@ export const LockPage: FunctionComponent = observer(() => {
           setLoading(true);
           try {
             await keyRingStore.unlock(data.password);
-            interactionStore.approveEnableKeyring();
             if (
               ineractionInfo.interaction &&
               !ineractionInfo.interactionInternal

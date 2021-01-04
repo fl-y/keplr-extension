@@ -268,7 +268,9 @@ export const EmbedAccessOrigins: AccessOrigin[] = [
   {
     chainId: "cosmoshub-3",
     origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : []
+      process.env.NODE_ENV === "production"
+        ? ["https://wallet.keplr.app"]
+        : ["https://wallet.keplr.app"]
   },
   {
     chainId: "kava-3",

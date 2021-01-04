@@ -19,6 +19,31 @@ import { BIP44, KeyHex } from "@keplr/types";
 const bip39 = require("bip39");
 const Buffer = require("buffer/").Buffer;
 
+export class RestoreKeyRingMsg extends Message<{
+  status: KeyRingStatus;
+  type: string;
+  multiKeyStoreInfo: MultiKeyStoreInfoWithSelected;
+}> {
+  public static type() {
+    return "restore-keyring";
+  }
+
+  constructor() {
+    super();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  validateBasic(): void {}
+
+  route(): string {
+    return ROUTE;
+  }
+
+  type(): string {
+    return RestoreKeyRingMsg.type();
+  }
+}
+
 export class EnableKeyRingMsg extends Message<{
   status: KeyRingStatus;
 }> {

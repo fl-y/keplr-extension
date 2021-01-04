@@ -4,7 +4,11 @@ import queryString from "querystring";
 
 export const useInteractionInfo = () => {
   const location = useLocation();
-  const query = queryString.parse(location.search);
+  let search = location.search;
+  if (search.startsWith("?")) {
+    search = search.slice(1);
+  }
+  const query = queryString.parse(search);
 
   return {
     interaction: query.interaction === "true",

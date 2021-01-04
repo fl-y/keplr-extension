@@ -35,6 +35,19 @@ export class KeyRingKeeper {
     this.keyRing = new KeyRing(embedChainInfos, kvStore, ledgerKeeper);
   }
 
+  async restore(): Promise<{
+    status: KeyRingStatus;
+    type: string;
+    multiKeyStoreInfo: MultiKeyStoreInfoWithSelected;
+  }> {
+    await this.keyRing.restore();
+    return {
+      status: this.keyRing.status,
+      type: this.keyRing.type,
+      multiKeyStoreInfo: this.keyRing.getMultiKeyStoreInfo()
+    };
+  }
+
   async enable(env: Env): Promise<KeyRingStatus> {
     if (this.keyRing.status === KeyRingStatus.EMPTY) {
       throw new Error("key doesn't exist");
@@ -47,7 +60,7 @@ export class KeyRingKeeper {
     if (this.keyRing.status === KeyRingStatus.LOCKED) {
       await this.interactionKeeper.waitApprove(
         env,
-        "/",
+        "/unlock",
         EnableKeyRingMsg.type(),
         {}
       );

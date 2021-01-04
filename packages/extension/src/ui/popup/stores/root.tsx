@@ -1,15 +1,23 @@
 import { ChainStore } from "./chain";
-import { KeyRingStatus, KeyRingStore } from "./keyring";
+import { KeyRingStatus } from "./keyring";
 import { AccountStore } from "./account";
 import { ChainInfo } from "@keplr/types";
 import { PriceStore } from "./price";
 import { EmbedChainInfos } from "../../../config";
 import {
+  KeyRingStore,
+  InteractionStore,
   QueriesStore,
   CoinGeckoPriceStore,
   AccountStore as AccountStoreV2
 } from "@keplr/stores";
 import { BrowserKVStore } from "../../../common/kvstore";
+import {
+  Router,
+  ExtensionEnv,
+  InExtensionMessageRequester,
+  APP_PORT
+} from "@keplr/router";
 
 export class RootStore {
   public chainStore: ChainStore;
@@ -17,14 +25,24 @@ export class RootStore {
   public accountStore: AccountStore;
   public priceStore: PriceStore;
 
+  protected interactionStore: InteractionStore;
   public queriesStore: QueriesStore;
   public accountStoreV2: AccountStoreV2;
   public priceStoreV2: CoinGeckoPriceStore;
 
   constructor() {
+    const router = new Router(ExtensionEnv.produceEnv);
+
     // Order is important.
     this.accountStore = new AccountStore(this);
-    this.keyRingStore = new KeyRingStore(this);
+    this.interactionStore = new InteractionStore(
+      router,
+      new InExtensionMessageRequester()
+    );
+    this.keyRingStore = new KeyRingStore(
+      new InExtensionMessageRequester(),
+      this.interactionStore
+    );
     this.priceStore = new PriceStore();
 
     this.chainStore = new ChainStore(this, EmbedChainInfos);
@@ -49,13 +67,14 @@ export class RootStore {
       }
     });
 
+    router.listen(APP_PORT);
+
     this.chainStore.init();
     this.keyRingStore.restore();
   }
 
   public setChainInfo(info: ChainInfo) {
     this.accountStore.setChainInfo(info);
-    this.keyRingStore.setChainInfo(info);
     this.priceStore.setChainInfo(info);
   }
 

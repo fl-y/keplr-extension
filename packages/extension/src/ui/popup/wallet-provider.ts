@@ -1,7 +1,7 @@
 import { Key, WalletProvider } from "@chainapsis/cosmosjs/core/walletProvider";
 import { Context } from "@chainapsis/cosmosjs/core/context";
 import {
-  GetKeyMsg,
+  // GetKeyMsg,
   RequestSignMsg,
   RequestTxBuilderConfigMsg
 } from "../../background/keyring";
@@ -47,7 +47,8 @@ export class PopupWalletProvider implements WalletProvider {
   /**
    * Get array of keys that includes bech32 address string, address bytes and public key from wallet if user have approved the access.
    */
-  async getKeys(context: Context): Promise<Key[]> {
+  async getKeys(_: Context): Promise<Key[]> {
+    /*
     const msg = new GetKeyMsg(context.get("chainId"));
     const key = await sendMessage(BACKGROUND_PORT, msg);
     return Promise.resolve([
@@ -58,6 +59,8 @@ export class PopupWalletProvider implements WalletProvider {
         address: new Uint8Array(Buffer.from(key.addressHex, "hex"))
       }
     ]);
+     */
+    return [];
   }
 
   /**
