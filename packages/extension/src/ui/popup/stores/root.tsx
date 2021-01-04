@@ -1,15 +1,15 @@
 import { ChainStore } from "./chain";
 import { KeyRingStatus, KeyRingStore } from "./keyring";
 import { AccountStore } from "./account";
-import { ChainInfo } from "../../../background/chains";
+import { ChainInfo } from "@keplr/types";
 import { PriceStore } from "./price";
 import { EmbedChainInfos } from "../../../config";
-import { QueriesStore } from "../../stores/query/queries";
+import {
+  QueriesStore,
+  CoinGeckoPriceStore,
+  AccountStore as AccountStoreV2
+} from "@keplr/stores";
 import { BrowserKVStore } from "../../../common/kvstore";
-import { AccountStore as AccountStoreV2 } from "../../stores/account";
-import { CoinGeckoPriceStore } from "../../stores/price";
-import { InteractionStore } from "./interaction";
-import { InExtensionMessageRequester } from "../../../common/message/send/extension";
 
 export class RootStore {
   public chainStore: ChainStore;
@@ -20,7 +20,6 @@ export class RootStore {
   public queriesStore: QueriesStore;
   public accountStoreV2: AccountStoreV2;
   public priceStoreV2: CoinGeckoPriceStore;
-  public interactionStore: InteractionStore;
 
   constructor() {
     // Order is important.
@@ -35,7 +34,11 @@ export class RootStore {
       this.chainStore
     );
 
-    this.accountStoreV2 = new AccountStoreV2(this.chainStore);
+    this.accountStoreV2 = new AccountStoreV2(
+      new BrowserKVStore("account"),
+      this.chainStore,
+      this.queriesStore
+    );
 
     this.priceStoreV2 = new CoinGeckoPriceStore(new BrowserKVStore("prices"), {
       usd: {
@@ -45,10 +48,6 @@ export class RootStore {
         symbol: "₩"
       }
     });
-
-    this.interactionStore = new InteractionStore(
-      new InExtensionMessageRequester()
-    );
 
     this.chainStore.init();
     this.keyRingStore.restore();

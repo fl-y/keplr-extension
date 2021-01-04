@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
 
-import { Dec } from "@chainapsis/cosmosjs/common/decimal";
+import { Dec, DecUtils } from "@keplr/unit";
 
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
@@ -9,7 +9,6 @@ import { ToolTip } from "../../../components/tooltip";
 import { FormattedMessage, useIntl } from "react-intl";
 import { getFiatCurrencyFromLanguage } from "../../../../common/currency";
 import { useLanguage } from "../../language";
-import { DecUtils } from "../../../../common/dec-utils";
 
 const LazyDoughnut = React.lazy(async () => {
   const module = await import(
@@ -109,7 +108,7 @@ const LazyDoughnut = React.lazy(async () => {
 });
 
 export const AssetStakedChartView: FunctionComponent = observer(() => {
-  const { chainStore, accountStore, queriesStore, priceStoreV2 } = useStore();
+  const { chainStore, accountStoreV2, queriesStore, priceStoreV2 } = useStore();
 
   const intl = useIntl();
 
@@ -124,20 +123,24 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
 
   const queries = queriesStore.get(current.chainId);
 
+  const accountInfo = accountStoreV2.getAccount(current.chainId);
+
   const balancesQuery = queries
     .getQueryBalances()
-    .getQueryBech32Address(accountStore.bech32Address);
+    .getQueryBech32Address(accountInfo.bech32Address);
 
-  const stakable = balancesQuery.stakable.upperCase(true);
+  console.log(current.chainId, accountInfo.bech32Address);
+
+  const stakable = balancesQuery.stakable.balance;
 
   const delegated = queries
     .getQueryDelegations()
-    .getQueryBech32Address(accountStore.bech32Address)
+    .getQueryBech32Address(accountInfo.bech32Address)
     .total.upperCase(true);
 
   const unbonding = queries
     .getQueryUnbondingDelegations()
-    .getQueryBech32Address(accountStore.bech32Address)
+    .getQueryBech32Address(accountInfo.bech32Address)
     .total.upperCase(true);
 
   const stakedSum = delegated.add(unbonding);

@@ -78,15 +78,6 @@ export class KeyRingKeeper {
     }
   }
 
-  async restore(): Promise<KeyRingStatus> {
-    await this.keyRing.restore();
-    return this.keyRing.status;
-  }
-
-  async save(): Promise<void> {
-    await this.keyRing.save();
-  }
-
   async deleteKeyRing(
     index: number,
     password: string
@@ -258,8 +249,8 @@ export class KeyRingKeeper {
     return this.keyRing.getMultiKeyStoreInfo();
   }
 
-  setKeyStoreCoinType(chainId: string, coinType: number): void {
-    this.keyRing.setKeyStoreCoinType(chainId, coinType);
+  async setKeyStoreCoinType(chainId: string, coinType: number): Promise<void> {
+    await this.keyRing.setKeyStoreCoinType(chainId, coinType);
   }
 
   async getKeyStoreBIP44Selectables(

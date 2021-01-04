@@ -1,4 +1,4 @@
-import { ChainInfo } from "../../../../background/chains";
+import { ChainInfo } from "@keplr/types";
 
 import { sendMessage } from "../../../../common/message";
 import { GetKeyMsg, KeyRingStatus } from "../../../../background/keyring";

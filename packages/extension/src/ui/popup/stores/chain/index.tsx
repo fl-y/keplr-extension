@@ -3,7 +3,8 @@ import { actionAsync, task } from "mobx-utils";
 
 import { RootStore } from "../root";
 
-import { ChainInfo, ChainInfoWithEmbed } from "../../../../background/chains";
+import { ChainInfo } from "@keplr/types";
+import { ChainInfoWithEmbed } from "@keplr/background";
 import {
   SetPersistentMemoryMsg,
   GetPersistentMemoryMsg
@@ -16,11 +17,8 @@ import {
 import { sendMessage } from "../../../../common/message";
 import { BACKGROUND_PORT } from "../../../../common/message/constant";
 
-import { BIP44 } from "@chainapsis/cosmosjs/core/bip44";
 import { AppCurrency, Currency } from "../../../../common/currency";
 import { AddTokenMsg } from "../../../../background/tokens/messages";
-
-type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 export class ChainStore {
   @observable public chainList!: ChainInfoWithEmbed[];
@@ -143,16 +141,7 @@ export class ChainStore {
   private async getChainInfosFromBackground() {
     const msg = new GetChainInfosMsg();
     const result = await task(sendMessage(BACKGROUND_PORT, msg));
-    const chainInfos = result.chainInfos.map(
-      (chainInfo: Writeable<ChainInfoWithEmbed>) => {
-        chainInfo.bip44 = Object.setPrototypeOf(
-          chainInfo.bip44,
-          BIP44.prototype
-        );
-        return chainInfo;
-      }
-    );
-    this.setChainList(chainInfos);
+    this.setChainList(result.chainInfos);
   }
 
   @action

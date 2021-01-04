@@ -10,11 +10,11 @@ import { HashRouter, Route } from "react-router-dom";
 import { AccessPage } from "./pages/access";
 import { RegisterPage } from "./pages/register";
 import { MainPage } from "./pages/main";
-import { LockPage } from "./pages/lock";
+// import { LockPage } from "./pages/lock";
 import { SendPage } from "./pages/send";
 import { SetKeyRingPage } from "./pages/setting/keyring";
 
-import { Banner } from "./components/banner";
+// import { Banner } from "./components/banner";
 
 import {
   NotificationProvider,
@@ -26,8 +26,8 @@ import { LoadingIndicatorProvider } from "../components/loading-indicator";
 import { configure } from "mobx";
 import { observer } from "mobx-react";
 
-import { StoreProvider, useStore } from "./stores";
-import { KeyRingStatus } from "./stores/keyring";
+import { StoreProvider } from "./stores";
+// import { KeyRingStatus } from "./stores/keyring";
 import { SignPage } from "./pages/sign";
 import { FeePage } from "./pages/fee";
 import { ChainSuggestedPage } from "./pages/chain/suggest";
@@ -53,24 +53,12 @@ import { InitLedgerNotifiyHandler } from "../../background/ledger/foreground";
 import { BackgroundTxProvider } from "./background-tx-provider";
 import { AddTokenPage } from "./pages/setting/token/add";
 
-import { init as initProvider } from "../../content-scripts/inject/init";
-import { Keplr } from "../../content-scripts/inject/common";
-import { PopupWalletProvider } from "./wallet-provider";
-import { CosmJSOfflineSigner } from "../../content-scripts/inject/cosmjs-offline-signer";
-import { KeplrEnigmaUtils } from "../../content-scripts/inject/enigma-utils";
-import { InExtensionMessageRequester } from "../../common/message/send/extension";
+import { Keplr } from "@keplr/provider";
+import { InExtensionMessageRequester } from "@keplr/router";
 
 currencyInit(LanguageToFiatCurrency);
 
-const keplr = new Keplr(new InExtensionMessageRequester());
-
-// Inject the wallet provider.
-initProvider(
-  keplr,
-  new PopupWalletProvider(),
-  (chainId: string) => new CosmJSOfflineSigner(chainId, keplr),
-  (chainId: string) => new KeplrEnigmaUtils(chainId)
-);
+window.keplr = new Keplr(new InExtensionMessageRequester());
 
 // Make sure that icon file will be included in bundle
 require("./public/assets/temp-icon.svg");
@@ -165,6 +153,8 @@ InteractionForeground.init(messageManager, interactionForegroundKeeper);
 messageManager.listen(APP_PORT);
 
 const StateRenderer: FunctionComponent = observer(() => {
+  return <MainPage />;
+  /*
   const { keyRingStore } = useStore();
 
   if (keyRingStore.status === KeyRingStatus.UNLOCKED) {
@@ -198,6 +188,7 @@ const StateRenderer: FunctionComponent = observer(() => {
   } else {
     return <div>Unknown status</div>;
   }
+   */
 });
 
 ReactDOM.render(

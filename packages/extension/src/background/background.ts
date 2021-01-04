@@ -1,3 +1,28 @@
+import {
+  Router,
+  ExtensionGuards,
+  ExtensionEnv,
+  BACKGROUND_PORT
+} from "@keplr/router";
+import { BrowserKVStore } from "@keplr/common";
+import { init } from "@keplr/background";
+
+import { EmbedAccessOrigins, EmbedChainInfos } from "../config";
+
+const router = new Router(ExtensionEnv.produceEnv);
+router.addGuard(ExtensionGuards.checkOriginIsValid);
+router.addGuard(ExtensionGuards.checkMessageIsInternal);
+
+init(
+  router,
+  (prefix: string) => new BrowserKVStore(prefix),
+  EmbedChainInfos,
+  EmbedAccessOrigins
+);
+
+router.listen(BACKGROUND_PORT);
+
+/*
 import { MessageManager } from "../common/message";
 
 import * as PersistentMemory from "./persistent-memory/internal";
@@ -70,3 +95,4 @@ const backgroundTxKeeper = new BackgroundTx.BackgroundTxKeeper(chainsKeeper);
 BackgroundTx.init(messageManager, backgroundTxKeeper);
 
 messageManager.listen(BACKGROUND_PORT);
+*/

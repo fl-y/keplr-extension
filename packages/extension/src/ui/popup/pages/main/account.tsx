@@ -10,13 +10,15 @@ import { useNotification } from "../../../components/notification";
 import { useIntl } from "react-intl";
 
 export const AccountView: FunctionComponent = observer(() => {
-  const { accountStore, keyRingStore } = useStore();
+  const { accountStoreV2, chainStore } = useStore();
+  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
+
   const intl = useIntl();
 
   const notification = useNotification();
 
   const copyAddress = useCallback(async () => {
-    await navigator.clipboard.writeText(accountStore.bech32Address);
+    await navigator.clipboard.writeText(accountInfo.bech32Address);
     // TODO: Show success tooltip.
     notification.push({
       placement: "top-center",
@@ -30,32 +32,25 @@ export const AccountView: FunctionComponent = observer(() => {
         duration: 0.25
       }
     });
-  }, [notification, accountStore.bech32Address]);
-
-  const selectedKeyStore = keyRingStore.multiKeyStoreInfo.find(
-    keyStore => keyStore.selected
-  );
-
-  const selectedKeyStoreName =
-    selectedKeyStore?.meta?.name ??
-    intl.formatMessage({
-      id: "setting.keyring.unnamed-account"
-    });
+  }, [notification, accountInfo.bech32Address]);
 
   return (
     <div>
       <div className={styleAccount.containerName}>
         <div style={{ flex: 1 }} />
-        <div className={styleAccount.name}>{selectedKeyStoreName}</div>
+        <div className={styleAccount.name}>
+          {accountInfo.name ||
+            intl.formatMessage({
+              id: "setting.keyring.unnamed-account"
+            })}
+        </div>
         <div style={{ flex: 1 }} />
       </div>
       <div className={styleAccount.containerAccount}>
         <div style={{ flex: 1 }} />
         <div className={styleAccount.address} onClick={copyAddress}>
           <Address maxCharacters={22} lineBreakBeforePrefix={false}>
-            {accountStore.isAddressFetching
-              ? "..."
-              : accountStore.bech32Address}
+            {accountInfo.bech32Address ? accountInfo.bech32Address : "..."}
           </Address>
         </div>
         <div style={{ flex: 1 }} />

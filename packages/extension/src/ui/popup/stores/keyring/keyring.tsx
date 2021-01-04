@@ -1,12 +1,12 @@
 import { generateSeed } from "@chainapsis/cosmosjs/utils/key";
 
-import { ChainInfo } from "../../../../background/chains";
+import { ChainInfo } from "@keplr/types";
 
 import { sendMessage } from "../../../../common/message";
 import {
   KeyRingStatus,
-  RestoreKeyRingMsg,
-  SaveKeyRingMsg,
+  //  RestoreKeyRingMsg,
+  //  SaveKeyRingMsg,
   CreateMnemonicKeyMsg,
   UnlockKeyRingMsg,
   LockKeyRingMsg,
@@ -208,6 +208,7 @@ export class KeyRingStore {
 
   @actionAsync
   public async restore() {
+    /*
     const msg = new RestoreKeyRingMsg();
     const result = await task(sendMessage(BACKGROUND_PORT, msg));
     this.setStatus(result.status);
@@ -221,10 +222,12 @@ export class KeyRingStore {
       sendMessage(BACKGROUND_PORT, new GetMultiKeyStoreInfoMsg())
     );
     this.setMultiKeyStoreInfo(multiKeyStoreInfo);
+     */
   }
 
   @actionAsync
   public async save() {
+    /*
     const msg = new SaveKeyRingMsg();
     await task(sendMessage(BACKGROUND_PORT, msg));
 
@@ -232,6 +235,7 @@ export class KeyRingStore {
       sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
     this.setKeyRingType(type);
+    */
   }
 
   @actionAsync

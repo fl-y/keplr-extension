@@ -203,6 +203,8 @@ export class KeyRing {
     );
     this.password = password;
     this.multiKeyStore.push(this.keyStore);
+
+    await this.save();
   }
 
   public async createPrivateKey(
@@ -222,6 +224,8 @@ export class KeyRing {
     );
     this.password = password;
     this.multiKeyStore.push(this.keyStore);
+
+    await this.save();
   }
 
   public async createLedgerKey(
@@ -250,6 +254,8 @@ export class KeyRing {
     this.password = password;
     this.keyStore = keyStore;
     this.multiKeyStore.push(this.keyStore);
+
+    await this.save();
   }
 
   public lock() {
@@ -369,7 +375,7 @@ export class KeyRing {
     }
   }
 
-  public setKeyStoreCoinType(chainId: string, coinType: number) {
+  public async setKeyStoreCoinType(chainId: string, coinType: number) {
     if (!this.keyStore) {
       throw new Error("Empty key store");
     }
@@ -401,6 +407,8 @@ export class KeyRing {
         ...this.keyStore.coinTypeForChain
       };
     }
+
+    await this.save();
   }
 
   public async deleteKeyRing(
@@ -451,6 +459,7 @@ export class KeyRing {
     }
 
     this.multiKeyStore = multiKeyStore;
+    await this.save();
     return this.getMultiKeyStoreInfo();
   }
 
@@ -611,6 +620,7 @@ export class KeyRing {
     );
     this.multiKeyStore.push(keyStore);
 
+    await this.save();
     return this.getMultiKeyStoreInfo();
   }
 
@@ -629,6 +639,7 @@ export class KeyRing {
     );
     this.multiKeyStore.push(keyStore);
 
+    await this.save();
     return this.getMultiKeyStoreInfo();
   }
 
@@ -653,6 +664,7 @@ export class KeyRing {
 
     this.multiKeyStore.push(keyStore);
 
+    await this.save();
     return this.getMultiKeyStoreInfo();
   }
 
@@ -672,6 +684,7 @@ export class KeyRing {
 
     await this.unlock(this.password);
 
+    await this.save();
     return this.getMultiKeyStoreInfo();
   }
 

@@ -302,8 +302,8 @@ const handleGetMultiKeyStoreInfoMsg: (
 const handleChangeKeyRingMsg: (
   keeper: KeyRingKeeper
 ) => InternalHandler<ChangeKeyRingMsg> = keeper => {
-  return (_, msg) => {
-    return keeper.changeKeyStoreFromMultiKeyStore(msg.index);
+  return async (_, msg) => {
+    return await keeper.changeKeyStoreFromMultiKeyStore(msg.index);
   };
 };
 
