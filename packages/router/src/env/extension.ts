@@ -85,7 +85,6 @@ export class ExtensionEnv {
         }
 
         const windows = browser.extension.getViews({ type: "popup" });
-        console.log(url);
         windows[0].location.href = url;
 
         return await new InExtensionMessageRequester().sendMessage(

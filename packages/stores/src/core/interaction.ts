@@ -33,7 +33,12 @@ export class InteractionStore implements InteractionForegroundHandler {
   @action
   onInteractionDataReceived(data: InteractionWaitingData) {
     if (!this.datas.has(data.type)) {
-      this.datas.set(data.type, observable.array([]));
+      this.datas.set(
+        data.type,
+        observable.array([], {
+          deep: false
+        })
+      );
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

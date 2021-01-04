@@ -188,7 +188,7 @@ ReactDOM.render(
                     <Route exact path="/access" component={AccessPage} />
                     <Route exact path="/register" component={RegisterPage} />
                     <Route exact path="/send" component={SendPage} />
-                    <Route exact path="/fee/:id" component={FeePage} />
+                    <Route exact path="/fee" component={FeePage} />
                     <Route exact path="/setting" component={SettingPage} />
                     <Route
                       exact

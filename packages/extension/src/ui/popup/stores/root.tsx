@@ -10,7 +10,8 @@ import {
   QueriesStore,
   CoinGeckoPriceStore,
   AccountStore as AccountStoreV2,
-  PermissionStore
+  PermissionStore,
+  TxConfigStore
 } from "@keplr/stores";
 import { BrowserKVStore } from "../../../common/kvstore";
 import {
@@ -28,6 +29,7 @@ export class RootStore {
 
   protected interactionStore: InteractionStore;
   public permissionStore: PermissionStore;
+  public txConfigStore: TxConfigStore;
   public queriesStore: QueriesStore;
   public accountStoreV2: AccountStoreV2;
   public priceStoreV2: CoinGeckoPriceStore;
@@ -50,6 +52,7 @@ export class RootStore {
     this.chainStore = new ChainStore(this, EmbedChainInfos);
 
     this.permissionStore = new PermissionStore(this.interactionStore);
+    this.txConfigStore = new TxConfigStore(this.interactionStore);
     this.queriesStore = new QueriesStore(
       new BrowserKVStore("queries"),
       this.chainStore
