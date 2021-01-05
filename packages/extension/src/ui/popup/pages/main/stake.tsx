@@ -55,7 +55,7 @@ export const StakeView: FunctionComponent = observer(() => {
           history.replace("/");
         },
         (e: Error) => {
-          console.log(e.message);
+          history.replace("/");
           notification.push({
             type: "warning",
             placement: "top-center",
