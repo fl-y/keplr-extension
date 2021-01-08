@@ -25,7 +25,7 @@ export class PrivKeySecp256k1 {
     const key = secp256k1.keyFromPrivate(this.privKey);
 
     const hash = CryptoJS.SHA256(
-      CryptoJS.lib.WordArray.create(Array.from(msg))
+      CryptoJS.lib.WordArray.create(msg as any)
     ).toString();
 
     const signature = key.sign(Buffer.from(hash, "hex"), {

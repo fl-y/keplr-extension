@@ -12,7 +12,8 @@ import {
   GetKeyMsg,
   RequestTxBuilderConfigMsg,
   RequestSignMsg,
-  SuggestTokenMsg
+  SuggestTokenMsg,
+  SendTxMsg
 } from "@keplr/background";
 
 import { Buffer } from "buffer/";
@@ -49,12 +50,13 @@ export class Keplr implements IKeplr {
     return (await this.requester.sendMessage(BACKGROUND_PORT, msg)).config;
   }
 
-  sendTx(
-    _chainId: string,
-    _stdTx: StdTx,
-    _mode: BroadcastMode
+  async sendTx(
+    chainId: string,
+    stdTx: StdTx,
+    mode: BroadcastMode
   ): Promise<BroadcastTxResult> {
-    throw new Error("implement me");
+    const msg = new SendTxMsg(chainId, stdTx, mode);
+    return await this.requester.sendMessage(BACKGROUND_PORT, msg);
   }
 
   async sign(

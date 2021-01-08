@@ -1,7 +1,8 @@
 import { Env, Handler, InternalHandler, Message } from "@keplr/router";
 import {
   RequestBackgroundTxMsg,
-  RequestBackgroundTxWithResultMsg
+  RequestBackgroundTxWithResultMsg,
+  SendTxMsg
 } from "./messages";
 import { BackgroundTxKeeper } from "./keeper";
 
@@ -10,6 +11,8 @@ export const getHandler: (keeper: BackgroundTxKeeper) => Handler = (
 ) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
+      case SendTxMsg:
+        return handleSendTxMsg(keeper)(env, msg as SendTxMsg);
       case RequestBackgroundTxMsg:
         return handleRequestBackgroundTxMsg(keeper)(
           env,
@@ -23,6 +26,16 @@ export const getHandler: (keeper: BackgroundTxKeeper) => Handler = (
       default:
         throw new Error("Unknown msg type");
     }
+  };
+};
+
+const handleSendTxMsg: (
+  keeper: BackgroundTxKeeper
+) => InternalHandler<SendTxMsg> = keeper => {
+  return async (env, msg) => {
+    await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
+
+    return await keeper.sendTx(msg.chainId, msg.tx, msg.mode);
   };
 };
 

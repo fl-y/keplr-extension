@@ -1,16 +1,4 @@
 import Axios, { AxiosInstance } from "axios";
-
-/*
-import { Context, IContext } from "@chainapsis/cosmosjs/core/context";
-import { TendermintRPC } from "@chainapsis/cosmosjs/rpc/tendermint";
-import {
-  ResultBroadcastTx,
-  ResultBroadcastTxCommit
-} from "@chainapsis/cosmosjs/rpc/tx";
-import { sendMessage } from "../../common/message/send";
-import { APP_PORT } from "../../common/message/constant";
-import { TxCommittedMsg } from "./foreground";
- */
 import { ChainsKeeper } from "../chains/keeper";
 import { Env } from "@keplr/router";
 
@@ -31,6 +19,43 @@ interface ABCIMessageLog {
 
 export class BackgroundTxKeeper {
   constructor(private chainsKeeper: ChainsKeeper) {}
+
+  async sendTx(
+    chainId: string,
+    tx: unknown,
+    mode: "async" | "sync" | "block"
+  ): Promise<unknown> {
+    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
+    const restInstance = Axios.create({
+      ...{
+        baseURL: chainInfo.rest
+      },
+      ...chainInfo.restConfig
+    });
+
+    browser.notifications.create({
+      type: "basic",
+      iconUrl: browser.runtime.getURL("assets/temp-icon.svg"),
+      title: "Tx is pending...",
+      message: "Wait a second"
+    });
+
+    const params = {
+      tx,
+      mode
+    };
+
+    try {
+      const result = await restInstance.post("/txs", params);
+      BackgroundTxKeeper.processTxResultNotification(result.data);
+
+      return result.data;
+    } catch (e) {
+      console.log(e);
+      BackgroundTxKeeper.processTxErrorNotification(e);
+      throw e;
+    }
+  }
 
   async requestTx(
     chainId: string,
