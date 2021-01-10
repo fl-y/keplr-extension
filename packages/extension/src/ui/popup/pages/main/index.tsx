@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from "react";
+import React, { FunctionComponent, useEffect, useRef } from "react";
 
 import { HeaderLayout } from "../../layouts";
 
@@ -18,14 +18,13 @@ import { useStore } from "../../stores";
 import { useConfirm } from "../../../components/confirm";
 import { useIntl } from "react-intl";
 import { TokensView } from "./token";
-import { Int } from "@chainapsis/cosmosjs/common/int";
 import { ChainUpdaterKeeper } from "../../../../background/updater/keeper";
 
 export const MainPage: FunctionComponent = observer(() => {
   const history = useHistory();
   const intl = useIntl();
 
-  const { chainStore, accountStore } = useStore();
+  const { chainStore, accountStoreV2, queriesStore } = useStore();
 
   const confirm = useConfirm();
 
@@ -58,14 +57,18 @@ export const MainPage: FunctionComponent = observer(() => {
     prevChainId.current = chainStore.chainInfo.chainId;
   }, [chainStore, chainStore.chainInfo, confirm, intl]);
 
-  const stakeCurrency = chainStore.chainInfo.stakeCurrency;
+  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
 
-  const tokens = accountStore.assets.filter(asset => {
-    return (
-      asset.denom !== stakeCurrency.coinMinimalDenom &&
-      asset.amount.gt(new Int(0))
-    );
-  });
+  const queryBalances = queriesStore
+    .get(chainStore.chainInfo.chainId)
+    .getQueryBalances()
+    .getQueryBech32Address(accountInfo.bech32Address);
+
+  const tokens = queryBalances.unstakables;
+
+  for (const token of tokens) {
+    console.log(accountInfo.bech32Address, token.balance.toString());
+  }
 
   const hasTokens = tokens.length > 0;
 
@@ -117,9 +120,7 @@ export const MainPage: FunctionComponent = observer(() => {
       ) : null}
       {hasTokens ? (
         <Card className={classnames(style.card, "shadow")}>
-          <CardBody>
-            <TokensView tokens={tokens} />
-          </CardBody>
+          <CardBody>{/*<TokensView tokens={tokens} />*/}</CardBody>
         </Card>
       ) : null}
     </HeaderLayout>

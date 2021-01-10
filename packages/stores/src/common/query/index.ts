@@ -36,7 +36,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
   private _response?: Readonly<QueryResponse<T>>;
 
   @observable
-  public isFetching!: boolean;
+  protected _isFetching!: boolean;
 
   @observable.ref
   private _error?: Readonly<QueryError<E>>;
@@ -52,16 +52,16 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
 
   protected constructor(instance: AxiosInstance) {
     runInAction(() => {
-      this.isFetching = false;
+      this._isFetching = false;
       this._instance = instance;
     });
 
     onBecomeObserved(this, "_response", this.becomeObserved);
-    onBecomeObserved(this, "isFetching", this.becomeObserved);
+    onBecomeObserved(this, "_isFetching", this.becomeObserved);
     onBecomeObserved(this, "_error", this.becomeObserved);
 
     onBecomeUnobserved(this, "_response", this.becomeUnobserved);
-    onBecomeUnobserved(this, "isFetching", this.becomeUnobserved);
+    onBecomeUnobserved(this, "_isFetching", this.becomeUnobserved);
     onBecomeUnobserved(this, "_error", this.becomeUnobserved);
   }
 
@@ -113,6 +113,10 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     return true;
   }
 
+  get isFetching(): boolean {
+    return this._isFetching;
+  }
+
   // Return the instance.
   // You can memorize this by using @computed if you need to override this.
   // NOTE: If this getter returns the different instance with previous instance.
@@ -138,7 +142,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
       this.cancel();
     }
 
-    this.isFetching = true;
+    this._isFetching = true;
     this.cancelToken = Axios.CancelToken.source();
 
     // If there is no existing response, try to load saved reponse.
@@ -162,6 +166,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
       this.setError(undefined);
       await task(this.saveResponse(response));
     } catch (e) {
+      console.log();
       // If canceld, do nothing.
       if (Axios.isCancel(e)) {
         return;
@@ -196,7 +201,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
         this.setError(error);
       }
     } finally {
-      this.isFetching = false;
+      this._isFetching = false;
       this.cancelToken = undefined;
     }
   }

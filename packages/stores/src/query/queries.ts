@@ -18,8 +18,11 @@ import { ObservableQueryDelegations } from "./delegations";
 import { ObservableQueryUnbondingDelegations } from "./unbonding-delegations";
 import { ObservableQueryValidators } from "./validators";
 import { ObservableQueryGovernance } from "./governance";
+import { ObservableQuerySecretContractCodeHash } from "./secret20-contract";
 
 export class Queries {
+  protected readonly _querySecretContractCodeHash: ObservableQuerySecretContractCodeHash;
+
   protected readonly _queryMint: ObservableChainQuery<MintingInflation>;
   protected readonly _queryPool: ObservableChainQuery<StakingPool>;
   protected readonly _queryStakingParams: ObservableChainQuery<StakingParams>;
@@ -33,6 +36,12 @@ export class Queries {
   protected readonly _queryGovernance: ObservableQueryGovernance;
 
   constructor(kvStore: KVStore, chainId: string, chainGetter: ChainGetter) {
+    this._querySecretContractCodeHash = new ObservableQuerySecretContractCodeHash(
+      kvStore,
+      chainId,
+      chainGetter
+    );
+
     this._queryMint = new ObservableChainQuery(
       kvStore,
       chainId,
@@ -69,7 +78,8 @@ export class Queries {
     this._queryBalances = new ObservableQueryBalances(
       kvStore,
       chainId,
-      chainGetter
+      chainGetter,
+      this._querySecretContractCodeHash
     );
     this._queryDelegations = new ObservableQueryDelegations(
       kvStore,

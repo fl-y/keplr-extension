@@ -15,10 +15,14 @@ import {
   SuggestTokenMsg,
   SendTxMsg
 } from "@keplr/background";
+import { SecretUtils } from "secretjs/types/enigmautils";
 
 import { Buffer } from "buffer/";
+import { KeplrEnigmaUtils } from "./enigma";
 
 export class Keplr implements IKeplr {
+  protected enigmaUtils: Map<string, SecretUtils> = new Map();
+
   constructor(protected readonly requester: MessageRequester) {}
 
   async enable(chainId: string): Promise<void> {
@@ -76,5 +80,16 @@ export class Keplr implements IKeplr {
   async suggestToken(chainId: string, contractAddress: string): Promise<void> {
     const msg = new SuggestTokenMsg(chainId, contractAddress);
     await this.requester.sendMessage(BACKGROUND_PORT, msg);
+  }
+
+  getEnigmaUtils(chainId: string): SecretUtils {
+    if (this.enigmaUtils.has(chainId)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return this.enigmaUtils.get(chainId)!;
+    }
+
+    const enigmaUtils = new KeplrEnigmaUtils(chainId, this.requester);
+    this.enigmaUtils.set(chainId, enigmaUtils);
+    return enigmaUtils;
   }
 }

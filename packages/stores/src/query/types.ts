@@ -202,3 +202,8 @@ export type GovParamsTally = {
     veto: string;
   };
 };
+
+export type SecretContractCodeHash = {
+  height: string;
+  result: string;
+};

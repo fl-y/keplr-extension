@@ -99,7 +99,7 @@ export class AccountStoreInner {
     // Set wallet status as loading whenever try to init.
     this._walletStatus = WalletStatus.Loading;
 
-    const keplr = await task(this.getKeplr());
+    const keplr = await task(AccountStore.getKeplr());
     if (!keplr) {
       this._walletStatus = WalletStatus.NotExist;
       return;
@@ -492,7 +492,7 @@ export class AccountStoreInner {
     );
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const keplr = (await this.getKeplr())!;
+    const keplr = (await AccountStore.getKeplr())!;
 
     const txConfig = await keplr.getTxConfig(this.chainId, {
       gas: fee.gas,
@@ -564,30 +564,6 @@ export class AccountStoreInner {
   get isSendingMsg(): boolean {
     return this._isSendingMsg;
   }
-
-  protected async getKeplr(): Promise<Keplr | undefined> {
-    if (window.keplr) {
-      return window.keplr;
-    }
-
-    if (document.readyState === "complete") {
-      return window.keplr;
-    }
-
-    return new Promise(resolve => {
-      const documentStateChange = (event: Event) => {
-        if (
-          event.target &&
-          (event.target as Document).readyState === "complete"
-        ) {
-          resolve(window.keplr);
-          document.removeEventListener("readystatechange", documentStateChange);
-        }
-      };
-
-      document.addEventListener("readystatechange", documentStateChange);
-    });
-  }
 }
 
 export class AccountStore extends HasMapStore<AccountStoreInner> {
@@ -613,5 +589,29 @@ export class AccountStore extends HasMapStore<AccountStoreInner> {
 
   getAccount(chainId: string): AccountStoreInner {
     return this.get(chainId);
+  }
+
+  static async getKeplr(): Promise<Keplr | undefined> {
+    if (window.keplr) {
+      return window.keplr;
+    }
+
+    if (document.readyState === "complete") {
+      return window.keplr;
+    }
+
+    return new Promise(resolve => {
+      const documentStateChange = (event: Event) => {
+        if (
+          event.target &&
+          (event.target as Document).readyState === "complete"
+        ) {
+          resolve(window.keplr);
+          document.removeEventListener("readystatechange", documentStateChange);
+        }
+      };
+
+      document.addEventListener("readystatechange", documentStateChange);
+    });
   }
 }
