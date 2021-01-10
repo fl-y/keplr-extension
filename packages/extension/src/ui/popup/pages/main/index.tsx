@@ -66,10 +66,6 @@ export const MainPage: FunctionComponent = observer(() => {
 
   const tokens = queryBalances.unstakables;
 
-  for (const token of tokens) {
-    console.log(accountInfo.bech32Address, token.balance.toString());
-  }
-
   const hasTokens = tokens.length > 0;
 
   return (
@@ -120,7 +116,7 @@ export const MainPage: FunctionComponent = observer(() => {
       ) : null}
       {hasTokens ? (
         <Card className={classnames(style.card, "shadow")}>
-          <CardBody>{/*<TokensView tokens={tokens} />*/}</CardBody>
+          <CardBody>{<TokensView />}</CardBody>
         </Card>
       ) : null}
     </HeaderLayout>

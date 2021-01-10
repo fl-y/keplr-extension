@@ -18,7 +18,7 @@ export class CoinPretty {
   };
 
   constructor(
-    protected denom: string,
+    protected _denom: string,
     protected amount: Int | Dec | IntPretty
   ) {
     if (amount instanceof IntPretty) {
@@ -26,6 +26,10 @@ export class CoinPretty {
     } else {
       this.intPretty = new IntPretty(amount);
     }
+  }
+
+  get denom(): string {
+    return this._denom;
   }
 
   separator(str: string): CoinPretty {

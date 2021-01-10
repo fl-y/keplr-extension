@@ -4,7 +4,6 @@ import styleToken from "./token.module.scss";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import { useHistory } from "react-router";
-import { Coin, CoinUtils, DecUtils } from "@keplr/unit";
 import { Crypto } from "../../../../background/keyring/crypto";
 
 const TokenView: FunctionComponent<{
@@ -70,44 +69,39 @@ const TokenView: FunctionComponent<{
   );
 };
 
-export const TokensView: FunctionComponent<{
-  tokens: Coin[];
-}> = observer(({ tokens }) => {
-  const { chainStore } = useStore();
+export const TokensView: FunctionComponent = observer(() => {
+  const { chainStore, accountStoreV2, queriesStore } = useStore();
+
+  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
+
+  const tokens = queriesStore
+    .get(chainStore.chainInfo.chainId)
+    .getQueryBalances()
+    .getQueryBech32Address(accountInfo.bech32Address).unstakables;
 
   const history = useHistory();
 
   return (
     <div className={styleToken.tokensContainer}>
       <h1 className={styleToken.title}>Tokens</h1>
-      {tokens.map((asset, i) => {
-        const currencies = chainStore.chainInfo.currencies;
+      {tokens.map((token, i) => {
+        const currency = token.currency;
+        const bal = token.balance;
 
-        const currency = currencies.find(cur => {
-          return cur.coinMinimalDenom === asset.denom;
-        });
-
-        if (currency) {
-          const name = currency.coinDenom.toUpperCase();
-          const amount = DecUtils.trim(
-            CoinUtils.shrinkDecimals(asset.amount, currency.coinDecimals, 0, 6)
-          );
-
-          return (
-            <TokenView
-              key={i.toString()}
-              name={name}
-              minimalDenom={currency.coinMinimalDenom}
-              amount={`${amount} ${name}`}
-              onClick={() => {
-                history.push({
-                  pathname: "/send",
-                  search: `?defaultdenom=${currency.coinMinimalDenom}`
-                });
-              }}
-            />
-          );
-        }
+        return (
+          <TokenView
+            key={i.toString()}
+            name={currency.coinDenom.toUpperCase()}
+            minimalDenom={currency.coinMinimalDenom}
+            amount={bal.trim(true).toString()}
+            onClick={() => {
+              history.push({
+                pathname: "/send",
+                search: `?defaultdenom=${"TODO"}`
+              });
+            }}
+          />
+        );
       })}
     </div>
   );

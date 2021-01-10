@@ -6,7 +6,7 @@ import { autorun, computed, observable, runInAction } from "mobx";
 import { CoinPretty, Int } from "@keplr/unit";
 import { QueryResponse, StoreUtils } from "../common";
 import { ObservableQuerySecretContractCodeHash } from "./secret20-contract";
-import { Keplr } from "@keplr/types";
+import { AppCurrency, Keplr } from "@keplr/types";
 import { AccountStore } from "../account";
 import { CancelToken } from "axios";
 
@@ -28,6 +28,21 @@ export abstract class ObservableQueryBalanceInner<
   }
 
   abstract get balance(): CoinPretty;
+  get currency(): AppCurrency {
+    const denom = this.denomHelper.denom;
+
+    const chainInfo = this.chainGetter.getChain(this.chainId);
+    const currency = chainInfo.currencies.find(
+      cur => cur.coinMinimalDenom === denom
+    );
+
+    // TODO: Infer the currency according to its denom (such if denom is `uatom` -> `Atom` with decimal 6)?
+    if (!currency) {
+      throw new Error(`Unknown currency: ${denom}`);
+    }
+
+    return currency;
+  }
 }
 
 export class ObservableQuerySecret20Balance extends ObservableQueryBalanceInner<{
@@ -86,17 +101,7 @@ export class ObservableQuerySecret20Balance extends ObservableQueryBalanceInner<
 
   @actionAsync
   protected async init() {
-    const denom = this.denomHelper.denom;
-
-    const chainInfo = this.chainGetter.getChain(this.chainId);
-    const currency = chainInfo.currencies.find(
-      cur => cur.coinMinimalDenom === denom
-    );
-
-    // TODO: Infer the currency according to its denom (such if denom is `uatom` -> `Atom` with decimal 6)?
-    if (!currency) {
-      throw new Error(`Unknown currency: ${denom}`);
-    }
+    const currency = this.currency;
 
     if (this.keplr && this.contractCodeHash && "viewingKey" in currency) {
       const enigmaUtils = this.keplr.getEnigmaUtils(this.chainId);
@@ -167,6 +172,16 @@ export class ObservableQuerySecret20Balance extends ObservableQueryBalanceInner<
       staled: false,
       timestamp: Date.now()
     };
+  }
+
+  // Actually, the url of fetching the secret20 balance will be changed every time.
+  // So, we should save it with deterministic key.
+  protected getCacheKey(): string {
+    return `${this.instance.name}-${
+      this.instance.defaults.baseURL
+    }${this.instance.getUri({
+      url: `/wasm/contract/${this.denomHelper.contractAddress}/query/encrypted?encoding=hex`
+    })}`;
   }
 
   @computed
@@ -252,17 +267,7 @@ export class ObservableQueryBalanceNative extends ObservableQueryBalanceInner {
 
   @computed
   get balance(): CoinPretty {
-    const denom = this.denomHelper.denom;
-
-    const chainInfo = this.chainGetter.getChain(this.chainId);
-    const currency = chainInfo.currencies.find(
-      cur => cur.coinMinimalDenom === denom
-    );
-
-    // TODO: Infer the currency according to its denom (such if denom is `uatom` -> `Atom` with decimal 6)?
-    if (!currency) {
-      throw new Error(`Unknown currency: ${denom}`);
-    }
+    const currency = this.currency;
 
     if (!this.nativeBalances.response) {
       return new CoinPretty(currency.coinDenom, new Int(0))
