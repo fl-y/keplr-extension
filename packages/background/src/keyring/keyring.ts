@@ -375,6 +375,19 @@ export class KeyRing {
     }
   }
 
+  public isKeyStoreCoinTypeSet(chainId: string): boolean {
+    if (!this.keyStore) {
+      throw new Error("Empty key store");
+    }
+
+    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+
+    return (
+      this.keyStore.coinTypeForChain &&
+      this.keyStore.coinTypeForChain[version.identifier] !== undefined
+    );
+  }
+
   public async setKeyStoreCoinType(chainId: string, coinType: number) {
     if (!this.keyStore) {
       throw new Error("Empty key store");

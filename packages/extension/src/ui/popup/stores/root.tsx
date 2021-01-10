@@ -45,13 +45,15 @@ export class RootStore {
       router,
       new InExtensionMessageRequester()
     );
-    this.keyRingStore = new KeyRingStore(
-      new InExtensionMessageRequester(),
-      this.interactionStore
-    );
     this.priceStore = new PriceStore();
 
     this.chainStore = new ChainStore(this, EmbedChainInfos);
+
+    this.keyRingStore = new KeyRingStore(
+      this.chainStore,
+      new InExtensionMessageRequester(),
+      this.interactionStore
+    );
 
     this.permissionStore = new PermissionStore(this.interactionStore);
     this.txConfigStore = new TxConfigStore(this.interactionStore);

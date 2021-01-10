@@ -18,8 +18,9 @@ import {
   CreateLedgerKeyMsg,
   AddLedgerKeyMsg,
   GetKeyStoreBIP44SelectablesMsg,
+  GetIsKeyStoreCoinTypeSetMsg,
   SetKeyStoreCoinTypeMsg,
-  RestoreKeyRingMsg
+  RestoreKeyRingMsg,
 } from "./messages";
 import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
@@ -45,6 +46,7 @@ export function init(router: Router, keeper: KeyRingKeeper): void {
   router.registerMessage(GetMultiKeyStoreInfoMsg);
   router.registerMessage(ChangeKeyRingMsg);
   router.registerMessage(GetKeyStoreBIP44SelectablesMsg);
+  router.registerMessage(GetIsKeyStoreCoinTypeSetMsg);
   router.registerMessage(SetKeyStoreCoinTypeMsg);
 
   router.addHandler(ROUTE, getHandler(keeper));

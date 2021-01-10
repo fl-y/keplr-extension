@@ -123,7 +123,7 @@ export class ObservableQueryBalancesInner extends ObservableChainQuery<
 
     for (let i = 0; i < chainInfo.currencies.length; i++) {
       const currency = chainInfo.currencies[i];
-      result.push(this.getBalanceInner(currency.coinDenom));
+      result.push(this.getBalanceInner(currency.coinMinimalDenom));
     }
 
     return result;
@@ -141,7 +141,7 @@ export class ObservableQueryBalancesInner extends ObservableChainQuery<
 
     for (let i = 0; i < currencies.length; i++) {
       const currency = currencies[i];
-      result.push(this.getBalanceInner(currency.coinDenom));
+      result.push(this.getBalanceInner(currency.coinMinimalDenom));
     }
 
     return result;

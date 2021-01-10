@@ -19,7 +19,8 @@ import {
   CreateLedgerKeyMsg,
   GetKeyStoreBIP44SelectablesMsg,
   SetKeyStoreCoinTypeMsg,
-  RestoreKeyRingMsg
+  RestoreKeyRingMsg,
+  GetIsKeyStoreCoinTypeSetMsg,
 } from "./messages";
 import { KeyRingKeeper } from "./keeper";
 import { Bech32Address } from "@keplr/cosmos";
@@ -79,8 +80,13 @@ export const getHandler: (keeper: KeyRingKeeper) => Handler = (
         );
       case ChangeKeyRingMsg:
         return handleChangeKeyRingMsg(keeper)(env, msg as ChangeKeyRingMsg);
+      case GetIsKeyStoreCoinTypeSetMsg:
+        return handleGetIsKeyStoreCoinTypeSetMsg(keeper)(
+          env,
+          msg as GetIsKeyStoreCoinTypeSetMsg
+        );
       case SetKeyStoreCoinTypeMsg:
-        return handleSetKeyRingCoinTypeMsg(keeper)(
+        return handleSetKeyStoreCoinTypeMsg(keeper)(
           env,
           msg as SetKeyStoreCoinTypeMsg
         );
@@ -97,7 +103,7 @@ export const getHandler: (keeper: KeyRingKeeper) => Handler = (
 
 const handleRestoreKeyRingMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<RestoreKeyRingMsg> = keeper => {
+) => InternalHandler<RestoreKeyRingMsg> = (keeper) => {
   return async (_env, _msg) => {
     return await keeper.restore();
   };
@@ -105,7 +111,7 @@ const handleRestoreKeyRingMsg: (
 
 const handleEnableKeyRingMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<EnableKeyRingMsg> = keeper => {
+) => InternalHandler<EnableKeyRingMsg> = (keeper) => {
   return async (env, msg) => {
     await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
 
@@ -113,14 +119,14 @@ const handleEnableKeyRingMsg: (
     await keeper.chainsKeeper.getChainInfo(msg.chainId);
 
     return {
-      status: await keeper.enable(env)
+      status: await keeper.enable(env),
     };
   };
 };
 
 const handleDeleteKeyRingMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<DeleteKeyRingMsg> = keeper => {
+) => InternalHandler<DeleteKeyRingMsg> = (keeper) => {
   return async (_, msg) => {
     return await keeper.deleteKeyRing(msg.index, msg.password);
   };
@@ -128,7 +134,7 @@ const handleDeleteKeyRingMsg: (
 
 const handleShowKeyRingMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<ShowKeyRingMsg> = keeper => {
+) => InternalHandler<ShowKeyRingMsg> = (keeper) => {
   return async (_, msg) => {
     return await keeper.showKeyRing(msg.index, msg.password);
   };
@@ -136,7 +142,7 @@ const handleShowKeyRingMsg: (
 
 const handleCreateMnemonicKeyMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<CreateMnemonicKeyMsg> = keeper => {
+) => InternalHandler<CreateMnemonicKeyMsg> = (keeper) => {
   return async (_, msg) => {
     return {
       status: await keeper.createMnemonicKey(
@@ -144,14 +150,14 @@ const handleCreateMnemonicKeyMsg: (
         msg.password,
         msg.meta,
         msg.bip44HDPath
-      )
+      ),
     };
   };
 };
 
 const handleAddMnemonicKeyMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<AddMnemonicKeyMsg> = keeper => {
+) => InternalHandler<AddMnemonicKeyMsg> = (keeper) => {
   return async (_, msg) => {
     return await keeper.addMnemonicKey(msg.mnemonic, msg.meta, msg.bip44HDPath);
   };
@@ -159,21 +165,21 @@ const handleAddMnemonicKeyMsg: (
 
 const handleCreatePrivateKeyMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<CreatePrivateKeyMsg> = keeper => {
+) => InternalHandler<CreatePrivateKeyMsg> = (keeper) => {
   return async (_, msg) => {
     return {
       status: await keeper.createPrivateKey(
         Buffer.from(msg.privateKeyHex, "hex"),
         msg.password,
         msg.meta
-      )
+      ),
     };
   };
 };
 
 const handleAddPrivateKeyMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<AddPrivateKeyMsg> = keeper => {
+) => InternalHandler<AddPrivateKeyMsg> = (keeper) => {
   return async (_, msg) => {
     return await keeper.addPrivateKey(
       Buffer.from(msg.privateKeyHex, "hex"),
@@ -184,7 +190,7 @@ const handleAddPrivateKeyMsg: (
 
 const handleCreateLedgerKeyMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<CreateLedgerKeyMsg> = keeper => {
+) => InternalHandler<CreateLedgerKeyMsg> = (keeper) => {
   return async (env, msg) => {
     return {
       status: await keeper.createLedgerKey(
@@ -192,14 +198,14 @@ const handleCreateLedgerKeyMsg: (
         msg.password,
         msg.meta,
         msg.bip44HDPath
-      )
+      ),
     };
   };
 };
 
 const handleAddLedgerKeyMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<AddLedgerKeyMsg> = keeper => {
+) => InternalHandler<AddLedgerKeyMsg> = (keeper) => {
   return async (env, msg) => {
     return await keeper.addLedgerKey(env, msg.meta, msg.bip44HDPath);
   };
@@ -207,27 +213,27 @@ const handleAddLedgerKeyMsg: (
 
 const handleLockKeyRingMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<LockKeyRingMsg> = keeper => {
+) => InternalHandler<LockKeyRingMsg> = (keeper) => {
   return () => {
     return {
-      status: keeper.lock()
+      status: keeper.lock(),
     };
   };
 };
 
 const handleUnlockKeyRingMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<UnlockKeyRingMsg> = keeper => {
+) => InternalHandler<UnlockKeyRingMsg> = (keeper) => {
   return async (_, msg) => {
     return {
-      status: await keeper.unlock(msg.password)
+      status: await keeper.unlock(msg.password),
     };
   };
 };
 
-const handleGetKeyMsg: (
-  keeper: KeyRingKeeper
-) => InternalHandler<GetKeyMsg> = keeper => {
+const handleGetKeyMsg: (keeper: KeyRingKeeper) => InternalHandler<GetKeyMsg> = (
+  keeper
+) => {
   return async (env, msg) => {
     await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
 
@@ -241,14 +247,14 @@ const handleGetKeyMsg: (
       bech32Address: new Bech32Address(key.address).toBech32(
         (await keeper.chainsKeeper.getChainInfo(msg.chainId)).bech32Config
           .bech32PrefixAccAddr
-      )
+      ),
     };
   };
 };
 
 const handleRequestTxBuilderConfigMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<RequestTxBuilderConfigMsg> = keeper => {
+) => InternalHandler<RequestTxBuilderConfigMsg> = (keeper) => {
   return async (env, msg) => {
     // `config` in msg can't be null because `validateBasic` ensures that `config` is not null.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -267,14 +273,14 @@ const handleRequestTxBuilderConfigMsg: (
       msg.skipApprove
     );
     return {
-      config
+      config,
     };
   };
 };
 
 const handleRequestSignMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<RequestSignMsg> = keeper => {
+) => InternalHandler<RequestSignMsg> = (keeper) => {
   return async (env, msg) => {
     await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
 
@@ -288,14 +294,14 @@ const handleRequestSignMsg: (
           new Uint8Array(Buffer.from(msg.messageHex, "hex")),
           msg.skipApprove
         )
-      ).toString("hex")
+      ).toString("hex"),
     };
   };
 };
 
 const handleGetKeyRingTypeMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<GetKeyRingTypeMsg> = keeper => {
+) => InternalHandler<GetKeyRingTypeMsg> = (keeper) => {
   return () => {
     return keeper.getKeyRingType();
   };
@@ -303,7 +309,7 @@ const handleGetKeyRingTypeMsg: (
 
 const handleGetMultiKeyStoreInfoMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<GetMultiKeyStoreInfoMsg> = keeper => {
+) => InternalHandler<GetMultiKeyStoreInfoMsg> = (keeper) => {
   return () => {
     return keeper.getMultiKeyStoreInfo();
   };
@@ -311,24 +317,32 @@ const handleGetMultiKeyStoreInfoMsg: (
 
 const handleChangeKeyRingMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<ChangeKeyRingMsg> = keeper => {
+) => InternalHandler<ChangeKeyRingMsg> = (keeper) => {
   return async (_, msg) => {
     return await keeper.changeKeyStoreFromMultiKeyStore(msg.index);
   };
 };
 
-const handleSetKeyRingCoinTypeMsg: (
+const handleGetIsKeyStoreCoinTypeSetMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<SetKeyStoreCoinTypeMsg> = keeper => {
+) => InternalHandler<GetIsKeyStoreCoinTypeSetMsg> = (keeper) => {
   return (_, msg) => {
-    keeper.setKeyStoreCoinType(msg.chainId, msg.coinType);
+    return keeper.isKeyStoreCoinTypeSet(msg.chainId);
+  };
+};
+
+const handleSetKeyStoreCoinTypeMsg: (
+  keeper: KeyRingKeeper
+) => InternalHandler<SetKeyStoreCoinTypeMsg> = (keeper) => {
+  return async (_, msg) => {
+    await keeper.setKeyStoreCoinType(msg.chainId, msg.coinType);
     return keeper.keyRingStatus;
   };
 };
 
 const handleGetKeyStoreBIP44SelectablesMsg: (
   keeper: KeyRingKeeper
-) => InternalHandler<GetKeyStoreBIP44SelectablesMsg> = keeper => {
+) => InternalHandler<GetKeyStoreBIP44SelectablesMsg> = (keeper) => {
   return (_, msg) => {
     return keeper.getKeyStoreBIP44Selectables(msg.chainId, msg.paths);
   };

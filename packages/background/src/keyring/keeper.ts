@@ -2,7 +2,7 @@ import {
   Key,
   KeyRing,
   KeyRingStatus,
-  MultiKeyStoreInfoWithSelected
+  MultiKeyStoreInfoWithSelected,
 } from "./keyring";
 
 import { Bech32Address } from "@keplr/cosmos";
@@ -10,7 +10,7 @@ import {
   BIP44HDPath,
   SelectableAccount,
   TxBuilderConfigPrimitive,
-  TxBuilderConfigPrimitiveWithChainId
+  TxBuilderConfigPrimitiveWithChainId,
 } from "./types";
 
 import { KVStore } from "@keplr/common";
@@ -23,7 +23,7 @@ import { InteractionKeeper } from "../interaction/keeper";
 import {
   EnableKeyRingMsg,
   RequestSignMsg,
-  RequestTxBuilderConfigMsg
+  RequestTxBuilderConfigMsg,
 } from "./messages";
 
 import { Buffer } from "buffer/";
@@ -50,7 +50,7 @@ export class KeyRingKeeper {
     return {
       status: this.keyRing.status,
       type: this.keyRing.type,
-      multiKeyStoreInfo: this.keyRing.getMultiKeyStoreInfo()
+      multiKeyStoreInfo: this.keyRing.getMultiKeyStoreInfo(),
     };
   }
 
@@ -107,7 +107,7 @@ export class KeyRingKeeper {
     const multiKeyStoreInfo = await this.keyRing.deleteKeyRing(index, password);
     return {
       multiKeyStoreInfo,
-      status: this.keyRing.status
+      status: this.keyRing.status,
     };
   }
 
@@ -215,7 +215,7 @@ export class KeyRingKeeper {
       RequestSignMsg.type(),
       {
         chainId,
-        messageHex: Buffer.from(message).toString("hex")
+        messageHex: Buffer.from(message).toString("hex"),
       }
     );
 
@@ -271,6 +271,10 @@ export class KeyRingKeeper {
 
   getMultiKeyStoreInfo(): MultiKeyStoreInfoWithSelected {
     return this.keyRing.getMultiKeyStoreInfo();
+  }
+
+  isKeyStoreCoinTypeSet(chainId: string): boolean {
+    return this.keyRing.isKeyStoreCoinTypeSet(chainId);
   }
 
   async setKeyStoreCoinType(chainId: string, coinType: number): Promise<void> {

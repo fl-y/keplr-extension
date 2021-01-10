@@ -2,11 +2,9 @@ import React, { FunctionComponent, useMemo, useState } from "react";
 
 import styleToken from "./token.module.scss";
 import { observer } from "mobx-react";
-import { Coin } from "@chainapsis/cosmosjs/common/coin";
 import { useStore } from "../../stores";
 import { useHistory } from "react-router";
-import { CoinUtils } from "../../../../common/coin-utils";
-import { DecUtils } from "../../../../common/dec-utils";
+import { Coin, CoinUtils, DecUtils } from "@keplr/unit";
 import { Crypto } from "../../../../background/keyring/crypto";
 
 const TokenView: FunctionComponent<{

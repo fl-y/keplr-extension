@@ -23,6 +23,7 @@ import { FormattedMessage } from "react-intl";
 import { useHistory } from "react-router";
 
 import classnames from "classnames";
+import { Dec } from "@keplr/unit";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const QrCode = require("qrcode");
@@ -86,31 +87,23 @@ const DepositModal: FunctionComponent<{
 };
 
 export const TxButtonView: FunctionComponent = observer(() => {
-  const { accountStore } = useStore();
+  const { accountStoreV2, chainStore, queriesStore } = useStore();
+
+  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
+  const queries = queriesStore.get(chainStore.chainInfo.chainId);
+  const queryBalances = queries
+    .getQueryBalances()
+    .getQueryBech32Address(accountInfo.bech32Address);
 
   const [isDepositOpen, setIsDepositOpen] = useState(false);
 
-  const toggleDepositModal = useCallback(() => {
-    setIsDepositOpen(!isDepositOpen);
-  }, [isDepositOpen]);
-
   const [tooltipOpen, setTooltipOpen] = useState(false);
-  const toogleTooltip = useCallback(() => {
-    setTooltipOpen(!tooltipOpen);
-  }, [tooltipOpen]);
 
   const history = useHistory();
 
-  const onSendButton = useCallback(
-    (e: MouseEvent) => {
-      if (accountStore.assets.length !== 0) {
-        history.push("/send");
-      }
-
-      e.preventDefault();
-    },
-    [accountStore.assets.length, history]
-  );
+  const hasAssets =
+    queryBalances.balances.find(bal => bal.balance.toDec().gt(new Dec(0))) !==
+    undefined;
 
   return (
     <div className={styleTxButton.containerTxButton}>
@@ -121,13 +114,17 @@ export const TxButtonView: FunctionComponent = observer(() => {
           setIsDepositOpen(false);
         }}
       >
-        <DepositModal bech32Address={accountStore.bech32Address} />
+        <DepositModal bech32Address={accountInfo.bech32Address} />
       </Modal>
       <Button
         className={styleTxButton.button}
         color="primary"
         outline
-        onClick={toggleDepositModal}
+        onClick={e => {
+          e.preventDefault();
+
+          setIsDepositOpen(true);
+        }}
       >
         <FormattedMessage id="main.account.button.deposit" />
       </Button>
@@ -139,20 +136,26 @@ export const TxButtonView: FunctionComponent = observer(() => {
       <Button
         id="btn-send"
         className={classnames(styleTxButton.button, {
-          disabled: accountStore.assets.length === 0
+          disabled: !hasAssets
         })}
         color="primary"
         outline
-        onClick={onSendButton}
+        onClick={e => {
+          e.preventDefault();
+
+          if (hasAssets) {
+            history.push("/send");
+          }
+        }}
       >
         <FormattedMessage id="main.account.button.send" />
       </Button>
-      {accountStore.assets.length === 0 ? (
+      {!hasAssets ? (
         <Tooltip
           placement="bottom"
           isOpen={tooltipOpen}
           target="btn-send"
-          toggle={toogleTooltip}
+          toggle={() => setTooltipOpen(value => !value)}
           fade
         >
           <FormattedMessage id="main.account.tooltip.no-asset" />

@@ -1,81 +1,126 @@
 import { Mnemonic } from "@keplr/crypto";
-import { MessageRequester, BACKGROUND_PORT } from "@keplr/router";
+import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 import {
-  KeyRingStatus,
-  RestoreKeyRingMsg,
-  CreateMnemonicKeyMsg,
-  UnlockKeyRingMsg,
-  LockKeyRingMsg,
-  CreatePrivateKeyMsg,
-  GetMultiKeyStoreInfoMsg,
-  ChangeKeyRingMsg,
+  AddLedgerKeyMsg,
   AddMnemonicKeyMsg,
   AddPrivateKeyMsg,
-  DeleteKeyRingMsg,
-  CreateLedgerKeyMsg,
-  AddLedgerKeyMsg,
-  GetKeyRingTypeMsg,
-  SetKeyStoreCoinTypeMsg,
-  MultiKeyStoreInfoWithSelected,
   BIP44HDPath,
-  EnableKeyRingMsg
+  ChangeKeyRingMsg,
+  CreateLedgerKeyMsg,
+  CreateMnemonicKeyMsg,
+  CreatePrivateKeyMsg,
+  DeleteKeyRingMsg,
+  EnableKeyRingMsg,
+  GetIsKeyStoreCoinTypeSetMsg,
+  GetKeyRingTypeMsg,
+  GetMultiKeyStoreInfoMsg,
+  KeyRingStatus,
+  LockKeyRingMsg,
+  MultiKeyStoreInfoWithSelected,
+  RestoreKeyRingMsg,
+  SetKeyStoreCoinTypeMsg,
+  UnlockKeyRingMsg
 } from "@keplr/background";
 
-import { action, observable } from "mobx";
+import { computed, observable, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
 
 import { Buffer } from "buffer/";
 import { InteractionStore } from "./interaction";
+import { ChainGetter } from "../common/types";
+import { BIP44 } from "@keplr/types";
+
+export type SelectableAccount = {
+  readonly path: BIP44;
+  readonly bech32Address: string;
+  readonly isExistent: boolean;
+  readonly sequence: string;
+  readonly coins: { amount: string; denom: string }[];
+};
+
+export class KeyRingSelectablesStore {
+  @observable
+  isInitializing!: boolean;
+
+  @observable
+  _isKeyStoreCoinTypeSet!: boolean;
+
+  constructor(
+    protected readonly chainGetter: ChainGetter,
+    protected readonly requester: MessageRequester,
+    protected readonly chainId: string
+  ) {
+    runInAction(() => {
+      this.isInitializing = false;
+      this._isKeyStoreCoinTypeSet = true;
+    });
+
+    this.init();
+  }
+
+  @computed
+  get needSelectCoinType(): boolean {
+    const chainInfo = this.chainGetter.getChain(this.chainId);
+    if (
+      !chainInfo.alternativeBIP44s ||
+      chainInfo.alternativeBIP44s.length === 0
+    ) {
+      return false;
+    }
+    return !this._isKeyStoreCoinTypeSet;
+  }
+
+  @actionAsync
+  async init() {
+    this.isInitializing = true;
+
+    const msg = new GetIsKeyStoreCoinTypeSetMsg(this.chainId);
+    this._isKeyStoreCoinTypeSet = await task(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
+
+    this.isInitializing = false;
+  }
+}
 
 /*
  Actual key ring logic is managed in persistent background. Refer "src/common/message" and "src/background/keyring"
  This store only interact with key ring in persistent background.
  */
-
 export class KeyRingStore {
-  public static async GenereateMnemonic(
-    strenth: number = 128
-  ): Promise<string> {
+  static async GenereateMnemonic(strenth: number = 128): Promise<string> {
     return await Mnemonic.generateSeed(array => {
       return Promise.resolve(crypto.getRandomValues(array));
     }, strenth);
   }
 
   @observable
-  public status!: KeyRingStatus;
+  status!: KeyRingStatus;
 
   @observable
-  public keyRingType!: string;
+  keyRingType!: string;
 
   @observable
-  public multiKeyStoreInfo!: MultiKeyStoreInfoWithSelected;
+  multiKeyStoreInfo!: MultiKeyStoreInfoWithSelected;
+
+  @observable.shallow
+  selectablesMap!: Map<string, KeyRingSelectablesStore>;
 
   constructor(
+    protected readonly chainGetter: ChainGetter,
     protected readonly requester: MessageRequester,
     protected readonly interactionStore: InteractionStore
   ) {
-    this.setKeyRingType("none");
-    this.setStatus(KeyRingStatus.NOTLOADED);
-    this.setMultiKeyStoreInfo([]);
-  }
-
-  @action
-  private setKeyRingType(type: string) {
-    this.keyRingType = type;
-  }
-
-  @action
-  private setStatus(status: KeyRingStatus) {
-    this.status = status;
-  }
-
-  @action
-  private setMultiKeyStoreInfo(info: MultiKeyStoreInfoWithSelected) {
-    this.multiKeyStoreInfo = info;
+    runInAction(() => {
+      this.keyRingType = "none";
+      this.status = KeyRingStatus.NOTLOADED;
+      this.multiKeyStoreInfo = [];
+      this.selectablesMap = new Map();
+    });
   }
 
   @actionAsync
-  public async createMnemonicKey(
+  async createMnemonicKey(
     mnemonic: string,
     password: string,
     meta: Record<string, string>,
@@ -83,16 +128,15 @@ export class KeyRingStore {
   ) {
     const msg = new CreateMnemonicKeyMsg(mnemonic, password, meta, bip44HDPath);
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setStatus(result.status);
+    this.status = result.status;
 
-    const type = await task(
+    this.keyRingType = await task(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
-    this.setKeyRingType(type);
   }
 
   @actionAsync
-  public async createPrivateKey(
+  async createPrivateKey(
     privateKey: Uint8Array,
     password: string,
     meta: Record<string, string>
@@ -103,97 +147,92 @@ export class KeyRingStore {
       meta
     );
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setStatus(result.status);
+    this.status = result.status;
 
-    const type = await task(
+    this.keyRingType = await task(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
-    this.setKeyRingType(type);
   }
 
   @actionAsync
-  public async createLedgerKey(
+  async createLedgerKey(
     password: string,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
   ) {
     const msg = new CreateLedgerKeyMsg(password, meta, bip44HDPath);
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setStatus(result.status);
+    this.status = result.status;
 
-    const type = await task(
+    this.keyRingType = await task(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
-    this.setKeyRingType(type);
   }
 
   @actionAsync
-  public async addMnemonicKey(
+  async addMnemonicKey(
     mnemonic: string,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
   ) {
     const msg = new AddMnemonicKeyMsg(mnemonic, meta, bip44HDPath);
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setMultiKeyStoreInfo(result);
+    this.multiKeyStoreInfo = await task(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
   }
 
   @actionAsync
-  public async addPrivateKey(
-    privateKey: Uint8Array,
-    meta: Record<string, string>
-  ) {
+  async addPrivateKey(privateKey: Uint8Array, meta: Record<string, string>) {
     const msg = new AddPrivateKeyMsg(
       Buffer.from(privateKey).toString("hex"),
       meta
     );
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setMultiKeyStoreInfo(result);
+    this.multiKeyStoreInfo = await task(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
   }
 
   @actionAsync
-  public async addLedgerKey(
-    meta: Record<string, string>,
-    bip44HDPath: BIP44HDPath
-  ) {
+  async addLedgerKey(meta: Record<string, string>, bip44HDPath: BIP44HDPath) {
     const msg = new AddLedgerKeyMsg(meta, bip44HDPath);
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setMultiKeyStoreInfo(result);
+    this.multiKeyStoreInfo = await task(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
   }
 
   @actionAsync
-  public async changeKeyRing(index: number) {
+  async changeKeyRing(index: number) {
     const msg = new ChangeKeyRingMsg(index);
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setMultiKeyStoreInfo(result);
+    this.multiKeyStoreInfo = await task(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
 
-    const type = await task(
+    this.keyRingType = await task(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
-    this.setKeyRingType(type);
 
     // Emit the key store changed event manually.
     window.dispatchEvent(new Event("keplr_keystorechange"));
   }
 
   @actionAsync
-  public async lock() {
+  async lock() {
     const msg = new LockKeyRingMsg();
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setStatus(result.status);
+    this.status = result.status;
   }
 
   @actionAsync
-  public async unlock(password: string) {
+  async unlock(password: string) {
     const msg = new UnlockKeyRingMsg(password);
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setStatus(result.status);
+    this.status = result.status;
 
     // Approve all waiting interaction for the enabling key ring.
     for (const interaction of this.interactionStore.getDatas(
       EnableKeyRingMsg.type()
     )) {
-      this.interactionStore.approve(
+      await this.interactionStore.approve(
         EnableKeyRingMsg.type(),
         interaction.id,
         {}
@@ -202,16 +241,16 @@ export class KeyRingStore {
   }
 
   @actionAsync
-  public async restore() {
+  async restore() {
     const msg = new RestoreKeyRingMsg();
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setStatus(result.status);
-    this.setKeyRingType(result.type);
-    this.setMultiKeyStoreInfo(result.multiKeyStoreInfo);
+    this.status = result.status;
+    this.keyRingType = result.type;
+    this.multiKeyStoreInfo = result.multiKeyStoreInfo;
   }
 
   @actionAsync
-  public async save() {
+  async save() {
     /*
         const msg = new SaveKeyRingMsg();
         await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
@@ -224,23 +263,36 @@ export class KeyRingStore {
   }
 
   @actionAsync
-  public async deleteKeyRing(index: number, password: string) {
+  async deleteKeyRing(index: number, password: string) {
     const msg = new DeleteKeyRingMsg(index, password);
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    this.setStatus(result.status);
-    this.setMultiKeyStoreInfo(result.multiKeyStoreInfo);
+    this.status = result.status;
+    this.multiKeyStoreInfo = result.multiKeyStoreInfo;
 
     // Possibly, key ring can be changed if deleting key store was selected one.
-    const type = await task(
+    this.keyRingType = await task(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
-    this.setKeyRingType(type);
+  }
+
+  getKeyStoreSelectables(chainId: string): KeyRingSelectablesStore {
+    if (!this.selectablesMap.has(chainId)) {
+      runInAction(() => {
+        this.selectablesMap.set(
+          chainId,
+          new KeyRingSelectablesStore(this.chainGetter, this.requester, chainId)
+        );
+      });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.selectablesMap.get(chainId)!;
   }
 
   // Set the coin type to current key store.
   // And, save it, refresh the key store.
   @actionAsync
-  public async setKeyStoreCoinType(chainId: string, coinType: number) {
+  async setKeyStoreCoinType(chainId: string, coinType: number) {
     const status = await task(
       this.requester.sendMessage(
         BACKGROUND_PORT,
@@ -250,11 +302,10 @@ export class KeyRingStore {
 
     await task(this.save());
 
-    const multiKeyStoreInfo = await task(
+    this.multiKeyStoreInfo = await task(
       this.requester.sendMessage(BACKGROUND_PORT, new GetMultiKeyStoreInfoMsg())
     );
-    this.setMultiKeyStoreInfo(multiKeyStoreInfo);
 
-    this.setStatus(status);
+    this.status = status;
   }
 }

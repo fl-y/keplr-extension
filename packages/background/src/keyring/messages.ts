@@ -607,6 +607,30 @@ export class GetKeyStoreBIP44SelectablesMsg extends Message<
   }
 }
 
+export class GetIsKeyStoreCoinTypeSetMsg extends Message<boolean> {
+  public static type() {
+    return "get-is-keystore-coin-type-set";
+  }
+
+  constructor(public readonly chainId: string) {
+    super();
+  }
+
+  validateBasic(): void {
+    if (!this.chainId) {
+      throw new Error("chain id not set");
+    }
+  }
+
+  route(): string {
+    return ROUTE;
+  }
+
+  type(): string {
+    return GetIsKeyStoreCoinTypeSetMsg.type();
+  }
+}
+
 export class SetKeyStoreCoinTypeMsg extends Message<KeyRingStatus> {
   public static type() {
     return "set-keystore-coin-type";
