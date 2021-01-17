@@ -234,11 +234,11 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     cancelToken: CancelToken
   ): Promise<QueryResponse<T>>;
 
-  protected abstract async saveResponse(
+  protected abstract saveResponse(
     response: Readonly<QueryResponse<T>>
   ): Promise<void>;
 
-  protected abstract async loadStaledResponse(): Promise<
+  protected abstract loadStaledResponse(): Promise<
     QueryResponse<T> | undefined
   >;
 }

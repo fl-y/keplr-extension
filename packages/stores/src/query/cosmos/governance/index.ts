@@ -11,7 +11,7 @@ import {
   ObservableQueryGovParamVoting,
 } from "./params";
 import { computedFn } from "mobx-utils";
-import { StakingPool } from "../../types";
+import { StakingPool } from "../staking/types";
 
 export class ObservableQueryProposal extends ObservableChainQuery<ProposalTally> {
   constructor(

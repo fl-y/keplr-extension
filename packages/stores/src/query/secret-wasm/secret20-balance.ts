@@ -8,7 +8,7 @@ import { AccountStore } from "../../account";
 import { CancelToken } from "axios";
 import { QueryError, QueryResponse } from "../../common";
 import { CoinPretty, Int } from "@keplr/unit";
-import { ObservableQueryBalanceInner } from "../balances";
+import { BalanceRegistry, ObservableQueryBalanceInner } from "../balances";
 import { ObservableChainQuery } from "../chain-query";
 
 import { Buffer } from "buffer/";
@@ -23,8 +23,8 @@ export class ObservableQuerySecret20Balance extends ObservableChainQuery<{
 
   constructor(
     kvStore: KVStore,
-    chainGetter: ChainGetter,
     chainId: string,
+    chainGetter: ChainGetter,
     protected readonly contractAddress: string,
     protected readonly bech32Address: string,
     protected readonly viewingKey: string,
@@ -196,8 +196,8 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
 
   constructor(
     kvStore: KVStore,
-    chainGetter: ChainGetter,
     chainId: string,
+    chainGetter: ChainGetter,
     denomHelper: DenomHelper,
     protected readonly bech32Address: string,
     protected readonly querySecretContractCodeHash: ObservableQuerySecretContractCodeHash
@@ -217,8 +217,8 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
         : "";
     this.querySecret20Balance = new ObservableQuerySecret20Balance(
       kvStore,
-      chainGetter,
       chainId,
+      chainGetter,
       denomHelper.contractAddress,
       bech32Address,
       viewingKey,
@@ -276,5 +276,31 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
     )
       .precision(currency.coinDecimals)
       .maxDecimals(currency.coinDecimals);
+  }
+}
+
+export class ObservableQuerySecret20BalanceRegistry implements BalanceRegistry {
+  constructor(
+    protected readonly kvStore: KVStore,
+    protected readonly querySecretContractCodeHash: ObservableQuerySecretContractCodeHash
+  ) {}
+
+  getBalanceInner(
+    chainId: string,
+    chainGetter: ChainGetter,
+    bech32Address: string,
+    minimalDenom: string
+  ): ObservableQueryBalanceInner | undefined {
+    const denomHelper = new DenomHelper(minimalDenom);
+    if (denomHelper.type === "secret20") {
+      return new ObservableQuerySecret20BalanceInner(
+        this.kvStore,
+        chainId,
+        chainGetter,
+        denomHelper,
+        bech32Address,
+        this.querySecretContractCodeHash
+      );
+    }
   }
 }

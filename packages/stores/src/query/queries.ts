@@ -3,7 +3,10 @@ import { KVStore } from "@keplr/common";
 import { DeepReadonly } from "utility-types";
 import { ObservableQueryBalances } from "./balances";
 import { ChainGetter } from "../common/types";
-import { ObservableQuerySecretContractCodeHash } from "./secret-wasm";
+import {
+  ObservableQuerySecret20BalanceRegistry,
+  ObservableQuerySecretContractCodeHash,
+} from "./secret-wasm";
 import {
   ObservableQuerySupplyTotal,
   ObservableQueryInflation,
@@ -16,9 +19,10 @@ import {
   ObservableQueryValidators,
   ObservableQueryGovernance,
 } from "./cosmos";
+import { ObservableQueryCosmosBalanceRegistry } from "./cosmos/balance";
 
 export class Queries {
-  protected readonly _querySecretContractCodeHash: ObservableQuerySecretContractCodeHash;
+  protected readonly _queryBalances: ObservableQueryBalances;
 
   protected readonly _queryMint: ObservableQueryMintingInfation;
   protected readonly _queryPool: ObservableQueryStakingPool;
@@ -26,17 +30,21 @@ export class Queries {
   protected readonly _querySupplyTotal: ObservableQuerySupplyTotal;
   protected readonly _queryInflation: ObservableQueryInflation;
   protected readonly _queryRewards: ObservableQueryRewards;
-  protected readonly _queryBalances: ObservableQueryBalances;
   protected readonly _queryDelegations: ObservableQueryDelegations;
   protected readonly _queryUnbondingDelegations: ObservableQueryUnbondingDelegations;
   protected readonly _queryValidators: ObservableQueryValidators;
   protected readonly _queryGovernance: ObservableQueryGovernance;
 
+  protected readonly _querySecretContractCodeHash: ObservableQuerySecretContractCodeHash;
+
   constructor(kvStore: KVStore, chainId: string, chainGetter: ChainGetter) {
-    this._querySecretContractCodeHash = new ObservableQuerySecretContractCodeHash(
+    this._queryBalances = new ObservableQueryBalances(
       kvStore,
       chainId,
       chainGetter
+    );
+    this._queryBalances.addBalanceRegistry(
+      new ObservableQueryCosmosBalanceRegistry(kvStore)
     );
 
     this._queryMint = new ObservableQueryMintingInfation(
@@ -69,12 +77,6 @@ export class Queries {
       chainId,
       chainGetter
     );
-    this._queryBalances = new ObservableQueryBalances(
-      kvStore,
-      chainId,
-      chainGetter,
-      this._querySecretContractCodeHash
-    );
     this._queryDelegations = new ObservableQueryDelegations(
       kvStore,
       chainId,
@@ -95,6 +97,18 @@ export class Queries {
       chainId,
       chainGetter,
       this._queryPool
+    );
+
+    this._querySecretContractCodeHash = new ObservableQuerySecretContractCodeHash(
+      kvStore,
+      chainId,
+      chainGetter
+    );
+    this._queryBalances.addBalanceRegistry(
+      new ObservableQuerySecret20BalanceRegistry(
+        kvStore,
+        this._querySecretContractCodeHash
+      )
     );
   }
 
