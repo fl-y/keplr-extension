@@ -1,20 +1,19 @@
-import { ObservableChainQuery } from "../chain-query";
-import { GovProposals, Proposal, ProposalTally, StakingPool } from "../types";
+import { ObservableChainQuery } from "../../chain-query";
+import { GovProposals, Proposal, ProposalTally } from "./types";
 import { KVStore } from "@keplr/common";
-import { ChainGetter } from "../../common/types";
+import { ChainGetter } from "../../../common/types";
 import { computed, observable, runInAction } from "mobx";
 import { CoinPretty, Dec, DecUtils, Int, IntPretty } from "@keplr/unit";
 import { DeepReadonly } from "utility-types";
 import {
   ObservableQueryGovParamDeposit,
   ObservableQueryGovParamTally,
-  ObservableQueryGovParamVoting
+  ObservableQueryGovParamVoting,
 } from "./params";
 import { computedFn } from "mobx-utils";
+import { StakingPool } from "../../types";
 
-export class ObservableQueryProposal extends ObservableChainQuery<
-  ProposalTally
-> {
+export class ObservableQueryProposal extends ObservableChainQuery<ProposalTally> {
   constructor(
     kvStore: KVStore,
     chainId: string,
@@ -102,7 +101,7 @@ export class ObservableQueryProposal extends ObservableChainQuery<
           new Int(this.raw.final_tally_result.no_with_veto)
         )
           .precision(stakeCurrency.coinDecimals)
-          .maxDecimals(stakeCurrency.coinDecimals)
+          .maxDecimals(stakeCurrency.coinDecimals),
       };
     }
 
@@ -123,7 +122,7 @@ export class ObservableQueryProposal extends ObservableChainQuery<
         noWithVeto: new IntPretty(new Int(0))
           .ready(false)
           .precision(stakeCurrency.coinDecimals)
-          .maxDecimals(stakeCurrency.coinDecimals)
+          .maxDecimals(stakeCurrency.coinDecimals),
       };
     }
 
@@ -139,7 +138,7 @@ export class ObservableQueryProposal extends ObservableChainQuery<
         .maxDecimals(stakeCurrency.coinDecimals),
       noWithVeto: new IntPretty(new Int(this.response.data.result.no_with_veto))
         .precision(stakeCurrency.coinDecimals)
-        .maxDecimals(stakeCurrency.coinDecimals)
+        .maxDecimals(stakeCurrency.coinDecimals),
     };
   }
 
@@ -174,7 +173,7 @@ export class ObservableQueryProposal extends ObservableChainQuery<
         yes: new IntPretty(new Int(0)).ready(false),
         no: new IntPretty(new Int(0)).ready(false),
         abstain: new IntPretty(new Int(0)).ready(false),
-        noWithVeto: new IntPretty(new Int(0)).ready(false)
+        noWithVeto: new IntPretty(new Int(0)).ready(false),
       };
     }
 
@@ -202,14 +201,12 @@ export class ObservableQueryProposal extends ObservableChainQuery<
           .toDec()
           .quoTruncate(tallySum.toDec())
           .mulTruncate(DecUtils.getPrecisionDec(2))
-      ).ready(tally.noWithVeto.isReady)
+      ).ready(tally.noWithVeto.isReady),
     };
   }
 }
 
-export class ObservableQueryGovernance extends ObservableChainQuery<
-  GovProposals
-> {
+export class ObservableQueryGovernance extends ObservableChainQuery<GovProposals> {
   @observable.ref
   protected paramDeposit?: ObservableQueryGovParamDeposit;
   @observable.ref
@@ -315,6 +312,6 @@ export class ObservableQueryGovernance extends ObservableChainQuery<
   readonly getProposal = computedFn((id: string):
     | DeepReadonly<ObservableQueryProposal>
     | undefined => {
-    return this.proposals.find(proposal => proposal.id === id);
+    return this.proposals.find((proposal) => proposal.id === id);
   });
 }

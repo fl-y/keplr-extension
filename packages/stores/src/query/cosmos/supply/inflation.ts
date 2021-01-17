@@ -1,8 +1,9 @@
 import { computed } from "mobx";
 import { Dec, DecUtils, Int, IntPretty } from "@keplr/unit";
 import { ObservableQuerySupplyTotal } from "./supply";
-import { MintingInflation, StakingPool } from "./types";
-import { ObservableChainQuery } from "./chain-query";
+import { MintingInflation } from "./types";
+import { StakingPool } from "../staking/types";
+import { ObservableChainQuery } from "../../chain-query";
 
 export class ObservableQueryInflation {
   constructor(

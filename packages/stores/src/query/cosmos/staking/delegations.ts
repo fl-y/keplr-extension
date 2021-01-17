@@ -1,14 +1,15 @@
-import { ObservableChainQuery, ObservableChainQueryMap } from "./chain-query";
+import {
+  ObservableChainQuery,
+  ObservableChainQueryMap,
+} from "../../chain-query";
 import { Delegation, Delegations } from "./types";
 import { KVStore } from "@keplr/common";
-import { ChainGetter } from "../common/types";
+import { ChainGetter } from "../../../common/types";
 import { CoinPretty, Int } from "@keplr/unit";
 import { computed } from "mobx";
 import { computedFn } from "mobx-utils";
 
-export class ObservableQueryDelegationsInner extends ObservableChainQuery<
-  Delegations
-> {
+export class ObservableQueryDelegationsInner extends ObservableChainQuery<Delegations> {
   protected bech32Address: string;
 
   constructor(
@@ -30,7 +31,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
       this.setError({
         status: 0,
         statusText: "Address is empty",
-        message: "Address is empty"
+        message: "Address is empty",
       });
     }
   }
@@ -88,7 +89,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
         validatorAddress: delegation.validator_address,
         balance: new CoinPretty(stakeCurrency.coinDenom, new Int(balance))
           .precision(stakeCurrency.coinDecimals)
-          .maxDecimals(stakeCurrency.coinDecimals)
+          .maxDecimals(stakeCurrency.coinDecimals),
       });
     }
 
@@ -140,9 +141,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
   );
 }
 
-export class ObservableQueryDelegations extends ObservableChainQueryMap<
-  Delegations
-> {
+export class ObservableQueryDelegations extends ObservableChainQueryMap<Delegations> {
   constructor(
     protected readonly kvStore: KVStore,
     protected readonly chainId: string,

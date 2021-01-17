@@ -19,7 +19,7 @@ import {
   MultiKeyStoreInfoWithSelected,
   RestoreKeyRingMsg,
   SetKeyStoreCoinTypeMsg,
-  UnlockKeyRingMsg
+  UnlockKeyRingMsg,
 } from "@keplr/background";
 
 import { computed, observable, runInAction } from "mobx";
@@ -89,7 +89,7 @@ export class KeyRingSelectablesStore {
  */
 export class KeyRingStore {
   static async GenereateMnemonic(strenth: number = 128): Promise<string> {
-    return await Mnemonic.generateSeed(array => {
+    return await Mnemonic.generateSeed((array) => {
       return Promise.resolve(crypto.getRandomValues(array));
     }, strenth);
   }

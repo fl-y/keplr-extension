@@ -14,18 +14,19 @@ import {
   makeStdTx,
   Msg,
   serializeSignDoc,
-  StdFee
+  StdFee,
 } from "@cosmjs/launchpad";
 import { fromHex } from "@cosmjs/encoding";
 import { Coin, Dec, DecUtils } from "@keplr/unit";
-import { BondStatus, QueriesStore } from "../query";
+import { QueriesStore } from "../query";
+import { BondStatus } from "../query/cosmos/staking/types";
 import { Queries } from "../query/queries";
 import PQueue from "p-queue";
 
 export enum WalletStatus {
   Loading = "Loading",
   Loaded = "Loaded",
-  NotExist = "NotExist"
+  NotExist = "NotExist",
 }
 
 export interface AccountStoreInnerOpts {
@@ -51,7 +52,7 @@ export class AccountStoreInner {
   // keplr wallet works somewhat strangely.
   // So to solve this problem, just make enabling execute sequently.
   protected static enablingQueue: PQueue = new PQueue({
-    concurrency: 1
+    concurrency: 1,
   });
 
   constructor(
@@ -60,7 +61,7 @@ export class AccountStoreInner {
     protected readonly chainId: string,
     protected readonly queries: Queries,
     protected readonly opts: AccountStoreInnerOpts = {
-      reinitializeWhenKeyStoreChanged: true
+      reinitializeWhenKeyStoreChanged: true,
     }
   ) {
     runInAction(() => {
@@ -92,7 +93,7 @@ export class AccountStoreInner {
     if (this.opts.reinitializeWhenKeyStoreChanged) {
       // If key store in the keplr extension is changed, this event will be dispatched.
       window.addEventListener("keplr_keystorechange", this.init, {
-        once: true
+        once: true,
       });
     }
 
@@ -146,7 +147,7 @@ export class AccountStoreInner {
           onSuccess();
         }
       })
-      .catch(e => {
+      .catch((e) => {
         // 아직 트랜잭션 자체가 실패했는지는 고려하지 않는다.
         // 만약 wallet status가 loaded가 아닐 경우는 오류가 뜰 것.
         // 또는 케플러에서 rejected 당할 때 오류가 뜰 것.
@@ -202,15 +203,13 @@ export class AccountStoreInner {
     const msg = {
       type: "cosmos-sdk/MsgDelegate",
       value: {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         delegator_address: this.bech32Address,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         validator_address: validatorAddress,
         amount: {
           denom: currency.coinMinimalDenom,
-          amount: dec.truncate().toString()
-        }
-      }
+          amount: dec.truncate().toString(),
+        },
+      },
     };
 
     this.sendMsgs(
@@ -272,15 +271,13 @@ export class AccountStoreInner {
     const msg = {
       type: "cosmos-sdk/MsgUndelegate",
       value: {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         delegator_address: this.bech32Address,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         validator_address: validatorAddress,
         amount: {
           denom: currency.coinMinimalDenom,
-          amount: dec.truncate().toString()
-        }
-      }
+          amount: dec.truncate().toString(),
+        },
+      },
     };
 
     this.sendMsgs(
@@ -348,17 +345,14 @@ export class AccountStoreInner {
     const msg = {
       type: "cosmos-sdk/MsgBeginRedelegate",
       value: {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         delegator_address: this.bech32Address,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         validator_src_address: srcValidatorAddress,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         validator_dst_address: dstValidatorAddress,
         amount: {
           denom: currency.coinMinimalDenom,
-          amount: dec.truncate().toString()
-        }
-      }
+          amount: dec.truncate().toString(),
+        },
+      },
     };
 
     this.sendMsgs(
@@ -399,15 +393,13 @@ export class AccountStoreInner {
     onFail?: (e: Error) => void,
     onFulfill?: () => void
   ) {
-    const msgs = validatorAddresses.map(validatorAddress => {
+    const msgs = validatorAddresses.map((validatorAddress) => {
       return {
         type: "cosmos-sdk/MsgWithdrawDelegationReward",
         value: {
-          // eslint-disable-next-line @typescript-eslint/camelcase
           delegator_address: this.bech32Address,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          validator_address: validatorAddress
-        }
+          validator_address: validatorAddress,
+        },
       };
     });
 
@@ -446,10 +438,9 @@ export class AccountStoreInner {
       type: "cosmos-sdk/MsgVote",
       value: {
         option,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         proposal_id: proposalId,
-        voter: this.bech32Address
-      }
+        voter: this.bech32Address,
+      },
     };
 
     this.sendMsgs(
@@ -497,7 +488,7 @@ export class AccountStoreInner {
     const txConfig = await keplr.getTxConfig(this.chainId, {
       gas: fee.gas,
       memo,
-      fee: fee.amount.map(fee => `${fee.amount} ${fee.denom}`).join(",")
+      fee: fee.amount.map((fee) => `${fee.amount} ${fee.denom}`).join(","),
     });
 
     const signDoc = makeSignDoc(
@@ -508,16 +499,16 @@ export class AccountStoreInner {
         amount: txConfig.fee
           ? txConfig.fee
               .split(",")
-              .map(feeStr => {
+              .map((feeStr) => {
                 return Coin.parse(feeStr);
               })
-              .map(coin => {
+              .map((coin) => {
                 return {
                   amount: coin.amount.toString(),
-                  denom: coin.denom
+                  denom: coin.denom,
                 };
               })
-          : []
+          : [],
       },
       this.chainId,
       txConfig.memo,
@@ -543,9 +534,9 @@ export class AccountStoreInner {
     const chainInfo = this.chainGetter.getChain(this.chainId);
     return Axios.create({
       ...{
-        baseURL: chainInfo.rest
+        baseURL: chainInfo.rest,
       },
-      ...chainInfo.restConfig
+      ...chainInfo.restConfig,
     });
   }
 
@@ -600,7 +591,7 @@ export class AccountStore extends HasMapStore<AccountStoreInner> {
       return window.keplr;
     }
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const documentStateChange = (event: Event) => {
         if (
           event.target &&

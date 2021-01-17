@@ -46,7 +46,7 @@ export class StoreUtils {
   ): CoinPretty {
     const result = StoreUtils.getBalancesFromCurrencies(
       {
-        [currency.coinMinimalDenom]: currency
+        [currency.coinMinimalDenom]: currency,
       },
       bals,
       false

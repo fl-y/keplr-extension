@@ -4,7 +4,7 @@ import {
   observable,
   onBecomeObserved,
   onBecomeUnobserved,
-  runInAction
+  runInAction,
 } from "mobx";
 import Axios, { AxiosInstance, CancelToken, CancelTokenSource } from "axios";
 import { actionAsync, task } from "mobx-utils";
@@ -155,7 +155,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
       // Make the existing response as staled.
       this.setResponse({
         ...this._response,
-        staled: true
+        staled: true,
       });
     }
 
@@ -178,7 +178,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
           status: e.response.status,
           statusText: e.response.statusText,
           message: e.response.statusText,
-          data: e.response.data
+          data: e.response.data,
         };
 
         this.setError(error);
@@ -187,7 +187,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
         const error: QueryError<E> = {
           status: 0,
           statusText: "Failed to get response",
-          message: "Failed to get response"
+          message: "Failed to get response",
         };
 
         this.setError(error);
@@ -195,7 +195,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
         const error: QueryError<E> = {
           status: 0,
           statusText: e.message,
-          message: e.message
+          message: e.message,
         };
 
         this.setError(error);
@@ -278,13 +278,13 @@ export class ObservableQuery<
     cancelToken: CancelToken
   ): Promise<QueryResponse<T>> {
     const result = await this.instance.get<T>(this.url, {
-      cancelToken
+      cancelToken,
     });
     return {
       data: result.data,
       status: result.status,
       staled: false,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -292,7 +292,7 @@ export class ObservableQuery<
     return `${this.instance.name}-${
       this.instance.defaults.baseURL
     }${this.instance.getUri({
-      url: this.url
+      url: this.url,
     })}`;
   }
 
@@ -318,7 +318,7 @@ export class ObservableQuery<
     if (response) {
       return {
         ...response,
-        staled: true
+        staled: true,
       };
     }
     return undefined;

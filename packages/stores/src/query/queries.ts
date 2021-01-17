@@ -1,31 +1,28 @@
 import { observable, runInAction } from "mobx";
-import { ObservableQuery } from "../common";
 import { KVStore } from "@keplr/common";
-import {
-  MintingInflation,
-  StakingParams,
-  StakingPool,
-  SupplyTotal
-} from "./types";
 import { DeepReadonly } from "utility-types";
-import { ObservableQuerySupplyTotal } from "./supply";
-import { ObservableQueryInflation } from "./inflation";
-import { ObservableQueryRewards } from "./rewards";
-import { ObservableChainQuery } from "./chain-query";
 import { ObservableQueryBalances } from "./balances";
 import { ChainGetter } from "../common/types";
-import { ObservableQueryDelegations } from "./delegations";
-import { ObservableQueryUnbondingDelegations } from "./unbonding-delegations";
-import { ObservableQueryValidators } from "./validators";
-import { ObservableQueryGovernance } from "./governance";
-import { ObservableQuerySecretContractCodeHash } from "./secret20-contract";
+import { ObservableQuerySecretContractCodeHash } from "./secret-wasm";
+import {
+  ObservableQuerySupplyTotal,
+  ObservableQueryInflation,
+  ObservableQueryMintingInfation,
+  ObservableQueryDelegations,
+  ObservableQueryRewards,
+  ObservableQueryStakingParams,
+  ObservableQueryStakingPool,
+  ObservableQueryUnbondingDelegations,
+  ObservableQueryValidators,
+  ObservableQueryGovernance,
+} from "./cosmos";
 
 export class Queries {
   protected readonly _querySecretContractCodeHash: ObservableQuerySecretContractCodeHash;
 
-  protected readonly _queryMint: ObservableChainQuery<MintingInflation>;
-  protected readonly _queryPool: ObservableChainQuery<StakingPool>;
-  protected readonly _queryStakingParams: ObservableChainQuery<StakingParams>;
+  protected readonly _queryMint: ObservableQueryMintingInfation;
+  protected readonly _queryPool: ObservableQueryStakingPool;
+  protected readonly _queryStakingParams: ObservableQueryStakingParams;
   protected readonly _querySupplyTotal: ObservableQuerySupplyTotal;
   protected readonly _queryInflation: ObservableQueryInflation;
   protected readonly _queryRewards: ObservableQueryRewards;
@@ -42,23 +39,20 @@ export class Queries {
       chainGetter
     );
 
-    this._queryMint = new ObservableChainQuery(
+    this._queryMint = new ObservableQueryMintingInfation(
       kvStore,
       chainId,
-      chainGetter,
-      "/minting/inflation"
+      chainGetter
     );
-    this._queryPool = new ObservableChainQuery(
+    this._queryPool = new ObservableQueryStakingPool(
       kvStore,
       chainId,
-      chainGetter,
-      "/staking/pool"
+      chainGetter
     );
-    this._queryStakingParams = new ObservableChainQuery(
+    this._queryStakingParams = new ObservableQueryStakingParams(
       kvStore,
       chainId,
-      chainGetter,
-      "/staking/parameters"
+      chainGetter
     );
     this._querySupplyTotal = new ObservableQuerySupplyTotal(
       kvStore,
@@ -104,22 +98,20 @@ export class Queries {
     );
   }
 
-  getQueryMint(): DeepReadonly<ObservableQuery<MintingInflation>> {
+  getQueryMint(): DeepReadonly<ObservableQueryMintingInfation> {
     return this._queryMint;
   }
 
-  getQueryPool(): DeepReadonly<ObservableQuery<StakingPool>> {
+  getQueryPool(): DeepReadonly<ObservableQueryStakingPool> {
     return this._queryPool;
   }
 
-  getQueryStakingParams(): DeepReadonly<ObservableQuery<StakingParams>> {
+  getQueryStakingParams(): DeepReadonly<ObservableQueryStakingParams> {
     return this._queryStakingParams;
   }
 
-  getQuerySupplyTotal(
-    denom: string
-  ): DeepReadonly<ObservableQuery<SupplyTotal>> {
-    return this._querySupplyTotal.getQueryDenom(denom);
+  getQuerySupplyTotal(): DeepReadonly<ObservableQuerySupplyTotal> {
+    return this._querySupplyTotal;
   }
 
   getQueryInflation(): DeepReadonly<ObservableQueryInflation> {
@@ -138,9 +130,7 @@ export class Queries {
     return this._queryDelegations;
   }
 
-  getQueryUnbondingDelegations(): DeepReadonly<
-    ObservableQueryUnbondingDelegations
-  > {
+  getQueryUnbondingDelegations(): DeepReadonly<ObservableQueryUnbondingDelegations> {
     return this._queryUnbondingDelegations;
   }
 

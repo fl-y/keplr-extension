@@ -23,7 +23,7 @@ export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
     }
   ) {
     const instance = Axios.create({
-      baseURL: "https://api.coingecko.com/api/v3"
+      baseURL: "https://api.coingecko.com/api/v3",
     });
 
     super(kvStore, instance, "/simple/price");

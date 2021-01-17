@@ -1,13 +1,14 @@
-import { ObservableChainQuery, ObservableChainQueryMap } from "./chain-query";
+import {
+  ObservableChainQuery,
+  ObservableChainQueryMap,
+} from "../../chain-query";
 import { UnbondingDelegation, UnbondingDelegations } from "./types";
 import { KVStore } from "@keplr/common";
-import { ChainGetter } from "../common/types";
+import { ChainGetter } from "../../../common/types";
 import { CoinPretty, Int } from "@keplr/unit";
 import { computed } from "mobx";
 
-export class ObservableQueryUnbondingDelegationsInner extends ObservableChainQuery<
-  UnbondingDelegations
-> {
+export class ObservableQueryUnbondingDelegationsInner extends ObservableChainQuery<UnbondingDelegations> {
   protected bech32Address: string;
 
   constructor(
@@ -29,7 +30,7 @@ export class ObservableQueryUnbondingDelegationsInner extends ObservableChainQue
       this.setError({
         status: 0,
         statusText: "Address is empty",
-        message: "Address is empty"
+        message: "Address is empty",
       });
     }
   }
@@ -87,13 +88,13 @@ export class ObservableQueryUnbondingDelegationsInner extends ObservableChainQue
             new Int(entry.balance)
           )
             .precision(stakeCurrency.coinDecimals)
-            .maxDecimals(stakeCurrency.coinDecimals)
+            .maxDecimals(stakeCurrency.coinDecimals),
         });
       }
 
       result.push({
         validatorAddress: unbonding.validator_address,
-        entries
+        entries,
       });
     }
 
@@ -110,9 +111,7 @@ export class ObservableQueryUnbondingDelegationsInner extends ObservableChainQue
   }
 }
 
-export class ObservableQueryUnbondingDelegations extends ObservableChainQueryMap<
-  UnbondingDelegations
-> {
+export class ObservableQueryUnbondingDelegations extends ObservableChainQueryMap<UnbondingDelegations> {
   constructor(
     protected readonly kvStore: KVStore,
     protected readonly chainId: string,

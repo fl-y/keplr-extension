@@ -18,7 +18,7 @@ export class ChainStore<C extends ChainInfo = ChainInfo>
   }
 
   getChain(chainId: string): C {
-    const find = this.chainInfos.find(info => info.chainId === chainId);
+    const find = this.chainInfos.find((info) => info.chainId === chainId);
 
     if (!find) {
       throw new Error(`Unknown chain info: ${chainId}`);

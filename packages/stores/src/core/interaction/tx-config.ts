@@ -4,7 +4,7 @@ import { autorun, observable, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
 import {
   TxBuilderConfigPrimitive,
-  TxBuilderConfigPrimitiveWithChainId
+  TxBuilderConfigPrimitiveWithChainId,
 } from "@keplr/types";
 
 export class TxConfigStore {

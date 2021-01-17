@@ -5,7 +5,7 @@ import { ChainGetter } from "../common/types";
 import { autorun, computed, observable, runInAction } from "mobx";
 import { CoinPretty, Int } from "@keplr/unit";
 import { QueryResponse, StoreUtils } from "../common";
-import { ObservableQuerySecretContractCodeHash } from "./secret20-contract";
+import { ObservableQuerySecretContractCodeHash } from "./secret-wasm";
 import { AppCurrency, Keplr } from "@keplr/types";
 import { AccountStore } from "../account";
 import { CancelToken } from "axios";
@@ -33,7 +33,7 @@ export abstract class ObservableQueryBalanceInner<
 
     const chainInfo = this.chainGetter.getChain(this.chainId);
     const currency = chainInfo.currencies.find(
-      cur => cur.coinMinimalDenom === denom
+      (cur) => cur.coinMinimalDenom === denom
     );
 
     // TODO: Infer the currency according to its denom (such if denom is `uatom` -> `Atom` with decimal 6)?
@@ -107,7 +107,7 @@ export class ObservableQuerySecret20Balance extends ObservableQueryBalanceInner<
       const enigmaUtils = this.keplr.getEnigmaUtils(this.chainId);
       const encrypted = await task(
         enigmaUtils.encrypt(this.contractCodeHash, {
-          balance: { address: this.bech32Address, key: currency.viewingKey }
+          balance: { address: this.bech32Address, key: currency.viewingKey },
         })
       );
       const nonce = encrypted.slice(0, 32);
@@ -156,11 +156,11 @@ export class ObservableQuerySecret20Balance extends ObservableQueryBalanceInner<
       if (obj.balance?.amount) {
         return {
           data: {
-            balance: obj.balance.amount
+            balance: obj.balance.amount,
           },
           status: response.status,
           staled: false,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
       }
       // TODO: Handle the viewing key error. ({"viewing_key_error":{"msg":"Wrong viewing key for this address or viewing key not set"}})
@@ -170,7 +170,7 @@ export class ObservableQuerySecret20Balance extends ObservableQueryBalanceInner<
       data: {},
       status: response.status,
       staled: false,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -180,7 +180,7 @@ export class ObservableQuerySecret20Balance extends ObservableQueryBalanceInner<
     return `${this.instance.name}-${
       this.instance.defaults.baseURL
     }${this.instance.getUri({
-      url: `/wasm/contract/${this.denomHelper.contractAddress}/query/encrypted?encoding=hex`
+      url: `/wasm/contract/${this.denomHelper.contractAddress}/query/encrypted?encoding=hex`,
     })}`;
   }
 
@@ -211,7 +211,7 @@ export class ObservableQuerySecret20Balance extends ObservableQueryBalanceInner<
 
     const chainInfo = this.chainGetter.getChain(this.chainId);
     const currency = chainInfo.currencies.find(
-      cur => cur.coinMinimalDenom === denom
+      (cur) => cur.coinMinimalDenom === denom
     );
 
     // TODO: Infer the currency according to its denom (such if denom is `uatom` -> `Atom` with decimal 6)?
@@ -283,9 +283,7 @@ export class ObservableQueryBalanceNative extends ObservableQueryBalanceInner {
   }
 }
 
-export class ObservableQueryBalancesInner extends ObservableChainQuery<
-  Balances
-> {
+export class ObservableQueryBalancesInner extends ObservableChainQuery<Balances> {
   protected bech32Address: string;
 
   @observable.shallow
@@ -310,7 +308,7 @@ export class ObservableQueryBalancesInner extends ObservableChainQuery<
       this.setError({
         status: 0,
         statusText: "Address is empty",
-        message: "Address is empty"
+        message: "Address is empty",
       });
     }
   }
@@ -388,7 +386,7 @@ export class ObservableQueryBalancesInner extends ObservableChainQuery<
     const chainInfo = this.chainGetter.getChain(this.chainId);
 
     const currencies = chainInfo.currencies.filter(
-      cur => cur.coinMinimalDenom !== chainInfo.stakeCurrency.coinMinimalDenom
+      (cur) => cur.coinMinimalDenom !== chainInfo.stakeCurrency.coinMinimalDenom
     );
 
     const result = [];

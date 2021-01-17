@@ -1,9 +1,12 @@
-import { ObservableChainQuery, ObservableChainQueryMap } from "./chain-query";
+import {
+  ObservableChainQuery,
+  ObservableChainQueryMap,
+} from "../../chain-query";
 import { BondStatus, Validators, Validator } from "./types";
 import { KVStore } from "@keplr/common";
-import { ChainGetter } from "../common/types";
+import { ChainGetter } from "../../../common/types";
 import { computed, observable, runInAction } from "mobx";
-import { ObservableQuery, QueryResponse } from "../common";
+import { ObservableQuery, QueryResponse } from "../../../common";
 import Axios, { CancelToken } from "axios";
 import PQueue from "p-queue";
 import { CoinPretty, Dec, DecUtils } from "@keplr/unit";
@@ -29,23 +32,21 @@ interface KeybaseResult {
 /**
  * Fetch the validator's thumbnail from keybase if the identity exists.
  */
-export class ObservableQueryValidatorThumbnail extends ObservableQuery<
-  KeybaseResult
-> {
+export class ObservableQueryValidatorThumbnail extends ObservableQuery<KeybaseResult> {
   /**
    * Throttle down fetching the thumbnail from Keybase.
    * If too many requests occurs at the same time, Keybase will reject these requests.
    * @protected
    */
   protected static fetchingThumbnailQueue: PQueue = new PQueue({
-    concurrency: 3
+    concurrency: 3,
   });
 
   protected readonly validator: Validator;
 
   constructor(kvStore: KVStore, validator: Validator) {
     const instance = Axios.create({
-      baseURL: "https://keybase.io/"
+      baseURL: "https://keybase.io/",
     });
 
     super(
@@ -83,9 +84,7 @@ export class ObservableQueryValidatorThumbnail extends ObservableQuery<
   }
 }
 
-export class ObservableQueryValidatorsInner extends ObservableChainQuery<
-  Validators
-> {
+export class ObservableQueryValidatorsInner extends ObservableChainQuery<Validators> {
   @observable.shallow
   protected thumbnailMap!: Map<string, ObservableQueryValidatorThumbnail>;
 
@@ -121,7 +120,7 @@ export class ObservableQueryValidatorsInner extends ObservableChainQuery<
     | undefined => {
     const validators = this.validators;
 
-    return validators.find(val => val.operator_address === validatorAddress);
+    return validators.find((val) => val.operator_address === validatorAddress);
   });
 
   @computed
@@ -138,7 +137,7 @@ export class ObservableQueryValidatorsInner extends ObservableChainQuery<
     (operatorAddress: string): string => {
       const validators = this.validators;
       const validator = validators.find(
-        val => val.operator_address === operatorAddress
+        (val) => val.operator_address === operatorAddress
       );
       if (!validator) {
         return "";
@@ -172,7 +171,7 @@ export class ObservableQueryValidatorsInner extends ObservableChainQuery<
     | undefined => {
     const validators = this.validators;
     const validator = validators.find(
-      val => val.operator_address === operatorAddress
+      (val) => val.operator_address === operatorAddress
     );
     if (!validator) {
       return;
@@ -192,9 +191,7 @@ export class ObservableQueryValidatorsInner extends ObservableChainQuery<
   });
 }
 
-export class ObservableQueryValidators extends ObservableChainQueryMap<
-  Validators
-> {
+export class ObservableQueryValidators extends ObservableChainQueryMap<Validators> {
   constructor(
     protected readonly kvStore: KVStore,
     protected readonly chainId: string,

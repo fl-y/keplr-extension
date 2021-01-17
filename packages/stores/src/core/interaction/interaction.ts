@@ -5,7 +5,7 @@ import {
   InteractionForegroundKeeper,
   InteractionWaitingData,
   ApproveInteractionMsg,
-  RejectInteractionMsg
+  RejectInteractionMsg,
 } from "@keplr/background";
 import { runInAction, action, observable, IObservableArray } from "mobx";
 import { actionAsync } from "mobx-utils";
@@ -36,7 +36,7 @@ export class InteractionStore implements InteractionForegroundHandler {
       this.datas.set(
         data.type,
         observable.array([], {
-          deep: false
+          deep: false,
         })
       );
     }
@@ -67,13 +67,13 @@ export class InteractionStore implements InteractionForegroundHandler {
   protected removeData(type: string, id: string) {
     if (this.datas.has(type)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const find = this.datas.get(type)!.find(data => {
+      const find = this.datas.get(type)!.find((data) => {
         return data.id === id;
       });
       if (find) {
-        (this.datas.get(type) as IObservableArray<
-          InteractionWaitingData
-        >).remove(find);
+        (this.datas.get(
+          type
+        ) as IObservableArray<InteractionWaitingData>).remove(find);
       }
     }
   }

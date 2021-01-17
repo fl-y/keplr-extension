@@ -1,11 +1,14 @@
 import { Rewards } from "./types";
 import { KVStore } from "@keplr/common";
-import { ObservableChainQuery, ObservableChainQueryMap } from "./chain-query";
-import { ChainGetter } from "../common/types";
+import {
+  ObservableChainQuery,
+  ObservableChainQueryMap,
+} from "../../chain-query";
+import { ChainGetter } from "../../../common/types";
 import { computed } from "mobx";
 import { CoinPretty, Dec, Int } from "@keplr/unit";
 import { Currency } from "@keplr/types";
-import { StoreUtils } from "../common";
+import { StoreUtils } from "../../../common";
 import { computedFn } from "mobx-utils";
 
 export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
@@ -30,7 +33,7 @@ export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
       this.setError({
         status: 0,
         statusText: "Address is empty",
-        message: "Address is empty"
+        message: "Address is empty",
       });
     }
   }
@@ -74,7 +77,7 @@ export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
         return obj;
       }, {});
 
-      const reward = this.response?.data.result.rewards?.find(r => {
+      const reward = this.response?.data.result.rewards?.find((r) => {
         return r.validator_address === validatorAddress;
       });
 
@@ -104,7 +107,7 @@ export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
     (validatorAddress: string): CoinPretty => {
       const chainInfo = this.chainGetter.getChain(this.chainId);
 
-      const reward = this.response?.data.result.rewards?.find(r => {
+      const reward = this.response?.data.result.rewards?.find((r) => {
         return r.validator_address === validatorAddress;
       });
 
@@ -161,7 +164,7 @@ export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
         return obj;
       }, {});
 
-      const reward = this.response?.data.result.rewards?.find(r => {
+      const reward = this.response?.data.result.rewards?.find((r) => {
         return r.validator_address === validatorAddress;
       });
 
