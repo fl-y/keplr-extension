@@ -20,7 +20,7 @@ export async function sendMessage<M extends Message<unknown>>(
     const sequence = lastSequence + 1;
     lastSequence++;
 
-    opts.emitter.once(`message-result-${sequence}`, result => {
+    opts.emitter.once(`message-result-${sequence}`, (result) => {
       if (!result) {
         reject(Error("Null result"));
         return;
@@ -34,7 +34,7 @@ export async function sendMessage<M extends Message<unknown>>(
       resolve(result.return);
     });
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     msg["origin"] = opts.origin;
 
@@ -45,8 +45,8 @@ export async function sendMessage<M extends Message<unknown>>(
       sequence,
       sender: {
         id: opts.id,
-        url: opts.url
-      }
+        url: opts.url,
+      },
     });
   });
 }

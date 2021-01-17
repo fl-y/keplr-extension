@@ -11,7 +11,7 @@ export class IndexedDBKVStore implements KVStore {
 
     return new Promise((resolve, reject) => {
       const request = store.get(key);
-      request.onerror = event => {
+      request.onerror = (event) => {
         event.stopPropagation();
 
         reject(event.target);
@@ -33,7 +33,7 @@ export class IndexedDBKVStore implements KVStore {
 
       return new Promise((resolve, reject) => {
         const request = store.delete(key);
-        request.onerror = event => {
+        request.onerror = (event) => {
           event.stopPropagation();
 
           reject(event.target);
@@ -49,9 +49,9 @@ export class IndexedDBKVStore implements KVStore {
       return new Promise((resolve, reject) => {
         const request = store.put({
           key,
-          data
+          data,
         });
-        request.onerror = event => {
+        request.onerror = (event) => {
           event.stopPropagation();
 
           reject(event.target);
@@ -74,13 +74,13 @@ export class IndexedDBKVStore implements KVStore {
 
     return new Promise((resolve, reject) => {
       const request = window.indexedDB.open(this.prefix());
-      request.onerror = event => {
+      request.onerror = (event) => {
         event.stopPropagation();
         reject(event.target);
       };
 
-      request.onupgradeneeded = event => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      request.onupgradeneeded = (event) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const db = event.target.result;
 

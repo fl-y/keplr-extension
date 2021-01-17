@@ -11,13 +11,13 @@ export class CoinUtils {
       amount: string;
     }[]
   ): Coin[] {
-    return coinPrimitives.map(primitive => {
+    return coinPrimitives.map((primitive) => {
       return new Coin(primitive.denom, primitive.amount);
     });
   }
 
   static amountOf(coins: Coin[], denom: string): Int {
-    const coin = coins.find(coin => {
+    const coin = coins.find((coin) => {
       return coin.denom === denom;
     });
 
@@ -29,7 +29,7 @@ export class CoinUtils {
   }
 
   static exclude(coins: Coin[], demons: string[]): Coin[] {
-    return coins.filter(coin => {
+    return coins.filter((coin) => {
       return demons.indexOf(coin.denom) === 0;
     });
   }
@@ -42,7 +42,7 @@ export class CoinUtils {
     const arr = coins.slice();
     const reducer = (accumulator: Coin[], coin: Coin) => {
       // Find the duplicated denom.
-      const find = accumulator.find(c => c.denom === coin.denom);
+      const find = accumulator.find((c) => c.denom === coin.denom);
       // If duplicated coin exists, add the amount to duplicated one.
       if (find) {
         const newCoin = new Coin(find.denom, find.amount.add(coin.amount));
@@ -63,7 +63,7 @@ export class CoinUtils {
     decAmountStr: string,
     denom: string
   ): Coin {
-    const currency = currencies.find(currency => {
+    const currency = currencies.find((currency) => {
       return currency.coinDenom === denom;
     });
     if (!currency) {
@@ -89,7 +89,7 @@ export class CoinUtils {
     currencies: Currency[],
     coin: Coin
   ): { amount: string; denom: string } {
-    const currency = currencies.find(currency => {
+    const currency = currencies.find((currency) => {
       return currency.coinMinimalDenom === coin.denom;
     });
     if (!currency) {
@@ -104,7 +104,7 @@ export class CoinUtils {
     const decAmount = new Dec(coin.amount).quoTruncate(precision);
     return {
       amount: decAmount.toString(currency.coinDecimals),
-      denom: currency.coinDenom
+      denom: currency.coinDenom,
     };
   }
 
@@ -132,7 +132,7 @@ export class CoinUtils {
     const fractionStr = fraction.toString(decimals).replace("0.", "");
 
     const integerStr = locale
-      ? // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         BigInt(integer.toString()).toLocaleString("en-US")
       : integer.toString();

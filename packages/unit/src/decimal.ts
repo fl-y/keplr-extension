@@ -267,7 +267,7 @@ export class Dec {
       !(integer.eq(bigInteger(0)) && fractionStr.length === 0);
 
     const integerStr = locale
-      ? // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         BigInt(integer.toString()).toLocaleString("en-US")
       : integer.toString();

@@ -32,11 +32,11 @@ export class InjectedMessageRequester implements MessageRequester {
         message.port,
         message.msg,
         message.msgType
-      ).then(result => {
+      ).then((result) => {
         const proxyMsgResult: ProxyMessageResult = {
           type: "proxy-message-result",
           id: message.id,
-          result
+          result,
         };
 
         window.postMessage(proxyMsgResult, window.location.origin);
@@ -50,14 +50,14 @@ export class InjectedMessageRequester implements MessageRequester {
     msgType: string
   ): Promise<any> {
     // Set message's origin.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
     return browser.runtime.sendMessage({
       port,
       type: msgType,
-      msg
+      msg,
     });
   }
 
@@ -69,7 +69,7 @@ export class InjectedMessageRequester implements MessageRequester {
 
     const bytes = new Uint8Array(8);
     const id: string = Array.from(crypto.getRandomValues(bytes))
-      .map(value => {
+      .map((value) => {
         return value.toString(16);
       })
       .join("");
@@ -79,7 +79,7 @@ export class InjectedMessageRequester implements MessageRequester {
       id,
       port,
       msg,
-      msgType: msg.type()
+      msgType: msg.type(),
     };
 
     return new Promise((resolve, reject) => {

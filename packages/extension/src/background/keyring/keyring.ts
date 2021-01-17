@@ -3,7 +3,7 @@ import { generateWalletFromMnemonic } from "@chainapsis/cosmosjs/utils/key";
 import {
   PrivKey,
   PrivKeySecp256k1,
-  PubKeySecp256k1
+  PubKeySecp256k1,
 } from "@chainapsis/cosmosjs/crypto";
 import { KVStore } from "../../common/kvstore";
 import { LedgerKeeper } from "../ledger/keeper";
@@ -18,7 +18,7 @@ export enum KeyRingStatus {
   NOTLOADED,
   EMPTY,
   LOCKED,
-  UNLOCKED
+  UNLOCKED,
 }
 
 export interface Key {
@@ -323,7 +323,7 @@ export class KeyRing {
     // We should support the legacy coin type, so we determined that the coin type ties with the keystore.
     // To decrease the barrier of existing users, set the alternative coin type by force if the keystore version is prior than 1.2.
     if (this.keyStore) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       if (this.keyStore.version === "1" || this.keyStore.version === "1.1") {
         hasLegacyKeyStore = true;
@@ -331,7 +331,7 @@ export class KeyRing {
       }
     }
     for (const keyStore of this.multiKeyStore) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       if (keyStore.version === "1" || keyStore.version === "1.1") {
         hasLegacyKeyStore = true;
@@ -361,7 +361,7 @@ export class KeyRing {
       })();
       keyStore.coinTypeForChain = {
         ...keyStore.coinTypeForChain,
-        [version.identifier]: coinType
+        [version.identifier]: coinType,
       };
     }
   }
@@ -382,10 +382,10 @@ export class KeyRing {
 
     this.keyStore.coinTypeForChain = {
       ...this.keyStore.coinTypeForChain,
-      [version.identifier]: coinType
+      [version.identifier]: coinType,
     };
 
-    const keyStoreInMulti = this.multiKeyStore.find(keyStore => {
+    const keyStoreInMulti = this.multiKeyStore.find((keyStore) => {
       return (
         KeyRing.getKeyStoreId(keyStore) ===
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -395,7 +395,7 @@ export class KeyRing {
 
     if (keyStoreInMulti) {
       keyStoreInMulti.coinTypeForChain = {
-        ...this.keyStore.coinTypeForChain
+        ...this.keyStore.coinTypeForChain,
       };
     }
   }
@@ -470,7 +470,7 @@ export class KeyRing {
       return {
         algo: "secp256k1",
         pubKey: pubKey.serialize(),
-        address: pubKey.toAddress().toBytes()
+        address: pubKey.toAddress().toBytes(),
       };
     } else {
       const privKey = this.loadPrivKey(coinType);
@@ -479,7 +479,7 @@ export class KeyRing {
       return {
         algo: "secp256k1",
         pubKey: pubKey.serialize(),
-        address: pubKey.toAddress().toBytes()
+        address: pubKey.toAddress().toBytes(),
       };
     }
   }
@@ -685,7 +685,7 @@ export class KeyRing {
         selected: this.keyStore
           ? KeyRing.getKeyStoreId(keyStore) ===
             KeyRing.getKeyStoreId(this.keyStore)
-          : false
+          : false,
       });
     }
 
@@ -742,7 +742,7 @@ export class KeyRing {
   }> {
     // `__id__` is used to distinguish the key store.
     return Object.assign({}, meta, {
-      __id__: (await this.getIncrementalNumber()).toString()
+      __id__: (await this.getIncrementalNumber()).toString(),
     });
   }
 
@@ -760,7 +760,7 @@ export class KeyRing {
       return {
         account: 0,
         change: 0,
-        addressIndex: 0
+        addressIndex: 0,
       };
     }
     KeyRing.validateBIP44Path(keyStore.bip44HDPath);

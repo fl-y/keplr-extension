@@ -18,7 +18,7 @@ import { Int } from "@chainapsis/cosmosjs/common/int";
 import { CW20Currency, Secret20Currency } from "../../../../common/currency";
 import {
   ReqeustEncryptMsg,
-  RequestDecryptMsg
+  RequestDecryptMsg,
 } from "../../../../background/secret-wasm";
 
 const Buffer = require("buffer/").Buffer;
@@ -96,7 +96,7 @@ export class AccountStore {
   // Not need to be observable
   private lastFetchingTokenCancleToken!: CancelTokenSource | undefined;
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   constructor(private readonly rootStore: RootStore) {
     this.init();
@@ -133,7 +133,7 @@ export class AccountStore {
 
     // Fetch the assets by interval.
     this.lastFetchingIntervalId = setInterval(() => {
-      this.fetchAssets(false).then(canceled => {
+      this.fetchAssets(false).then((canceled) => {
         if (!canceled) {
           this.fetchTokensSequently();
         }
@@ -205,7 +205,7 @@ export class AccountStore {
       //       We solve the problem in this way temporarily.
       for (const asset of this.assets) {
         const find = this.chainInfo.currencies.find(
-          cur => cur.coinMinimalDenom === asset.denom
+          (cur) => cur.coinMinimalDenom === asset.denom
         );
         if (!find) {
           this.removeAsset(asset.denom);
@@ -272,8 +272,8 @@ export class AccountStore {
               ...this.chainInfo.rpcConfig,
               ...{
                 baseURL: this.chainInfo.rpc,
-                cancelToken: this.lastFetchingCancleToken.token
-              }
+                cancelToken: this.lastFetchingCancleToken.token,
+              },
             }),
             this.bech32Address,
             this.chainInfo.bech32Config.bech32PrefixAccAddr,
@@ -289,8 +289,8 @@ export class AccountStore {
           ...this.chainInfo.restConfig,
           ...{
             baseURL: this.chainInfo.rest,
-            cancelToken: this.lastFetchingCancleToken.token
-          }
+            cancelToken: this.lastFetchingCancleToken.token,
+          },
         });
 
         const result = await task(
@@ -341,8 +341,8 @@ export class AccountStore {
           ...this.chainInfo.restConfig,
           ...{
             baseURL: this.chainInfo.rest,
-            cancelToken: this.lastFetchingCancleToken?.token
-          }
+            cancelToken: this.lastFetchingCancleToken?.token,
+          },
         });
 
         const staked: Coin = new Coin(
@@ -469,8 +469,8 @@ export class AccountStore {
       ...this.chainInfo.restConfig,
       ...{
         baseURL: this.chainInfo.rest,
-        cancelToken: this.lastFetchingTokenCancleToken?.token
-      }
+        cancelToken: this.lastFetchingTokenCancleToken?.token,
+      },
     });
 
     try {
@@ -483,7 +483,7 @@ export class AccountStore {
         }>(
           `/wasm/contract/${currency.contractAddress}/smart/${Buffer.from(
             JSON.stringify({
-              balance: { address: this.bech32Address }
+              balance: { address: this.bech32Address },
             })
           ).toString("hex")}?encoding=hex`
         )
@@ -536,8 +536,8 @@ export class AccountStore {
       ...this.chainInfo.restConfig,
       ...{
         baseURL: this.chainInfo.rest,
-        cancelToken: this.lastFetchingTokenCancleToken?.token
-      }
+        cancelToken: this.lastFetchingTokenCancleToken?.token,
+      },
     });
 
     try {
@@ -550,7 +550,7 @@ export class AccountStore {
       const contractCodeHash = contractCodeHashResult.data.result;
 
       const encryptMsg = new ReqeustEncryptMsg(chainId, contractCodeHash, {
-        balance: { address: this.bech32Address, key: currency.viewingKey }
+        balance: { address: this.bech32Address, key: currency.viewingKey },
       });
 
       const encrypted = await task(sendMessage(BACKGROUND_PORT, encryptMsg));
@@ -615,7 +615,7 @@ export class AccountStore {
 
   @action
   private pushAsset(asset: Coin) {
-    const index = this.assets.findIndex(a => {
+    const index = this.assets.findIndex((a) => {
       return a.denom === asset.denom;
     });
 
@@ -624,7 +624,7 @@ export class AccountStore {
       this.assets = [
         ...assets.slice(0, index),
         asset,
-        ...assets.slice(index + 1)
+        ...assets.slice(index + 1),
       ];
     } else {
       this.assets.push(asset);
@@ -640,7 +640,7 @@ export class AccountStore {
 
   @action
   private removeAsset(denom: string) {
-    const index = this.assets.findIndex(a => {
+    const index = this.assets.findIndex((a) => {
       return a.denom === denom;
     });
 
@@ -664,7 +664,7 @@ export class AccountStore {
     for (const asset of assets) {
       json.push({
         denom: asset.denom,
-        amount: asset.amount.toString()
+        amount: asset.amount.toString(),
       });
     }
 
@@ -672,8 +672,8 @@ export class AccountStore {
 
     await browser.storage.local.set({
       assetsJson: Object.assign({}, store, {
-        [`${chainId}-${bech32Address}${staked ? "-staked" : ""}`]: json
-      })
+        [`${chainId}-${bech32Address}${staked ? "-staked" : ""}`]: json,
+      }),
     });
   }
 

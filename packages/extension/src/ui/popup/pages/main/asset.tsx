@@ -15,17 +15,17 @@ const LazyDoughnut = React.lazy(async () => {
     /* webpackChunkName: "reactChartJS" */ "react-chartjs-2"
   );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const chartJS = module.Chart as any;
 
   chartJS.pluginService.register({
-    beforeDraw: function(chart: any): void {
+    beforeDraw: function (chart: any): void {
       const round = {
         x: (chart.chartArea.left + chart.chartArea.right) / 2,
         y: (chart.chartArea.top + chart.chartArea.bottom) / 2,
         radius: (chart.outerRadius + chart.innerRadius) / 2,
-        thickness: (chart.outerRadius - chart.innerRadius) / 2
+        thickness: (chart.outerRadius - chart.innerRadius) / 2,
       };
 
       const ctx = chart.chart.ctx;
@@ -40,14 +40,14 @@ const LazyDoughnut = React.lazy(async () => {
       ctx.stroke();
       ctx.restore();
     },
-    beforeTooltipDraw: function(chart: any): void {
+    beforeTooltipDraw: function (chart: any): void {
       const data = chart.getDatasetMeta(0).data;
 
       const round = {
         x: (chart.chartArea.left + chart.chartArea.right) / 2,
         y: (chart.chartArea.top + chart.chartArea.bottom) / 2,
         radius: (chart.outerRadius + chart.innerRadius) / 2,
-        thickness: (chart.outerRadius - chart.innerRadius) / 2
+        thickness: (chart.outerRadius - chart.innerRadius) / 2,
       };
 
       const ctx = chart.chart.ctx;
@@ -101,7 +101,7 @@ const LazyDoughnut = React.lazy(async () => {
       if (data.length == 2) {
         drawCircleEndEachOther(data[0], data[1]);
       }
-    }
+    },
   });
 
   return { default: module.Doughnut };
@@ -125,11 +125,11 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
 
   const accountInfo = accountStoreV2.getAccount(current.chainId);
 
-  const balancesQuery = queries
+  const balanceStakableQuery = queries
     .getQueryBalances()
-    .getQueryBech32Address(accountInfo.bech32Address);
+    .getQueryBech32Address(accountInfo.bech32Address).stakable;
 
-  const stakable = balancesQuery.stakable.balance;
+  const stakable = balanceStakableQuery.balance;
 
   const delegated = queries
     .getQueryDelegations()
@@ -170,7 +170,7 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
       : parseFloat(stakable.toDec().toString()),
     stakedSumPrice
       ? parseFloat(stakedSumPrice.toDec().toString())
-      : parseFloat(stakedSum.toString())
+      : parseFloat(stakedSum.toString()),
   ];
 
   return (
@@ -189,18 +189,18 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
           </div>
           <div className={styleAsset.indicatorIcon}>
             <React.Fragment>
-              {balancesQuery.isFetching ? (
+              {balanceStakableQuery.isFetching ? (
                 <i className="fas fa-spinner fa-spin" />
-              ) : balancesQuery.error ? (
+              ) : balanceStakableQuery.error ? (
                 <ToolTip
                   tooltip={
-                    balancesQuery.error?.message ||
-                    balancesQuery.error?.statusText
+                    balanceStakableQuery.error?.message ||
+                    balanceStakableQuery.error?.statusText
                   }
                   theme="dark"
                   trigger="hover"
                   options={{
-                    placement: "top"
+                    placement: "top",
                   }}
                 >
                   <i className="fas fa-exclamation-triangle text-danger" />
@@ -216,28 +216,28 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
                 {
                   data,
                   backgroundColor: ["#5e72e4", "#11cdef"],
-                  borderWidth: [0, 0]
-                }
+                  borderWidth: [0, 0],
+                },
               ],
 
               labels: [
                 intl.formatMessage({
-                  id: "main.account.chart.available-balance"
+                  id: "main.account.chart.available-balance",
                 }),
                 intl.formatMessage({
-                  id: "main.account.chart.staked-balance"
-                })
-              ]
+                  id: "main.account.chart.staked-balance",
+                }),
+              ],
             }}
             options={{
               rotation: 0.5 * Math.PI,
               cutoutPercentage: 85,
               legend: {
-                display: false
+                display: false,
               },
               tooltips: {
                 callbacks: {
-                  label: item => {
+                  label: (item) => {
                     let ratio = new Dec(0);
                     // There are only two labels (stakable, staked (including unbondings)).
                     if (item.index === 0) {
@@ -269,9 +269,9 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
                     }
 
                     return "Unexpected error";
-                  }
-                }
-              }
+                  },
+                },
+              },
             }}
           />
         </React.Suspense>
@@ -288,7 +288,7 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
           <div
             className={styleAsset.value}
             style={{
-              color: "#525f7f"
+              color: "#525f7f",
             }}
           >
             {stakable.shrink(true).toString()}
@@ -305,7 +305,7 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
           <div
             className={styleAsset.value}
             style={{
-              color: "#525f7f"
+              color: "#525f7f",
             }}
           >
             {stakedSum.shrink(true).toString()}

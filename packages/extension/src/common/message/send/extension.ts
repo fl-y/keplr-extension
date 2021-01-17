@@ -9,14 +9,14 @@ export class InExtensionMessageRequester implements MessageRequester {
     msg.validateBasic();
 
     // Set message's origin.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
     return await browser.runtime.sendMessage({
       port,
       type: msg.type(),
-      msg
+      msg,
     });
   }
 
@@ -28,14 +28,14 @@ export class InExtensionMessageRequester implements MessageRequester {
     msg.validateBasic();
 
     // Set message's origin.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
     return await browser.runtime.sendMessage({
       port,
       type: msg.type(),
-      msg
+      msg,
     });
   }
 }

@@ -8,7 +8,7 @@ import { AccAddress } from "@chainapsis/cosmosjs/common/address";
 describe("Test keyring", () => {
   let keyRing: KeyRing;
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   global.crypto = {
     getRandomValues: (arr: Uint8Array): Uint8Array => {
@@ -16,7 +16,7 @@ describe("Test keyring", () => {
         arr[i] = Math.floor(Math.random() * 256);
       }
       return arr;
-    }
+    },
   };
 
   beforeEach(() => {
@@ -46,7 +46,7 @@ describe("Test keyring", () => {
       {
         account: 0,
         change: 0,
-        addressIndex: 0
+        addressIndex: 0,
       }
     );
 
@@ -103,7 +103,7 @@ describe("Test keyring", () => {
       {
         account: 0,
         change: 0,
-        addressIndex: 0
+        addressIndex: 0,
       }
     );
 
@@ -171,7 +171,7 @@ describe("Test keyring", () => {
       {
         account: 0,
         change: 0,
-        addressIndex: 0
+        addressIndex: 0,
       }
     );
 
@@ -229,7 +229,7 @@ describe("Test keyring", () => {
       {
         account: 0,
         change: 0,
-        addressIndex: 0
+        addressIndex: 0,
       }
     );
 

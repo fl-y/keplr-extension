@@ -19,7 +19,7 @@ import {
   CreateLedgerKeyMsg,
   AddLedgerKeyMsg,
   GetKeyRingTypeMsg,
-  SetKeyStoreCoinTypeMsg
+  SetKeyStoreCoinTypeMsg,
 } from "../../../../background/keyring";
 
 import { action, observable } from "mobx";
@@ -39,14 +39,14 @@ const Buffer = require("buffer/").Buffer;
 
 export class KeyRingStore {
   public static GenereateMnemonic(strenth: number = 128): string {
-    return generateSeed(array => {
+    return generateSeed((array) => {
       return crypto.getRandomValues(array);
     }, strenth);
   }
 
   @observable
   // disable never read error temporarily.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   private chainInfo!: ChainInfo;
 

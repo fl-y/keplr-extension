@@ -16,7 +16,7 @@ export abstract class Message<R> {
    * So, we need to use generic R though there is no need to use generic R in structure.
    * This is just dummy field for generic R, and actually it is never used.
    */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   private resultType: R;
 
@@ -39,7 +39,7 @@ export abstract class Message<R> {
   /**
    * Ask for approval if message is sent externally.
    */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   approveExternal(env: Env, sender: MessageSender): boolean {

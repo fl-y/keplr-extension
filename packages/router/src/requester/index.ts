@@ -10,14 +10,14 @@ function _sendMessage(
   opts: { msgType?: string } = {}
 ): Promise<any> {
   // Set message's origin.
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   msg["origin"] = window.location.origin;
 
   return browser.runtime.sendMessage({
     port,
     type: opts.msgType || msg.type(),
-    msg
+    msg,
   });
 }
 
@@ -35,7 +35,7 @@ export async function sendMessage<M extends Message<unknown>>(
   opts: {
     disablePostMessage: boolean;
   } = {
-    disablePostMessage: false
+    disablePostMessage: false,
   }
 ): Promise<M extends Message<infer R> ? R : never> {
   msg.validateBasic();
@@ -91,7 +91,7 @@ export function postMessage<M extends Message<unknown>>(
   msg.validateBasic();
   const bytes = new Uint8Array(8);
   const id: string = Array.from(crypto.getRandomValues(bytes))
-    .map(value => {
+    .map((value) => {
       return value.toString(16);
     })
     .join("");
@@ -132,7 +132,7 @@ export function postMessage<M extends Message<unknown>>(
       msgType: msg.type(),
       id,
       port,
-      msg
+      msg,
     };
 
     window.postMessage(proxyMsg, "*");
@@ -154,12 +154,12 @@ export function listenAndProxyMessages(): void {
     }
 
     _sendMessage(message.port, message.msg, {
-      msgType: message.msgType
-    }).then(result => {
+      msgType: message.msgType,
+    }).then((result) => {
       const proxyMsgResult: ProxyMessageResult = {
         type: "proxy-message-result",
         id: message.id,
-        result
+        result,
       };
 
       window.postMessage(proxyMsgResult, "*");
