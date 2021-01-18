@@ -15,18 +15,20 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { useTxState, withTxStateProvider } from "../../../contexts/tx";
 import { Int } from "@chainapsis/cosmosjs/common/int";
 import { useHistory } from "react-router";
-import { useInteractionInfo } from "../../../hooks/use-interaction-info";
+import { useInteractionInfo } from "@keplr/hooks";
 
 export const FeePage: FunctionComponent = withTxStateProvider(
   observer(() => {
     const history = useHistory();
 
-    const interactionInfo = useInteractionInfo();
-
     const intl = useIntl();
 
     const { chainStore, txConfigStore } = useStore();
     const txState = useTxState();
+
+    const interactionInfo = useInteractionInfo(() => {
+      txConfigStore.rejectAll();
+    });
 
     const memorizedFeeCurrencies = useMemo(
       () => chainStore.chainInfo.feeCurrencies,
@@ -75,7 +77,7 @@ export const FeePage: FunctionComponent = withTxStateProvider(
       >
         <form
           className={style.formContainer}
-          onSubmit={async e => {
+          onSubmit={async (e) => {
             e.preventDefault();
             const config = txConfigStore.waitingData;
             if (txStateIsValid && config) {
@@ -101,14 +103,14 @@ export const FeePage: FunctionComponent = withTxStateProvider(
               {isCyberNetwork ? null : (
                 <FeeButtons
                   label={intl.formatMessage({
-                    id: "fee.input.fee"
+                    id: "fee.input.fee",
                   })}
                   feeSelectLabels={{
                     low: intl.formatMessage({ id: "fee-buttons.select.low" }),
                     average: intl.formatMessage({
-                      id: "fee-buttons.select.average"
+                      id: "fee-buttons.select.average",
                     }),
-                    high: intl.formatMessage({ id: "fee-buttons.select.high" })
+                    high: intl.formatMessage({ id: "fee-buttons.select.high" }),
                   }}
                 />
               )}

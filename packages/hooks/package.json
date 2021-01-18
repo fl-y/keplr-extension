@@ -1,0 +1,24 @@
+{
+  "name": "@keplr/hooks",
+  "version": "0.0.1-alpha.0",
+  "main": "build/index.js",
+  "author": "chainapsis",
+  "license": "Apache-2.0",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "test": "mocha -r ts-node/register 'src/**/*.spec.ts'",
+    "lint-test": "eslint \"src/**/*\" && prettier --check \"src/**/*\"",
+    "lint-fix": "eslint --fix \"src/**/*\" && prettier --write \"src/**/*\""
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.2",
+    "mocha": "^8.2.1"
+  },
+  "dependencies": {
+    "@keplr/popup": "0.0.1-alpha.0",
+    "react": "^16.9.0",
+    "react-router": "^5.1.2"
+  }
+}

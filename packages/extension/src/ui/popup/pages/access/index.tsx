@@ -1,5 +1,6 @@
 import React, { FunctionComponent, useEffect, useMemo } from "react";
 
+import { useInteractionInfo } from "@keplr/hooks";
 import { Button } from "reactstrap";
 
 import { observer } from "mobx-react";
@@ -8,17 +9,18 @@ import { useStore } from "../../stores";
 import style from "./style.module.scss";
 import { EmptyLayout } from "../../layouts/empty-layout";
 import { FormattedMessage } from "react-intl";
-import { useInteractionInfo } from "../../../hooks/use-interaction-info";
 
 export const AccessPage: FunctionComponent = observer(() => {
-  const ineractionInfo = useInteractionInfo();
-
   const { chainStore, permissionStore } = useStore();
 
   const waitingPermission =
     permissionStore.waitingDatas.length > 0
       ? permissionStore.waitingDatas[0]
       : undefined;
+
+  const ineractionInfo = useInteractionInfo(() => {
+    permissionStore.rejectAll();
+  });
 
   const isSecretWasm = useMemo(() => {
     if (chainStore.chainInfo.features) {
@@ -36,7 +38,7 @@ export const AccessPage: FunctionComponent = observer(() => {
   const host = useMemo(() => {
     if (waitingPermission) {
       return waitingPermission.data.origins
-        .map(origin => {
+        .map((origin) => {
           return new URL(origin).host;
         })
         .join(",");
@@ -63,7 +65,7 @@ export const AccessPage: FunctionComponent = observer(() => {
               host,
               chainId: waitingPermission?.data.chainId,
               // eslint-disable-next-line react/display-name
-              b: (...chunks: any) => <b>{chunks}</b>
+              b: (...chunks: any) => <b>{chunks}</b>,
             }}
           />
         </p>
@@ -89,7 +91,7 @@ export const AccessPage: FunctionComponent = observer(() => {
             className={style.button}
             color="danger"
             outline
-            onClick={async e => {
+            onClick={async (e) => {
               e.preventDefault();
 
               if (waitingPermission) {
@@ -111,7 +113,7 @@ export const AccessPage: FunctionComponent = observer(() => {
           <Button
             className={style.button}
             color="primary"
-            onClick={async e => {
+            onClick={async (e) => {
               e.preventDefault();
 
               if (waitingPermission) {

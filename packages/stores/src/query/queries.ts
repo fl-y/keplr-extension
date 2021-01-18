@@ -20,6 +20,7 @@ import {
   ObservableQueryGovernance,
 } from "./cosmos";
 import { ObservableQueryCosmosBalanceRegistry } from "./cosmos/balance";
+import { ObservableQuerySecret20ContractInfo } from "./secret-wasm/secret20-contract-info";
 
 export class Queries {
   protected readonly _queryBalances: ObservableQueryBalances;
@@ -36,6 +37,7 @@ export class Queries {
   protected readonly _queryGovernance: ObservableQueryGovernance;
 
   protected readonly _querySecretContractCodeHash: ObservableQuerySecretContractCodeHash;
+  protected readonly _querySecret20ContractInfo: ObservableQuerySecret20ContractInfo;
 
   constructor(kvStore: KVStore, chainId: string, chainGetter: ChainGetter) {
     this._queryBalances = new ObservableQueryBalances(
@@ -110,6 +112,12 @@ export class Queries {
         this._querySecretContractCodeHash
       )
     );
+    this._querySecret20ContractInfo = new ObservableQuerySecret20ContractInfo(
+      kvStore,
+      chainId,
+      chainGetter,
+      this._querySecretContractCodeHash
+    );
   }
 
   getQueryMint(): DeepReadonly<ObservableQueryMintingInfation> {
@@ -154,6 +162,14 @@ export class Queries {
 
   getQueryGovernance(): DeepReadonly<ObservableQueryGovernance> {
     return this._queryGovernance;
+  }
+
+  getQuerySecretContractCodeHash(): DeepReadonly<ObservableQuerySecretContractCodeHash> {
+    return this._querySecretContractCodeHash;
+  }
+
+  getQuerySecret20ContractInfo(): DeepReadonly<ObservableQuerySecret20ContractInfo> {
+    return this._querySecret20ContractInfo;
   }
 }
 

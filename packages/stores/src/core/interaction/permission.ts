@@ -42,6 +42,18 @@ export class PermissionStore {
     }
   }
 
+  @actionAsync
+  async rejectAll() {
+    this._isLoading = true;
+    try {
+      for (const data of this.waitingDatas) {
+        await this.reject(data.id);
+      }
+    } finally {
+      this._isLoading = false;
+    }
+  }
+
   get isLoading(): boolean {
     return this._isLoading;
   }

@@ -14,25 +14,26 @@ import { FormattedMessage, useIntl } from "react-intl";
 
 import { useHistory } from "react-router";
 import { observer } from "mobx-react";
-import { useInteractionInfo } from "../../../hooks/use-interaction-info";
+import { useInteractionInfo } from "@keplr/hooks";
 
 import { Buffer } from "buffer/";
 
 enum Tab {
   Details,
-  Data
+  Data,
 }
 
 export const SignPage: FunctionComponent = observer(() => {
   const history = useHistory();
-
-  const interactionInfo = useInteractionInfo();
 
   const [tab, setTab] = useState<Tab>(Tab.Details);
 
   const intl = useIntl();
 
   const { chainStore, keyRingStore, signInteractionStore } = useStore();
+  const interactionInfo = useInteractionInfo(() => {
+    signInteractionStore.rejectAll();
+  });
 
   useEffect(() => {
     if (signInteractionStore.waitingData) {
@@ -50,7 +51,7 @@ export const SignPage: FunctionComponent = observer(() => {
   }, [
     keyRingStore.keyRingType,
     signInteractionStore,
-    signInteractionStore.waitingData
+    signInteractionStore.waitingData,
   ]);
 
   const message = signInteractionStore.waitingData
@@ -81,7 +82,7 @@ export const SignPage: FunctionComponent = observer(() => {
                 }}
               >
                 {intl.formatMessage({
-                  id: "sign.tab.details"
+                  id: "sign.tab.details",
                 })}
               </a>
             </li>
@@ -93,7 +94,7 @@ export const SignPage: FunctionComponent = observer(() => {
                 }}
               >
                 {intl.formatMessage({
-                  id: "sign.tab.data"
+                  id: "sign.tab.data",
                 })}
               </a>
             </li>
@@ -122,7 +123,7 @@ export const SignPage: FunctionComponent = observer(() => {
                 color="danger"
                 disabled={message === ""}
                 data-loading={signInteractionStore.isLoading}
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault();
 
                   signInteractionStore.reject();
@@ -130,7 +131,7 @@ export const SignPage: FunctionComponent = observer(() => {
                 outline
               >
                 {intl.formatMessage({
-                  id: "sign.button.reject"
+                  id: "sign.button.reject",
                 })}
               </Button>
               <Button
@@ -138,14 +139,14 @@ export const SignPage: FunctionComponent = observer(() => {
                 color="primary"
                 disabled={message === ""}
                 data-loading={signInteractionStore.isLoading}
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault();
 
                   signInteractionStore.approve();
                 }}
               >
                 {intl.formatMessage({
-                  id: "sign.button.approve"
+                  id: "sign.button.approve",
                 })}
               </Button>
             </React.Fragment>

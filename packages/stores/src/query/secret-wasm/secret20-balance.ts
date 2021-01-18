@@ -1,26 +1,17 @@
-import { autorun, computed, observable } from "mobx";
-import { Keplr } from "@keplr/types";
+import { computed } from "mobx";
 import { DenomHelper, KVStore } from "@keplr/common";
 import { ChainGetter } from "../../common/types";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
 import { actionAsync, task } from "mobx-utils";
 import { AccountStore } from "../../account";
-import { CancelToken } from "axios";
-import { QueryError, QueryResponse } from "../../common";
+import { QueryError } from "../../common";
 import { CoinPretty, Int } from "@keplr/unit";
 import { BalanceRegistry, ObservableQueryBalanceInner } from "../balances";
-import { ObservableChainQuery } from "../chain-query";
+import { ObservableSecretContractChainQuery } from "./contract-query";
 
-import { Buffer } from "buffer/";
-
-export class ObservableQuerySecret20Balance extends ObservableChainQuery<{
-  balance?: string;
+export class ObservableQuerySecret20Balance extends ObservableSecretContractChainQuery<{
+  balance: string;
 }> {
-  @observable.ref
-  protected keplr?: Keplr;
-
-  protected nonce?: Uint8Array;
-
   constructor(
     kvStore: KVStore,
     chainId: string,
@@ -34,17 +25,10 @@ export class ObservableQuerySecret20Balance extends ObservableChainQuery<{
       kvStore,
       chainId,
       chainGetter,
-      // No need to set the url at initial.
-      ""
+      contractAddress,
+      { balance: { address: bech32Address, key: viewingKey } },
+      querySecretContractCodeHash
     );
-
-    if (!this.contractAddress) {
-      this.setError({
-        status: 0,
-        statusText: "Contract address is empty",
-        message: "Contract address is empty",
-      });
-    }
 
     if (!this.bech32Address) {
       this.setError({
@@ -61,29 +45,11 @@ export class ObservableQuerySecret20Balance extends ObservableChainQuery<{
         message: "Viewing key is empty",
       });
     }
-
-    // Try to get the keplr API.
-    this.initKeplr();
-
-    const disposer = autorun(() => {
-      // If the keplr API is ready and the contract code hash is fetched, try to init.
-      if (this.keplr && this.contractCodeHash) {
-        this.init();
-        disposer();
-      }
-    });
   }
 
   protected canFetch(): boolean {
-    if (
-      !this.querySecretContractCodeHash.getQueryContract(this.contractAddress)
-        .response
-    ) {
-      return false;
-    }
-
     return (
-      this.bech32Address !== "" && this.viewingKey !== "" && this.nonce != null
+      super.canFetch && this.bech32Address !== "" && this.viewingKey !== ""
     );
   }
 
@@ -111,83 +77,6 @@ export class ObservableQuerySecret20Balance extends ObservableChainQuery<{
         `/wasm/contract/${this.contractAddress}/query/${encoded}?encoding=hex`
       );
     }
-  }
-
-  protected async fetchResponse(
-    cancelToken: CancelToken
-  ): Promise<QueryResponse<{ balance?: string }>> {
-    const response = await super.fetchResponse(cancelToken);
-
-    const encResult = response.data as
-      | {
-          height: string;
-          result: {
-            smart: string;
-          };
-        }
-      | undefined;
-
-    if (!this.keplr) {
-      throw new Error("Keplr API not initialized");
-    }
-
-    if (!this.nonce) {
-      throw new Error("Nonce is unknown");
-    }
-
-    if (!encResult) {
-      throw new Error("Failed to get the response from the contract");
-    }
-
-    const decrypted = await this.keplr
-      .getEnigmaUtils(this.chainId)
-      .decrypt(Buffer.from(encResult.result.smart, "base64"), this.nonce);
-
-    const message = Buffer.from(
-      Buffer.from(decrypted).toString(),
-      "base64"
-    ).toString();
-
-    const obj = JSON.parse(message);
-    if (obj.balance?.amount) {
-      return {
-        data: {
-          balance: obj.balance.amount,
-        },
-        status: response.status,
-        staled: false,
-        timestamp: Date.now(),
-      };
-    } else if (obj["viewing_key_error"]) {
-      throw new Error(obj["viewing_key_error"]["msg"]);
-    }
-
-    throw new Error("Balance is unknown");
-  }
-
-  // Actually, the url of fetching the secret20 balance will be changed every time.
-  // So, we should save it with deterministic key.
-  protected getCacheKey(): string {
-    return `${this.instance.name}-${
-      this.instance.defaults.baseURL
-    }${this.instance.getUri({
-      url: `/wasm/contract/${this.contractAddress}/query/balance/${this.bech32Address}`,
-    })}`;
-  }
-
-  @computed
-  get contractCodeHash(): string | undefined {
-    const queryCodeHash = this.querySecretContractCodeHash.getQueryContract(
-      this.contractAddress
-    );
-
-    if (!queryCodeHash.response) {
-      return undefined;
-    }
-
-    // Code hash is persistent, so it is safe not to consider that the response is from cache or network.
-    // TODO: Handle the error case.
-    return queryCodeHash.response.data.result;
   }
 }
 

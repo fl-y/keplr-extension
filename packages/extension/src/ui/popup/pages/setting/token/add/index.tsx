@@ -6,14 +6,13 @@ import { useIntl, FormattedMessage } from "react-intl";
 import style from "./style.module.scss";
 import { Button, Form, InputGroupAddon } from "reactstrap";
 import { Input } from "../../../../../components/form";
-import { useWasmTokenInfo } from "../../../../../hooks/use-wasm-token-info";
 import { observer } from "mobx-react";
 import { useStore } from "../../../../stores";
 import useForm from "react-hook-form";
 import { AccAddress } from "@chainapsis/cosmosjs/common/address";
 import {
   CW20Currency,
-  Secret20Currency
+  Secret20Currency,
 } from "../../../../../../common/currency";
 import { useCosmosJS } from "../../../../../hooks";
 import { PopupWalletProvider } from "../../../../wallet-provider";
@@ -26,7 +25,7 @@ import { sendMessage } from "../../../../../../common/message/send";
 import { BACKGROUND_PORT } from "../../../../../../common/message/constant";
 import {
   ReqeustEncryptMsg,
-  RequestDecryptMsg
+  RequestDecryptMsg,
 } from "../../../../../../background/secret-wasm";
 import { useLoadingIndicator } from "../../../../../components/loading-indicator";
 import { useNotification } from "../../../../../components/notification";
@@ -34,10 +33,10 @@ import queryString from "query-string";
 import { fitWindow } from "../../../../../../common/window";
 import {
   ApproveSuggestedTokenMsg,
-  RejectSuggestedTokenMsg
+  RejectSuggestedTokenMsg,
 } from "../../../../../../background/tokens/messages";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 interface FormData {
   contractAddress: string;
@@ -59,7 +58,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
     }
   }, [external]);
 
-  const { chainStore } = useStore();
+  const { chainStore, queriesStore } = useStore();
 
   useEffect(() => {
     if (query.chainId && typeof query.chainId === "string") {
@@ -87,24 +86,23 @@ export const AddTokenPage: FunctionComponent = observer(() => {
       contractAddress: (query.contractAddress as string) ?? "",
       viewingKey: query.viewingKey
         ? decodeURIComponent(query.viewingKey as string)
-        : ""
-    }
+        : "",
+    },
   });
 
   const contractAddress = form.watch("contractAddress");
 
+  const queries = queriesStore.get(chainStore.chainInfo.chainId);
+  const queryContractInfo = queries
+    .getQuerySecret20ContractInfo()
+    .getQueryContract(contractAddress);
+
+  const tokenInfo = queryContractInfo.tokenInfo;
+
   const isSecret20 =
     (chainStore.chainInfo.features ?? []).find(
-      feature => feature === "secretwasm"
+      (feature) => feature === "secretwasm"
     ) != null;
-
-  const tokenInfo = useWasmTokenInfo(
-    chainStore.chainInfo.chainId,
-    chainStore.chainInfo.rest,
-    contractAddress,
-    chainStore.chainInfo.restConfig,
-    isSecret20
-  );
 
   const notification = useNotification();
   const loadingIndicator = useLoadingIndicator();
@@ -114,7 +112,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
       {
         onRequestTxBuilderConfig: (id: string) => {
           history.push(`/fee/${id}`);
-        }
+        },
       },
       {
         onRequestSignature: (id: string) => {
@@ -123,7 +121,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
         onSignatureApproved: () => {
           loadingIndicator.setIsLoading("create-veiwing-key", true);
           history.push("/");
-        }
+        },
       }
     )
   );
@@ -140,7 +138,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
         AccAddress.fromBech32(contractAddress),
         {
           // eslint-disable-next-line @typescript-eslint/camelcase
-          create_viewing_key: { entropy }
+          create_viewing_key: { entropy },
         },
         "",
         []
@@ -149,9 +147,9 @@ export const AddTokenPage: FunctionComponent = observer(() => {
       const nonce = await msg.encrypt(
         Axios.create({
           ...{
-            baseURL: chainStore.chainInfo.rest
+            baseURL: chainStore.chainInfo.rest,
           },
-          ...chainStore.chainInfo.restConfig
+          ...chainStore.chainInfo.restConfig,
         }),
         async (contractCodeHash, msg): Promise<Uint8Array> => {
           return Buffer.from(
@@ -176,9 +174,9 @@ export const AddTokenPage: FunctionComponent = observer(() => {
           fee: new Coin(
             chainStore.chainInfo.stakeCurrency.coinMinimalDenom,
             new Int("1000")
-          )
+          ),
         },
-        async result => {
+        async (result) => {
           if (result && result.mode === "commit") {
             try {
               const dataOutputCipher = result.deliverTx.data;
@@ -204,13 +202,13 @@ export const AddTokenPage: FunctionComponent = observer(() => {
               const params = {
                 contractAddress,
                 viewingKey: encodeURIComponent(viewingKey),
-                external: external ? true : undefined
+                external: external ? true : undefined,
               };
 
               // Should encode viewing key as URL encoding because it can includes reversed characters (such as "+") for URL.
               history.push({
                 pathname: "/setting/token/add",
-                search: `?${queryString.stringify(params)}`
+                search: `?${queryString.stringify(params)}`,
               });
             } catch (e) {
               notification.push({
@@ -220,8 +218,8 @@ export const AddTokenPage: FunctionComponent = observer(() => {
                 content: `Failed to create the viewing key: ${e.message}`,
                 canDelete: true,
                 transition: {
-                  duration: 0.25
-                }
+                  duration: 0.25,
+                },
               });
             } finally {
               loadingIndicator.setIsLoading("create-veiwing-key", false);
@@ -235,12 +233,12 @@ export const AddTokenPage: FunctionComponent = observer(() => {
               content: `Failed to create the viewing key by the unknown reason`,
               canDelete: true,
               transition: {
-                duration: 0.25
-              }
+                duration: 0.25,
+              },
             });
           }
         },
-        e => {
+        (e) => {
           loadingIndicator.setIsLoading("create-veiwing-key", false);
           notification.push({
             placement: "top-center",
@@ -249,8 +247,8 @@ export const AddTokenPage: FunctionComponent = observer(() => {
             content: `Failed to create the viewing key: ${e.message}`,
             canDelete: true,
             transition: {
-              duration: 0.25
-            }
+              duration: 0.25,
+            },
           });
         },
         "commit"
@@ -263,7 +261,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
       showChainName={false}
       canChangeChainInfo={false}
       alternativeTitle={intl.formatMessage({
-        id: "setting.token.add"
+        id: "setting.token.add",
       })}
       onBackButton={
         query.external
@@ -275,19 +273,15 @@ export const AddTokenPage: FunctionComponent = observer(() => {
     >
       <Form
         className={style.container}
-        onSubmit={form.handleSubmit(async data => {
-          if (
-            tokenInfo.tokenInfo?.decimals &&
-            tokenInfo.tokenInfo.name &&
-            tokenInfo.tokenInfo.symbol
-          ) {
+        onSubmit={form.handleSubmit(async (data) => {
+          if (tokenInfo?.decimals && tokenInfo.name && tokenInfo.symbol) {
             if (!isSecret20) {
               const currency: CW20Currency = {
                 type: "cw20",
                 contractAddress: data.contractAddress,
-                coinMinimalDenom: tokenInfo.tokenInfo.name,
-                coinDenom: tokenInfo.tokenInfo.symbol,
-                coinDecimals: tokenInfo.tokenInfo.decimals
+                coinMinimalDenom: tokenInfo.name,
+                coinDenom: tokenInfo.symbol,
+                coinDecimals: tokenInfo.decimals,
               };
 
               await chainStore.addToken(currency);
@@ -296,9 +290,9 @@ export const AddTokenPage: FunctionComponent = observer(() => {
                 type: "secret20",
                 contractAddress: data.contractAddress,
                 viewingKey: data.viewingKey,
-                coinMinimalDenom: tokenInfo.tokenInfo.name,
-                coinDenom: tokenInfo.tokenInfo.symbol,
-                coinDecimals: tokenInfo.tokenInfo.decimals
+                coinMinimalDenom: tokenInfo.name,
+                coinDenom: tokenInfo.symbol,
+                coinDecimals: tokenInfo.decimals,
               };
 
               await chainStore.addToken(currency);
@@ -312,7 +306,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
               window.close();
             } else {
               history.push({
-                pathname: "/"
+                pathname: "/",
               });
             }
           }
@@ -321,7 +315,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
         <Input
           type="text"
           label={intl.formatMessage({
-            id: "setting.token.add.contract-address"
+            id: "setting.token.add.contract-address",
           })}
           name="contractAddress"
           autoComplete="off"
@@ -336,13 +330,13 @@ export const AddTokenPage: FunctionComponent = observer(() => {
               } catch {
                 return "Invalid address";
               }
-            }
+            },
           })}
           error={
             form.errors.contractAddress
               ? form.errors.contractAddress.message
-              : tokenInfo.tokenInfo == null
-              ? tokenInfo.error?.message
+              : tokenInfo == null
+              ? queryContractInfo.error?.message
               : undefined
           }
         />
@@ -350,12 +344,12 @@ export const AddTokenPage: FunctionComponent = observer(() => {
           <Input
             type="text"
             label={intl.formatMessage({
-              id: "setting.token.add.secret20.viewing-key"
+              id: "setting.token.add.secret20.viewing-key",
             })}
             name="viewingKey"
             autoComplete="off"
             ref={form.register({
-              required: "Viewing key is required"
+              required: "Viewing key is required",
             })}
             error={
               form.errors.viewingKey
@@ -369,9 +363,9 @@ export const AddTokenPage: FunctionComponent = observer(() => {
                   disabled={
                     !cosmosJS.sendMsgs ||
                     cosmosJS.addresses.length == 0 ||
-                    tokenInfo.tokenInfo == null
+                    tokenInfo == null
                   }
-                  onClick={async e => {
+                  onClick={async (e) => {
                     e.preventDefault();
 
                     await createViewingKey();
@@ -386,32 +380,32 @@ export const AddTokenPage: FunctionComponent = observer(() => {
         <Input
           type="text"
           label={intl.formatMessage({
-            id: "setting.token.add.name"
+            id: "setting.token.add.name",
           })}
-          value={tokenInfo.tokenInfo?.name ?? ""}
+          value={tokenInfo?.name ?? ""}
           readOnly={true}
         />
         <Input
           type="text"
           label={intl.formatMessage({
-            id: "setting.token.add.symbol"
+            id: "setting.token.add.symbol",
           })}
-          value={tokenInfo.tokenInfo?.symbol ?? ""}
+          value={tokenInfo?.symbol ?? ""}
           readOnly={true}
         />
         <Input
           type="text"
           label={intl.formatMessage({
-            id: "setting.token.add.decimals"
+            id: "setting.token.add.decimals",
           })}
-          value={tokenInfo.tokenInfo?.decimals ?? ""}
+          value={tokenInfo?.decimals ?? ""}
           readOnly={true}
         />
         <div style={{ flex: 1 }} />
         <Button
           type="submit"
           color="primary"
-          disabled={tokenInfo.tokenInfo == null || tokenInfo.fetching}
+          disabled={tokenInfo == null || queryContractInfo.isFetching}
         >
           <FormattedMessage id="setting.token.add.button.submit" />
         </Button>

@@ -14,7 +14,7 @@ import { EmptyLayout } from "../../layouts/empty-layout";
 import style from "./style.module.scss";
 
 import { FormattedMessage, useIntl } from "react-intl";
-import { useInteractionInfo } from "../../../hooks/use-interaction-info";
+import { useInteractionInfo } from "@keplr/hooks";
 
 interface FormData {
   password: string;
@@ -23,12 +23,12 @@ interface FormData {
 export const LockPage: FunctionComponent = observer(() => {
   const intl = useIntl();
 
-  const ineractionInfo = useInteractionInfo();
+  const interactionInfo = useInteractionInfo();
 
   const { register, handleSubmit, setError, errors } = useForm<FormData>({
     defaultValues: {
-      password: ""
-    }
+      password: "",
+    },
   });
 
   const { keyRingStore } = useStore();
@@ -38,13 +38,13 @@ export const LockPage: FunctionComponent = observer(() => {
     <EmptyLayout style={{ backgroundColor: "white", height: "100%" }}>
       <Form
         className={style.formContainer}
-        onSubmit={handleSubmit(async data => {
+        onSubmit={handleSubmit(async (data) => {
           setLoading(true);
           try {
             await keyRingStore.unlock(data.password);
             if (
-              ineractionInfo.interaction &&
-              !ineractionInfo.interactionInternal
+              interactionInfo.interaction &&
+              !interactionInfo.interactionInternal
             ) {
               window.close();
             }
@@ -54,7 +54,7 @@ export const LockPage: FunctionComponent = observer(() => {
               "password",
               "invalid",
               intl.formatMessage({
-                id: "lock.input.password.error.invalid"
+                id: "lock.input.password.error.invalid",
               })
             );
             setLoading(false);
@@ -69,14 +69,14 @@ export const LockPage: FunctionComponent = observer(() => {
         <Input
           type="password"
           label={intl.formatMessage({
-            id: "lock.input.password"
+            id: "lock.input.password",
           })}
           name="password"
           error={errors.password && errors.password.message}
           ref={register({
             required: intl.formatMessage({
-              id: "lock.input.password.error.required"
-            })
+              id: "lock.input.password.error.required",
+            }),
           })}
         />
         <Button type="submit" color="primary" block data-loading={loading}>
