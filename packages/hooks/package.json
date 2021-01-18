@@ -18,6 +18,9 @@
   },
   "dependencies": {
     "@keplr/popup": "0.0.1-alpha.0",
+    "@keplr/stores": "0.0.1-alpha.0",
+    "@keplr/types": "0.0.1-alpha.0",
+    "mobx": "^5.15.7",
     "react": "^16.9.0",
     "react-router": "^5.1.2"
   }

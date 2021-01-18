@@ -38,14 +38,14 @@ export const MainPage: FunctionComponent = observer(() => {
           if (
             await confirm.confirm({
               paragraph: intl.formatMessage({
-                id: "main.update-chain.confirm.paragraph"
+                id: "main.update-chain.confirm.paragraph",
               }),
               yes: intl.formatMessage({
-                id: "main.update-chain.confirm.yes"
+                id: "main.update-chain.confirm.yes",
               }),
               no: intl.formatMessage({
-                id: "main.update-chain.confirm.no"
-              })
+                id: "main.update-chain.confirm.no",
+              }),
             })
           ) {
             await chainStore.tryUpdateChain(chainStore.chainInfo.chainId);
@@ -80,16 +80,16 @@ export const MainPage: FunctionComponent = observer(() => {
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
-            paddingRight: "20px"
+            paddingRight: "20px",
           }}
         >
           <i
             className="fas fa-user"
             style={{
               cursor: "pointer",
-              padding: "4px"
+              padding: "4px",
             }}
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault();
 
               history.push("/setting/set-keyring");

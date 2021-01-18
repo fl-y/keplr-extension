@@ -3,7 +3,7 @@ import { MessageRequester, BACKGROUND_PORT } from "@keplr/router";
 import {
   GetPubkeyMsg,
   ReqeustEncryptMsg,
-  RequestDecryptMsg
+  RequestDecryptMsg,
 } from "@keplr/background";
 
 import { Buffer } from "buffer/";

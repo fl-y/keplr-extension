@@ -5,7 +5,7 @@ import {
   serializeSignDoc,
   AccountData,
   SignResponse,
-  StdSignDoc
+  StdSignDoc,
 } from "@cosmjs/launchpad";
 import { fromHex } from "@cosmjs/encoding";
 import { Keplr } from "@keplr/types";
@@ -43,8 +43,8 @@ export class CosmJSOfflineSigner implements OfflineSigner {
         address: key.bech32Address,
         // Currently, only secp256k1 is supported.
         algo: "secp256k1",
-        pubkey: fromHex(key.pubKeyHex)
-      }
+        pubkey: fromHex(key.pubKeyHex),
+      },
     ];
   }
 
@@ -67,26 +67,26 @@ export class CosmJSOfflineSigner implements OfflineSigner {
       sequence: signDoc.sequence,
       gas: signDoc.fee.gas,
       fee: signDoc.fee.amount
-        .map(coin => `${coin.amount} ${coin.denom}`)
+        .map((coin) => `${coin.amount} ${coin.denom}`)
         .join(","),
-      memo: signDoc.memo
+      memo: signDoc.memo,
     });
 
     let feeAmountCoins: Coin[];
     const feeAmount = feeFromString(txConfig.fee);
     if (Array.isArray(feeAmount)) {
-      feeAmountCoins = feeAmount.map(coin => {
+      feeAmountCoins = feeAmount.map((coin) => {
         return {
           denom: coin.denom,
-          amount: coin.amount.toString()
+          amount: coin.amount.toString(),
         };
       });
     } else {
       feeAmountCoins = [
         {
           denom: feeAmount.denom,
-          amount: feeAmount.amount.toString()
-        }
+          amount: feeAmount.amount.toString(),
+        },
       ];
     }
 
@@ -98,10 +98,10 @@ export class CosmJSOfflineSigner implements OfflineSigner {
       sequence: txConfig.sequence ?? signDoc.sequence,
       fee: {
         gas: txConfig.gas,
-        amount: feeAmountCoins
+        amount: feeAmountCoins,
       },
       msgs: signDoc.msgs,
-      memo: txConfig.memo
+      memo: txConfig.memo,
     };
 
     const signature = await this.keplr.sign(
@@ -116,7 +116,7 @@ export class CosmJSOfflineSigner implements OfflineSigner {
       signature: encodeSecp256k1Signature(
         fromHex(key.pubKeyHex),
         fromHex(signature.signatureHex)
-      )
+      ),
     };
   }
 }

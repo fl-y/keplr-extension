@@ -2,7 +2,7 @@ import {
   ChainInfo,
   Keplr as IKeplr,
   KeyHex,
-  TxBuilderConfigPrimitive
+  TxBuilderConfigPrimitive,
 } from "@keplr/types";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 import { BroadcastMode, BroadcastTxResult, StdTx } from "@cosmjs/launchpad";
@@ -13,7 +13,7 @@ import {
   RequestTxBuilderConfigMsg,
   RequestSignMsg,
   SuggestTokenMsg,
-  SendTxMsg
+  SendTxMsg,
 } from "@keplr/background";
 import { SecretUtils } from "secretjs/types/enigmautils";
 
@@ -47,7 +47,7 @@ export class Keplr implements IKeplr {
     const msg = new RequestTxBuilderConfigMsg(
       {
         chainId,
-        ...config
+        ...config,
       },
       false
     );

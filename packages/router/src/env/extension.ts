@@ -25,7 +25,7 @@ export class ExtensionEnv {
 
       const windowId = await openPopupWindow(url, options?.channel);
       const window = await browser.windows.get(windowId, {
-        populate: true
+        populate: true,
       });
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -38,7 +38,7 @@ export class ExtensionEnv {
           return;
         }
 
-        return new Promise(resolve => {
+        return new Promise<void>((resolve) => {
           browser.tabs.onUpdated.addListener((_tabId, changeInfo) => {
             if (tabId === _tabId && changeInfo.status === "complete") {
               resolve();
@@ -58,7 +58,7 @@ export class ExtensionEnv {
       // If msg is from external (probably from webpage), it opens the popup for extension and send the msg back to the tab opened.
       return {
         isInternalMsg,
-        requestInteraction: openAndSendMsg
+        requestInteraction: openAndSendMsg,
       };
     } else {
       // If msg is from the extension itself, it can send the msg back to the extension itself.
@@ -95,7 +95,7 @@ export class ExtensionEnv {
 
       return {
         isInternalMsg,
-        requestInteraction
+        requestInteraction,
       };
     }
   };
