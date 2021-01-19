@@ -8,7 +8,7 @@ import { StdFee } from "@cosmjs/launchpad";
 import { Bech32Address } from "@keplr/cosmos";
 
 type FeeType = "high" | "average" | "low";
-type ErrorOfType = "recipient" | "fee" | "gas" | "memo";
+type ErrorOfType = "recipient" | "amount" | "fee" | "gas" | "memo";
 
 export const DefaultGasPriceStep: {
   low: number;
@@ -30,6 +30,12 @@ export class TxConfig {
   @observable
   protected _recipient!: string;
 
+  @observable
+  protected _amount!: string;
+
+  @observable.ref
+  protected _sendCurrency?: AppCurrency;
+
   @observable.ref
   protected _feeCurrencies!: Currency[];
 
@@ -47,6 +53,7 @@ export class TxConfig {
       this.chainGetter = chainGetter;
       this._chainId = "";
       this._recipient = "";
+      this._amount = "";
       this._feeCurrencies = [];
       this._memo = "";
       this._gas = 0;
@@ -66,6 +73,24 @@ export class TxConfig {
   @action
   setRecipient(recipient: string) {
     this._recipient = recipient;
+  }
+
+  @action
+  setSendCurrency(currency: AppCurrency | undefined) {
+    this._sendCurrency = currency;
+  }
+
+  @action
+  setAmount(amount: string) {
+    if (amount.length === 0) {
+      amount = "0";
+    }
+
+    if (amount.startsWith(".")) {
+      amount = "0" + amount;
+    }
+
+    this._amount = amount;
   }
 
   @action
@@ -99,8 +124,33 @@ export class TxConfig {
     return this._recipient;
   }
 
+  get amount(): string {
+    return this._amount;
+  }
+
   get feeCurrencies(): Currency[] {
     return this._feeCurrencies;
+  }
+
+  @computed
+  get sendCurrency(): AppCurrency | undefined {
+    const chainInfo = this.chainInfo;
+    if (!chainInfo) {
+      return undefined;
+    }
+
+    if (this._sendCurrency) {
+      const find = chainInfo.currencies.find(
+        (cur) => cur.coinMinimalDenom === this._sendCurrency!.coinMinimalDenom
+      );
+      if (find) {
+        return this._sendCurrency;
+      }
+    }
+
+    return chainInfo.currencies.length > 0
+      ? chainInfo.currencies[0]
+      : undefined;
   }
 
   @computed
@@ -151,6 +201,15 @@ export class TxConfig {
           Bech32Address.validate(this.recipient, bech32Prefix);
         } catch (e) {
           return e;
+        }
+        return;
+      case "amount":
+        const sendCurrency = this.sendCurrency;
+        if (!sendCurrency) {
+          return new Error("Currency to send not set");
+        }
+        if (Number.isNaN(parseFloat(this.amount))) {
+          return new Error("Invalid form of number");
         }
         return;
       case "fee":
