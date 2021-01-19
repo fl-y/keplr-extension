@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useState } from "react";
 import {
   AddressInput,
   FeeButtons,
@@ -47,6 +47,7 @@ export const SendPage: FunctionComponent = observer(() => {
     useBackgroundTx: true,
   });
 
+  /*
   useEffect(() => {
     if (txConfig.sendCurrency) {
       // Remember that the coin's actual denom should start with "type:contractAddress:" if it is for the token based on contract.
@@ -70,6 +71,7 @@ export const SendPage: FunctionComponent = observer(() => {
       }
     }
   }, [txConfig, txConfig.sendCurrency]);
+   */
 
   // Cyber chain (eular-6) doesn't require the fees to send tx.
   // So, don't need to show the fee input.

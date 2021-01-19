@@ -6,6 +6,7 @@ import { computedFn } from "mobx-utils";
 import { CoinPretty, Dec, Int } from "@keplr/unit";
 import { StdFee } from "@cosmjs/launchpad";
 import { Bech32Address } from "@keplr/cosmos";
+import { DenomHelper } from "@keplr/common";
 
 type FeeType = "high" | "average" | "low";
 type ErrorOfType = "recipient" | "amount" | "fee" | "gas" | "memo";
@@ -172,6 +173,21 @@ export class TxConfig {
   }
 
   get gas(): number {
+    // If gas not set manually, assume that the tx is for MsgSend.
+    // And, set the default gas according to the currency type.
+    if (this._gas <= 0 && this.sendCurrency) {
+      const denomHelper = new DenomHelper(this.sendCurrency.coinMinimalDenom);
+
+      switch (denomHelper.type) {
+        case "cw20":
+          return 250000;
+        case "secret20":
+          return 250000;
+        default:
+          return 80000;
+      }
+    }
+
     return this._gas;
   }
 
