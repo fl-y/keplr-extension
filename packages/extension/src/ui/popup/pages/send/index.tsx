@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent } from "react";
 import {
   AddressInput,
   FeeButtons,
@@ -9,14 +9,10 @@ import { useStore } from "../../stores";
 
 import { HeaderLayout } from "../../layouts";
 
-import { PopupWalletProvider } from "../../wallet-provider";
-
 import { observer } from "mobx-react";
 
-import { useCosmosJS } from "../../../hooks";
-
 import style from "./style.module.scss";
-// import { useNotification } from "../../../components/notification";
+import { useNotification } from "../../../components/notification";
 
 import { useIntl } from "react-intl";
 import { Button } from "reactstrap";
@@ -30,48 +26,14 @@ export const SendPage: FunctionComponent = observer(() => {
 
   const intl = useIntl();
 
-  // const notification = useNotification();
+  const notification = useNotification();
 
-  const { chainStore } = useStore();
+  const { chainStore, accountStoreV2 } = useStore();
+
+  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
+
   const txConfig = useTxConfig(chainStore);
   txConfig.setChain(chainStore.chainInfo.chainId);
-
-  const [walletProvider] = useState(
-    new PopupWalletProvider(undefined, {
-      onRequestSignature: (id: string) => {
-        history.push(`/sign/${id}`);
-      },
-    })
-  );
-  const cosmosJS = useCosmosJS(chainStore.chainInfo, walletProvider, {
-    useBackgroundTx: true,
-  });
-
-  /*
-  useEffect(() => {
-    if (txConfig.sendCurrency) {
-      // Remember that the coin's actual denom should start with "type:contractAddress:" if it is for the token based on contract.
-      const split = txConfig.sendCurrency.coinMinimalDenom
-        .split(/(\w+):(\w+):(\w+)/)
-        .filter(Boolean);
-      if (split.length == 3) {
-        // If token based on the contract.
-        switch (split[0]) {
-          case "cw20":
-            txConfig.setGas(250000);
-            break;
-          case "secret20":
-            txConfig.setGas(250000);
-            break;
-          default:
-            txConfig.setGas(80000);
-        }
-      } else {
-        txConfig.setGas(80000);
-      }
-    }
-  }, [txConfig, txConfig.sendCurrency]);
-   */
 
   // Cyber chain (eular-6) doesn't require the fees to send tx.
   // So, don't need to show the fee input.
@@ -92,52 +54,33 @@ export const SendPage: FunctionComponent = observer(() => {
       <form
         className={style.formContainer}
         onSubmit={async (e) => {
-          if (cosmosJS.sendMsgs && txStateIsValid) {
-            e.preventDefault();
+          e.preventDefault();
 
-            /*
-              const msg = await txState.generateSendMsg(
-                chainStore.chainInfo.chainId,
-                AccAddress.fromBech32(
-                  accountStore.bech32Address,
-                  chainStore.chainInfo.bech32Config.bech32PrefixAccAddr
-                ),
-                Axios.create({
-                  ...{
-                    baseURL: chainStore.chainInfo.rest,
+          if (accountInfo.isReadyToSendMsgs && txStateIsValid) {
+            accountInfo.sendToken(
+              txConfig.amount,
+              txConfig.sendCurrency!,
+              txConfig.recipient,
+              txConfig.toStdFee(),
+              txConfig.memo,
+              "block",
+              () => {
+                history.replace("/");
+              },
+              (e: Error) => {
+                history.replace("/");
+                notification.push({
+                  type: "warning",
+                  placement: "top-center",
+                  duration: 5,
+                  content: `Fail to send token: ${e.message}`,
+                  canDelete: true,
+                  transition: {
+                    duration: 0.25,
                   },
-                  ...chainStore.chainInfo.restConfig,
-                })
-              );
-
-              const config: TxBuilderConfig = {
-                gas: txState.gas,
-                memo: txState.memo,
-                fee: txState.fees,
-              };
-
-              await cosmosJS.sendMsgs(
-                [msg],
-                config,
-                () => {
-                  history.replace("/");
-                },
-                (e) => {
-                  history.replace("/");
-                  notification.push({
-                    type: "danger",
-                    content: e.toString(),
-                    duration: 5,
-                    canDelete: true,
-                    placement: "top-center",
-                    transition: {
-                      duration: 0.25,
-                    },
-                  });
-                },
-                "commit"
-              );
-               */
+                });
+              }
+            );
           }
         }}
       >
@@ -199,8 +142,8 @@ export const SendPage: FunctionComponent = observer(() => {
             type="submit"
             color="primary"
             block
-            data-loading={cosmosJS.loading}
-            disabled={cosmosJS.sendMsgs == null || !txStateIsValid}
+            data-loading={accountInfo.isSendingMsg}
+            disabled={!accountInfo.isReadyToSendMsgs || !txStateIsValid}
           >
             {intl.formatMessage({
               id: "send.button.send",

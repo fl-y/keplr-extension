@@ -1,9 +1,9 @@
 import { HasMapStore } from "../common";
-import { KVStore } from "@keplr/common";
+import { DenomHelper, KVStore } from "@keplr/common";
 import { ChainGetter } from "../common/types";
 import { computed, observable, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
-import { Keplr } from "@keplr/types";
+import { AppCurrency, Keplr } from "@keplr/types";
 import { BaseAccount } from "@keplr/cosmos";
 import Axios, { AxiosInstance } from "axios";
 import {
@@ -171,6 +171,75 @@ export class AccountStoreInner {
           onFulfill();
         }
       });
+  }
+
+  sendToken(
+    amount: string,
+    currency: AppCurrency,
+    recipient: string,
+    fee: StdFee,
+    memo: string = "",
+    mode: "block" | "async" | "sync" = "block",
+    onSuccess?: () => void,
+    onFail?: (e: Error) => void,
+    onFulfill?: () => void
+  ) {
+    const denomHelper = new DenomHelper(currency.coinMinimalDenom);
+
+    const actualAmount = (() => {
+      let dec = new Dec(amount);
+      dec = dec.mul(DecUtils.getPrecisionDec(currency.coinDecimals));
+      return dec.truncate().toString();
+    })();
+
+    const msg = (() => {
+      switch (denomHelper.type) {
+        case "native":
+          return {
+            type: "cosmos-sdk/MsgSend",
+            value: {
+              from_address: this.bech32Address,
+              to_address: recipient,
+              amount: [
+                {
+                  denom: currency.coinMinimalDenom,
+                  amount: actualAmount,
+                },
+              ],
+            },
+          };
+        default:
+          throw new Error(`Unsupported type of currency (${denomHelper.type})`);
+      }
+    })();
+
+    this.sendMsgs(
+      [msg],
+      fee,
+      memo,
+      mode,
+      () => {
+        // After succeeding to delegate, refresh the validators and delegations, rewards.
+        this.queries
+          .getQueryValidators()
+          .getQueryStatus(BondStatus.Bonded)
+          .fetch();
+        this.queries
+          .getQueryDelegations()
+          .getQueryBech32Address(this.bech32Address)
+          .fetch();
+        this.queries
+          .getQueryRewards()
+          .getQueryBech32Address(this.bech32Address)
+          .fetch();
+
+        if (onSuccess) {
+          onSuccess();
+        }
+      },
+      onFail,
+      onFulfill
+    );
   }
 
   /**
