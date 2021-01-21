@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useEffect } from "react";
 import { HeaderLayout } from "../../../../layouts/header-layout";
 import { useHistory, useLocation } from "react-router";
 import { useIntl, FormattedMessage } from "react-intl";
@@ -14,29 +14,14 @@ import {
   CW20Currency,
   Secret20Currency,
 } from "../../../../../../common/currency";
-import { useCosmosJS } from "../../../../../hooks";
-import { PopupWalletProvider } from "../../../../wallet-provider";
-import { MsgExecuteContract as SecretMsgExecuteContract } from "../../../../../../common/secretjs/x/compute";
-import bigInteger from "big-integer";
-import { Coin } from "@chainapsis/cosmosjs/common/coin";
-import { Int } from "@chainapsis/cosmosjs/common/int";
-import Axios from "axios";
 import { sendMessage } from "../../../../../../common/message/send";
 import { BACKGROUND_PORT } from "../../../../../../common/message/constant";
-import {
-  ReqeustEncryptMsg,
-  RequestDecryptMsg,
-} from "../../../../../../background/secret-wasm";
-import { useLoadingIndicator } from "../../../../../components/loading-indicator";
-import { useNotification } from "../../../../../components/notification";
 import queryString from "query-string";
 import { fitWindow } from "../../../../../../common/window";
 import {
   ApproveSuggestedTokenMsg,
   RejectSuggestedTokenMsg,
 } from "../../../../../../background/tokens/messages";
-
-import { Buffer } from "buffer/";
 
 interface FormData {
   contractAddress: string;
@@ -107,27 +92,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
     ) != null;
 
   // const notification = useNotification();
-  const loadingIndicator = useLoadingIndicator();
-
-  const [walletProvider] = useState(
-    new PopupWalletProvider(
-      {
-        onRequestTxBuilderConfig: (id: string) => {
-          history.push(`/fee/${id}`);
-        },
-      },
-      {
-        onRequestSignature: (id: string) => {
-          history.push(`/sign/${id}`);
-        },
-        onSignatureApproved: () => {
-          loadingIndicator.setIsLoading("create-veiwing-key", true);
-          history.push("/");
-        },
-      }
-    )
-  );
-  const cosmosJS = useCosmosJS(chainStore.chainInfo, walletProvider);
+  // const loadingIndicator = useLoadingIndicator();
 
   const createViewingKey = async () => {
     const viewingKey = await accountInfo.createSecret20ViewingKey(
