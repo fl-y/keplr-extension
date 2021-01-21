@@ -58,7 +58,9 @@ export const AddTokenPage: FunctionComponent = observer(() => {
     }
   }, [external]);
 
-  const { chainStore, queriesStore } = useStore();
+  const { chainStore, queriesStore, accountStoreV2 } = useStore();
+
+  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
 
   useEffect(() => {
     if (query.chainId && typeof query.chainId === "string") {
@@ -104,7 +106,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
       (feature) => feature === "secretwasm"
     ) != null;
 
-  const notification = useNotification();
+  // const notification = useNotification();
   const loadingIndicator = useLoadingIndicator();
 
   const [walletProvider] = useState(
@@ -128,132 +130,20 @@ export const AddTokenPage: FunctionComponent = observer(() => {
   const cosmosJS = useCosmosJS(chainStore.chainInfo, walletProvider);
 
   const createViewingKey = async () => {
-    if (cosmosJS.sendMsgs && cosmosJS.addresses.length > 0) {
-      const random = new Uint8Array(15);
-      crypto.getRandomValues(random);
-      const entropy = Buffer.from(random).toString("hex");
-
-      const msg = new SecretMsgExecuteContract(
-        AccAddress.fromBech32(cosmosJS.addresses[0]),
-        AccAddress.fromBech32(contractAddress),
-        {
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          create_viewing_key: { entropy },
-        },
-        "",
-        []
-      );
-
-      const nonce = await msg.encrypt(
-        Axios.create({
-          ...{
-            baseURL: chainStore.chainInfo.rest,
+    const viewingKey = await accountInfo.createSecret20ViewingKey(
+      contractAddress,
+      {
+        gas: "150000",
+        amount: [
+          {
+            denom: "test",
+            amount: "1",
           },
-          ...chainStore.chainInfo.restConfig,
-        }),
-        async (contractCodeHash, msg): Promise<Uint8Array> => {
-          return Buffer.from(
-            await sendMessage(
-              BACKGROUND_PORT,
-              new ReqeustEncryptMsg(
-                chainStore.chainInfo.chainId,
-                contractCodeHash,
-                msg
-              )
-            ),
-            "hex"
-          );
-        }
-      );
+        ],
+      }
+    );
 
-      await cosmosJS.sendMsgs(
-        [msg],
-        {
-          gas: bigInteger(150000),
-          memo: "",
-          fee: new Coin(
-            chainStore.chainInfo.stakeCurrency.coinMinimalDenom,
-            new Int("1000")
-          ),
-        },
-        async (result) => {
-          if (result && result.mode === "commit") {
-            try {
-              const dataOutputCipher = result.deliverTx.data;
-              const dataOutput = Buffer.from(
-                Buffer.from(
-                  await sendMessage(
-                    BACKGROUND_PORT,
-                    new RequestDecryptMsg(
-                      chainStore.chainInfo.chainId,
-                      Buffer.from(dataOutputCipher).toString("hex"),
-                      Buffer.from(nonce).toString("hex")
-                    )
-                  ),
-                  "hex"
-                ).toString(),
-                "base64"
-              );
-
-              // Expected: {"create_viewing_key":{"key":"api_key_1k1T...btJQo="}}
-              const data = JSON.parse(dataOutput);
-              const viewingKey = data["create_viewing_key"]["key"];
-
-              const params = {
-                contractAddress,
-                viewingKey: encodeURIComponent(viewingKey),
-                external: external ? true : undefined,
-              };
-
-              // Should encode viewing key as URL encoding because it can includes reversed characters (such as "+") for URL.
-              history.push({
-                pathname: "/setting/token/add",
-                search: `?${queryString.stringify(params)}`,
-              });
-            } catch (e) {
-              notification.push({
-                placement: "top-center",
-                type: "danger",
-                duration: 2,
-                content: `Failed to create the viewing key: ${e.message}`,
-                canDelete: true,
-                transition: {
-                  duration: 0.25,
-                },
-              });
-            } finally {
-              loadingIndicator.setIsLoading("create-veiwing-key", false);
-            }
-          } else {
-            loadingIndicator.setIsLoading("create-veiwing-key", false);
-            notification.push({
-              placement: "top-center",
-              type: "danger",
-              duration: 2,
-              content: `Failed to create the viewing key by the unknown reason`,
-              canDelete: true,
-              transition: {
-                duration: 0.25,
-              },
-            });
-          }
-        },
-        (e) => {
-          loadingIndicator.setIsLoading("create-veiwing-key", false);
-          notification.push({
-            placement: "top-center",
-            type: "danger",
-            duration: 2,
-            content: `Failed to create the viewing key: ${e.message}`,
-            canDelete: true,
-            transition: {
-              duration: 0.25,
-            },
-          });
-        },
-        "commit"
-      );
-    }
+    console.log(viewingKey);
   };
 
   return (
@@ -360,11 +250,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
               <InputGroupAddon addonType="append">
                 <Button
                   color="primary"
-                  disabled={
-                    !cosmosJS.sendMsgs ||
-                    cosmosJS.addresses.length == 0 ||
-                    tokenInfo == null
-                  }
+                  disabled={!accountInfo.isReadyToSendMsgs || tokenInfo == null}
                   onClick={async (e) => {
                     e.preventDefault();
 

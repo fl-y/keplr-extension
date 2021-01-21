@@ -1,5 +1,6 @@
 import {
   action,
+  autorun,
   computed,
   observable,
   onBecomeObserved,
@@ -228,6 +229,20 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     if (this.cancelToken) {
       this.cancelToken.cancel();
     }
+  }
+
+  /**
+   * Wait the response and return the response until it is fetched.
+   */
+  waitResponse(): Promise<Readonly<QueryResponse<T>> | undefined> {
+    return new Promise((resolve) => {
+      const disposer = autorun(() => {
+        if (!this.isFetching) {
+          resolve(this.response);
+          disposer();
+        }
+      });
+    });
   }
 
   protected abstract fetchResponse(

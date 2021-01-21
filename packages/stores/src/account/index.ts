@@ -23,6 +23,8 @@ import { BondStatus } from "../query/cosmos/staking/types";
 import { Queries } from "../query/queries";
 import PQueue from "p-queue";
 
+import { Buffer } from "buffer/";
+
 export enum WalletStatus {
   Loading = "Loading",
   Loaded = "Loaded",
@@ -134,7 +136,7 @@ export class AccountStoreInner {
     fee: StdFee,
     memo: string = "",
     mode: "block" | "async" | "sync" = "block",
-    onSuccess?: () => void,
+    onSuccess?: (result?: BroadcastTxResult) => void,
     onFail?: (e: Error) => void,
     onFulfill?: () => void
   ) {
@@ -142,9 +144,9 @@ export class AccountStoreInner {
       this._isSendingMsg = true;
     });
     this.broadcastMsgs(msgs, fee, memo, mode)
-      .then(() => {
+      .then((result) => {
         if (onSuccess) {
-          onSuccess();
+          onSuccess(result);
         }
       })
       .catch((e) => {
@@ -530,6 +532,119 @@ export class AccountStoreInner {
       onFail,
       onFulfill
     );
+  }
+
+  async createSecret20ViewingKey(
+    contractAddress: string,
+    fee: StdFee,
+    memo: string = "",
+    onFail?: (e: Error) => void
+  ): Promise<string> {
+    const random = new Uint8Array(15);
+    crypto.getRandomValues(random);
+    const entropy = Buffer.from(random).toString("hex");
+
+    return new Promise<string>(async (resolve) => {
+      const encrypted = await this.sendExecuteSecretContractMsg(
+        contractAddress,
+        {
+          create_viewing_key: { entropy },
+        },
+        fee,
+        memo,
+        "block",
+        async (result) => {
+          if (result && "data" in result && result.data) {
+            const dataOutputCipher = Buffer.from(result.data as any, "hex");
+
+            const keplr = await AccountStore.getKeplr();
+
+            if (!keplr) {
+              throw new Error("Can't get the Keplr API");
+            }
+
+            const enigmaUtils = keplr.getEnigmaUtils(this.chainId);
+
+            const nonce = encrypted.slice(0, 32);
+
+            const dataOutput = Buffer.from(
+              Buffer.from(
+                await enigmaUtils.decrypt(dataOutputCipher, nonce)
+              ).toString(),
+              "base64"
+            ).toString();
+
+            // Expected: {"create_viewing_key":{"key":"api_key_1k1T...btJQo="}}
+            const data = JSON.parse(dataOutput);
+            const viewingKey = data["create_viewing_key"]["key"];
+
+            resolve(viewingKey);
+          }
+        },
+        onFail
+      );
+    });
+  }
+
+  async sendExecuteSecretContractMsg(
+    contractAddress: string,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    obj: object,
+    // TODO: Add the `sentFunds`.
+    fee: StdFee,
+    memo: string = "",
+    mode: "block" | "async" | "sync" = "block",
+    onSuccess?: (result?: BroadcastTxResult) => void,
+    onFail?: (e: Error) => void,
+    onFulfill?: () => void
+  ): Promise<Uint8Array> {
+    const encryptedMsg = await this.encryptSecretContractMsg(
+      contractAddress,
+      obj
+    );
+
+    const msg = {
+      type: "wasm/MsgExecuteContract",
+      value: {
+        sender: this.bech32Address,
+        contract: contractAddress,
+        callback_code_hash: "",
+        msg: Buffer.from(encryptedMsg).toString("base64"),
+        sent_funds: [],
+        callback_sig: null,
+      },
+    };
+
+    this.sendMsgs([msg], fee, memo, mode, onSuccess, onFail, onFulfill);
+
+    return encryptedMsg;
+  }
+
+  protected async encryptSecretContractMsg(
+    contractAddress: string,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    obj: object
+  ): Promise<Uint8Array> {
+    const queryContractCodeHashResponse = await this.queries
+      .getQuerySecretContractCodeHash()
+      .getQueryContract(contractAddress)
+      .waitResponse();
+
+    if (!queryContractCodeHashResponse) {
+      throw new Error(
+        `Can't get the code hash of the contract (${contractAddress})`
+      );
+    }
+
+    const contractCodeHash = queryContractCodeHashResponse.data.result;
+
+    const keplr = await AccountStore.getKeplr();
+    if (!keplr) {
+      throw new Error("Can't get the Keplr API");
+    }
+
+    const enigmaUtils = keplr.getEnigmaUtils(this.chainId);
+    return await enigmaUtils.encrypt(contractCodeHash, obj);
   }
 
   protected async broadcastMsgs(
