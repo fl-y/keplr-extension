@@ -1,107 +1,60 @@
 import React, {
   FunctionComponent,
   ChangeEvent,
-  useCallback,
   useEffect,
-  useState
+  useState,
 } from "react";
 
 import { Button } from "reactstrap";
 
-import {
-  LedgerGetWebHIDFlagMsg,
-  LedgerInitResumeMsg,
-  LedgerSetWebHIDFlagMsg
-} from "../../../../background/ledger/messages";
-import { sendMessage } from "../../../../common/message/send";
-import { BACKGROUND_PORT } from "../../../../common/message/constant";
-
-import {
-  Ledger,
-  LedgerInitErrorOn
-} from "../../../../background/ledger/ledger";
+import { Ledger, LedgerInitErrorOn } from "@keplr/background";
 
 import style from "./style.module.scss";
 import { EmptyLayout } from "../../layouts/empty-layout";
-import { disableScroll, fitWindow } from "../../../../common/window";
 
 import classnames from "classnames";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useNotification } from "../../../components/notification";
 import delay from "delay";
+import { useInteractionInfo } from "@keplr/hooks";
+import { observer } from "mobx-react";
+import { useStore } from "../../stores";
 
-export const LedgerGrantPage: FunctionComponent = () => {
-  useEffect(() => {
-    disableScroll();
-    fitWindow();
-  }, []);
+export const LedgerGrantPage: FunctionComponent = observer(() => {
+  // Force to fit the screen size.
+  useInteractionInfo();
+
+  const { ledgerInitStore } = useStore();
 
   const intl = useIntl();
 
   const notification = useNotification();
 
-  const [signCompleted, setSignCompleted] = useState(false);
-  const [signRejected, setSignRejected] = useState(false);
-
-  const [useWebHID, setUseWebHID] = useState(false);
   const [showWebHIDWarning, setShowWebHIDWarning] = useState(false);
 
-  const fetchUseWebHID = useCallback(async () => {
-    const msg = new LedgerGetWebHIDFlagMsg();
-    const current = await sendMessage(BACKGROUND_PORT, msg);
-    setUseWebHID(current);
+  const toggleWebHIDFlag = async (e: ChangeEvent) => {
+    e.preventDefault();
 
-    if (current && !(await Ledger.isWebHIDSupported())) {
+    if (!ledgerInitStore.isWebHID && !(await Ledger.isWebHIDSupported())) {
       setShowWebHIDWarning(true);
+      return;
     }
-  }, []);
+    setShowWebHIDWarning(false);
 
-  const toggleUseWebHIDFlag = useCallback(
-    async (e: ChangeEvent) => {
-      e.preventDefault();
-
-      const getMsg = new LedgerGetWebHIDFlagMsg();
-      const current = await sendMessage(BACKGROUND_PORT, getMsg);
-
-      if (!current && !(await Ledger.isWebHIDSupported())) {
-        setShowWebHIDWarning(true);
-        return;
-      }
-      setShowWebHIDWarning(false);
-
-      const setMsg = new LedgerSetWebHIDFlagMsg(!current);
-      await sendMessage(BACKGROUND_PORT, setMsg);
-
-      await fetchUseWebHID();
-    },
-    [fetchUseWebHID]
-  );
+    await ledgerInitStore.setWebHID(!ledgerInitStore.isWebHID);
+  };
 
   useEffect(() => {
-    fetchUseWebHID();
-    // Fetch the web hid flag when mounted.
-  }, [fetchUseWebHID]);
-
-  useEffect(() => {
-    const closeAfterDelay = (e: CustomEvent) => {
-      setSignCompleted(true);
-      if (e.detail?.rejected) {
-        setSignRejected(true);
-      }
-      // Close window after 3 seconds.
+    if (ledgerInitStore.isSignCompleted) {
       setTimeout(window.close, 3000);
-    };
+    }
 
-    window.addEventListener("ledgerSignCompleted", closeAfterDelay as any);
-    // Don't need to delay to close because this event probably occurs only in the register page in tab.
-    // So, don't need to consider the window refocusing.
-    window.addEventListener("ledgerGetPublickKeyCompleted", window.close);
-
-    return () => {
-      window.removeEventListener("ledgerSignCompleted", closeAfterDelay as any);
-      window.removeEventListener("ledgerGetPublickKeyCompleted", window.close);
-    };
-  }, []);
+    if (ledgerInitStore.isGetPubKeySucceeded) {
+      // Don't need to delay to close because this event probably occurs only in the register page in tab.
+      // So, don't need to consider the window refocusing.
+      window.close();
+    }
+  }, [ledgerInitStore.isGetPubKeySucceeded, ledgerInitStore.isSignCompleted]);
 
   const [initTryCount, setInitTryCount] = useState(0);
   const [initErrorOn, setInitErrorOn] = useState<LedgerInitErrorOn | undefined>(
@@ -116,11 +69,11 @@ export const LedgerGrantPage: FunctionComponent = () => {
     let initErrorOn: LedgerInitErrorOn | undefined;
 
     try {
-      const ledger = await Ledger.init(useWebHID);
+      const ledger = await Ledger.init(ledgerInitStore.isWebHID);
       await ledger.close();
       // Unfortunately, closing ledger blocks the writing to Ledger on background process.
       // I'm not sure why this happens. But, not closing reduce this problem if transport is webhid.
-      if (!useWebHID) {
+      if (!ledgerInitStore.isWebHID) {
         delay(1000);
       }
     } catch (e) {
@@ -138,15 +91,14 @@ export const LedgerGrantPage: FunctionComponent = () => {
     if (initErrorOn === undefined) {
       setInitSucceed(true);
 
-      const msg = new LedgerInitResumeMsg();
-      await sendMessage(BACKGROUND_PORT, msg);
+      await ledgerInitStore.resume();
     }
   };
 
   return (
     <EmptyLayout className={style.container}>
-      {signCompleted ? (
-        <SignCompleteDialog rejected={signRejected} />
+      {ledgerInitStore.isSignCompleted ? (
+        <SignCompleteDialog rejected={ledgerInitStore.isSignRejected} />
       ) : initSucceed ? (
         <ConfirmLedgerDialog />
       ) : (
@@ -181,8 +133,8 @@ export const LedgerGrantPage: FunctionComponent = () => {
               className="custom-control-input"
               id="use-webhid"
               type="checkbox"
-              checked={useWebHID}
-              onChange={toggleUseWebHIDFlag}
+              checked={ledgerInitStore.isWebHID}
+              onChange={toggleWebHIDFlag}
             />
             <label
               className="custom-control-label"
@@ -197,7 +149,7 @@ export const LedgerGrantPage: FunctionComponent = () => {
               style={{
                 fontSize: "14px",
                 marginBottom: "20px",
-                color: "#777777"
+                color: "#777777",
               }}
             >
               <FormattedMessage
@@ -219,19 +171,19 @@ export const LedgerGrantPage: FunctionComponent = () => {
                               type: "success",
                               duration: 2,
                               content: intl.formatMessage({
-                                id: "ledger.option.webhid.link.copied"
+                                id: "ledger.option.webhid.link.copied",
                               }),
                               canDelete: true,
                               transition: {
-                                duration: 0.25
-                              }
+                                duration: 0.25,
+                              },
                             });
                           });
                       }}
                     >
                       chrome://flags/#enable-experimental-web-platform-features
                     </a>
-                  )
+                  ),
                 }}
               />
             </div>
@@ -239,7 +191,7 @@ export const LedgerGrantPage: FunctionComponent = () => {
           <Button
             color="primary"
             block
-            onClick={async e => {
+            onClick={async (e) => {
               e.preventDefault();
               await tryInit();
             }}
@@ -251,7 +203,7 @@ export const LedgerGrantPage: FunctionComponent = () => {
       )}
     </EmptyLayout>
   );
-};
+});
 
 const ConfirmLedgerDialog: FunctionComponent = () => {
   return (
@@ -261,7 +213,7 @@ const ConfirmLedgerDialog: FunctionComponent = () => {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-end"
+          justifyContent: "flex-end",
         }}
       >
         <img
@@ -277,7 +229,7 @@ const ConfirmLedgerDialog: FunctionComponent = () => {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-start"
+          justifyContent: "flex-start",
         }}
       >
         <i className="fa fa-spinner fa-spin fa-2x fa-fw" />
@@ -298,7 +250,7 @@ const SignCompleteDialog: FunctionComponent<{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-end"
+          justifyContent: "flex-end",
         }}
       >
         {!rejected ? (
@@ -323,7 +275,7 @@ const SignCompleteDialog: FunctionComponent<{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-start"
+          justifyContent: "flex-start",
         }}
       >
         <div className={style.subParagraph}>

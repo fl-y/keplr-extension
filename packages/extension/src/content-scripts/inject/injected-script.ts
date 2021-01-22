@@ -7,5 +7,6 @@ const keplr = new Keplr(new InjectedMessageRequester());
 init(
   keplr,
   (chainId: string) => new CosmJSOfflineSigner(chainId, keplr),
-  (chainId: string) => new KeplrEnigmaUtils(chainId)
+  (chainId: string) =>
+    new KeplrEnigmaUtils(chainId, new InjectedMessageRequester())
 );

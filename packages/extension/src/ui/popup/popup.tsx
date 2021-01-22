@@ -18,7 +18,7 @@ import { Banner } from "./components/banner";
 
 import {
   NotificationProvider,
-  NotificationStoreProvider
+  NotificationStoreProvider,
 } from "../components/notification";
 import { ConfirmProvider } from "../components/confirm";
 import { LoadingIndicatorProvider } from "../components/loading-indicator";
@@ -41,14 +41,10 @@ import { ClearPage } from "./pages/setting/clear";
 import { ExportPage } from "./pages/setting/export";
 import { LedgerGrantPage, LedgerInitIndicator } from "./pages/ledger";
 
-import * as LedgerInit from "../../background/ledger/foreground";
-import * as BackgroundTxResult from "../../background/tx/foreground";
+// import * as BackgroundTxResult from "../../background/tx/foreground";
 
 import { AdditonalIntlMessages, LanguageToFiatCurrency } from "../../config";
 import { init as currencyInit } from "../../common/currency";
-import { MessageManager } from "../../common/message/manager";
-import { APP_PORT } from "../../common/message/constant";
-import { InitLedgerNotifiyHandler } from "../../background/ledger/foreground";
 import { BackgroundTxProvider } from "./background-tx-provider";
 import { AddTokenPage } from "./pages/setting/token/add";
 
@@ -66,7 +62,7 @@ require("./public/assets/icon/icon-48.png");
 require("./public/assets/icon/icon-128.png");
 
 configure({
-  enforceActions: "always" // Make mobx to strict mode.
+  enforceActions: "always", // Make mobx to strict mode.
 });
 
 Modal.setAppElement("#app");
@@ -81,61 +77,13 @@ Modal.defaultStyles = {
     right: "auto",
     top: "50%",
     bottom: "auto",
-    transform: "translate(-50%, -50%)"
+    transform: "translate(-50%, -50%)",
   },
   overlay: {
     zIndex: 1000,
-    ...Modal.defaultStyles.overlay
-  }
+    ...Modal.defaultStyles.overlay,
+  },
 };
-
-const messageManager = new MessageManager();
-const initLedgerNotifiyHandler: InitLedgerNotifiyHandler = {
-  onInitFailed: () => {
-    window.dispatchEvent(new Event("ledgerInitFailed"));
-  },
-  onInitAborted(): void {
-    window.dispatchEvent(new Event("ledgerInitAborted"));
-  },
-  onInitResumed: () => {
-    window.dispatchEvent(new Event("ledgerInitResumed"));
-  }
-};
-const ledgerInitNotifyKeeper = new LedgerInit.LedgerInitNotifyKeeper(
-  initLedgerNotifiyHandler,
-  {
-    onGetPublicKeyCompleted: () => {
-      window.dispatchEvent(new CustomEvent("ledgerGetPublickKeyCompleted"));
-    }
-  },
-  {
-    onSignCompleted: rejected => {
-      window.dispatchEvent(
-        new CustomEvent("ledgerSignCompleted", {
-          detail: {
-            rejected
-          }
-        })
-      );
-    }
-  }
-);
-LedgerInit.init(messageManager, ledgerInitNotifyKeeper);
-const backgroundTxNotifiyKeepr = new BackgroundTxResult.BackgroundTxNotifyKeeper(
-  {
-    onTxCommitted: (chainId: string) => {
-      window.dispatchEvent(
-        new CustomEvent("backgroundTxCommitted", {
-          detail: {
-            chainId
-          }
-        })
-      );
-    }
-  }
-);
-BackgroundTxResult.init(messageManager, backgroundTxNotifiyKeepr);
-messageManager.listen(APP_PORT);
 
 const StateRenderer: FunctionComponent = observer(() => {
   const { keyRingStore } = useStore();
@@ -146,7 +94,7 @@ const StateRenderer: FunctionComponent = observer(() => {
     return <LockPage />;
   } else if (keyRingStore.status === KeyRingStatus.EMPTY) {
     browser.tabs.create({
-      url: "/popup.html#/register"
+      url: "/popup.html#/register",
     });
     window.close();
     return (

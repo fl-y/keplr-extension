@@ -9,6 +9,26 @@ export class InteractionKeeper {
     { onApprove: (result: unknown) => void; onReject: (e: Error) => void }
   > = new Map();
 
+  // Dispatch the data to the frontend. Don't wait any interaction.
+  async dispatchData(
+    env: Env,
+    url: string,
+    type: string,
+    data: unknown,
+    options?: FnRequestInteractionOptions
+  ) {
+    if (!type) {
+      throw new Error("Type should not be empty");
+    }
+
+    // TODO: Add timeout?
+    const interactionWaitingData = this.addDataToMap(type, data);
+
+    const msg = new PushInteractionDataMsg(interactionWaitingData);
+
+    await env.requestInteraction(url, msg, options);
+  }
+
   async waitApprove(
     env: Env,
     url: string,
@@ -38,7 +58,7 @@ export class InteractionKeeper {
     return new Promise<unknown>((resolve, reject) => {
       this.resolverMap.set(id, {
         onApprove: resolve,
-        onReject: reject
+        onReject: reject,
       });
 
       fn();
@@ -64,7 +84,7 @@ export class InteractionKeeper {
   protected addDataToMap(type: string, data: unknown): InteractionWaitingData {
     const bytes = new Uint8Array(8);
     const id: string = Array.from(crypto.getRandomValues(bytes))
-      .map(value => {
+      .map((value) => {
         return value.toString(16);
       })
       .join("");
@@ -72,7 +92,7 @@ export class InteractionKeeper {
     const interactionWaitingData: InteractionWaitingData = {
       id,
       type,
-      data
+      data,
     };
 
     if (this.waitingMap.has(id)) {

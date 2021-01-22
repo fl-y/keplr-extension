@@ -24,10 +24,10 @@ export class ChainsKeeper {
   async getChainInfos(
     applyUpdatedProperty: boolean = true
   ): Promise<ChainInfoWithEmbed[]> {
-    const chainInfos = this.embedChainInfos.map(chainInfo => {
+    const chainInfos = this.embedChainInfos.map((chainInfo) => {
       return {
         ...chainInfo,
-        embeded: true
+        embeded: true,
       };
     });
     const savedChainInfos: ChainInfoWithEmbed[] = (
@@ -35,7 +35,7 @@ export class ChainsKeeper {
     ).map((chainInfo: ChainInfo) => {
       return {
         ...chainInfo,
-        embeded: false
+        embeded: false,
       };
     });
 
@@ -44,7 +44,7 @@ export class ChainsKeeper {
     if (applyUpdatedProperty) {
       // Set the updated property of the chain.
       result = await Promise.all(
-        result.map(async chainInfo => {
+        result.map(async (chainInfo) => {
           const updated: Writeable<ChainInfo> = await this.chainUpdaterKeeper.putUpdatedPropertyToChainInfo(
             chainInfo
           );
@@ -56,7 +56,7 @@ export class ChainsKeeper {
 
           return {
             ...updated,
-            embeded: chainInfo.embeded
+            embeded: chainInfo.embeded,
           };
         })
       );
@@ -66,7 +66,7 @@ export class ChainsKeeper {
   }
 
   async getChainInfo(chainId: string): Promise<ChainInfoWithEmbed> {
-    const chainInfo = (await this.getChainInfos()).find(chainInfo => {
+    const chainInfo = (await this.getChainInfos()).find((chainInfo) => {
       return chainInfo.chainId === chainId;
     });
 
@@ -77,7 +77,7 @@ export class ChainsKeeper {
   }
 
   async getChainCoinType(chainId: string): Promise<number> {
-    const chainInfo = (await this.getChainInfos(false)).find(chainInfo => {
+    const chainInfo = (await this.getChainInfos(false)).find((chainInfo) => {
       return chainInfo.chainId === chainId;
     });
 
@@ -94,7 +94,7 @@ export class ChainsKeeper {
 
   async hasChainInfo(chainId: string): Promise<boolean> {
     return (
-      (await this.getChainInfos()).find(chainInfo => {
+      (await this.getChainInfos()).find((chainInfo) => {
         return chainInfo.chainId === chainId;
       }) != null
     );
@@ -113,7 +113,7 @@ export class ChainsKeeper {
       "suggest-chain",
       {
         ...chainInfo,
-        origin
+        origin,
       }
     );
 
@@ -126,7 +126,7 @@ export class ChainsKeeper {
     }
 
     const ambiguousChainInfo = (await this.getChainInfos()).find(
-      savedChainInfo => {
+      (savedChainInfo) => {
         return (
           ChainUpdaterKeeper.getChainVersion(savedChainInfo.chainId)
             .identifier ===
@@ -162,7 +162,7 @@ export class ChainsKeeper {
     const savedChainInfos =
       (await this.kvStore.get<ChainInfo[]>("chain-infos")) ?? [];
 
-    const resultChainInfo = savedChainInfos.filter(chainInfo => {
+    const resultChainInfo = savedChainInfos.filter((chainInfo) => {
       return (
         ChainUpdaterKeeper.getChainVersion(chainInfo.chainId).identifier !==
         ChainUpdaterKeeper.getChainVersion(chainId).identifier
@@ -184,6 +184,11 @@ export class ChainsKeeper {
     chainId: string,
     origins: string[]
   ): Promise<void> {
+    // If origin is from extension, just ignore it.
+    if (env.isInternalMsg) {
+      return;
+    }
+
     if (origins.length === 0) {
       throw new Error("Empty origin");
     }
@@ -193,7 +198,7 @@ export class ChainsKeeper {
 
     const accessOrigin = await this.getAccessOrigin(chainId);
     if (
-      origins.every(origin => {
+      origins.every((origin) => {
         return accessOrigin.origins.includes(origin);
       })
     ) {
@@ -206,7 +211,7 @@ export class ChainsKeeper {
       ReqeustAccessMsg.type(),
       {
         chainId,
-        origins
+        origins,
       }
     );
 
@@ -236,7 +241,7 @@ export class ChainsKeeper {
     if (!accessOrigin) {
       accessOrigin = {
         chainId,
-        origins: []
+        origins: [],
       };
     }
 
@@ -305,7 +310,7 @@ export class ChainsKeeper {
     );
     return {
       chainId,
-      origins: nativeAccessOrigins.concat(accessOrigin?.origins ?? [])
+      origins: nativeAccessOrigins.concat(accessOrigin?.origins ?? []),
     };
   }
 
@@ -318,12 +323,12 @@ export class ChainsKeeper {
     if (accessOrigin) {
       return {
         chainId: accessOrigin.chainId,
-        origins: accessOrigin.origins
+        origins: accessOrigin.origins,
       };
     } else {
       return {
         chainId,
-        origins: []
+        origins: [],
       };
     }
   }

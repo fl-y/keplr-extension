@@ -3,9 +3,9 @@ import { Ledger } from "./ledger";
 import delay from "delay";
 
 import { Env } from "@keplr/router";
-import { BIP44HDPath } from "../keyring/types";
+import { BIP44HDPath } from "../keyring";
 import { KVStore } from "@keplr/common";
-import { InteractionKeeper } from "../interaction/keeper";
+import { InteractionKeeper } from "../interaction";
 
 const Buffer = require("buffer/").Buffer;
 
@@ -18,7 +18,7 @@ export class LedgerKeeper {
   ) {}
 
   async getPublicKey(env: Env, bip44HDPath: BIP44HDPath): Promise<Uint8Array> {
-    return await this.useLedger(env, async ledger => {
+    return await this.useLedger(env, async (ledger) => {
       try {
         // Cosmos App on Ledger doesn't support the coin type other than 118.
         return await ledger.getPublicKey([
@@ -26,19 +26,20 @@ export class LedgerKeeper {
           118,
           bip44HDPath.account,
           bip44HDPath.change,
-          bip44HDPath.addressIndex
+          bip44HDPath.addressIndex,
         ]);
       } finally {
-        await this.interactionKeeper.waitApprove(
+        await this.interactionKeeper.dispatchData(
           env,
           "/ledger-grant",
-          "ledger",
+          "ledger-init",
           {
-            event: "getPubKey"
+            event: "get-pubkey",
+            success: true,
           },
           {
             forceOpenWindow: true,
-            channel: "ledger"
+            channel: "ledger",
           }
         );
       }
@@ -51,14 +52,14 @@ export class LedgerKeeper {
     expectedPubKey: Uint8Array,
     message: Uint8Array
   ): Promise<Uint8Array> {
-    return await this.useLedger(env, async ledger => {
+    return await this.useLedger(env, async (ledger) => {
       try {
         const pubKey = await ledger.getPublicKey([
           44,
           118,
           bip44HDPath.account,
           bip44HDPath.change,
-          bip44HDPath.addressIndex
+          bip44HDPath.addressIndex,
         ]);
         if (
           Buffer.from(expectedPubKey).toString("hex") !==
@@ -73,34 +74,36 @@ export class LedgerKeeper {
             118,
             bip44HDPath.account,
             bip44HDPath.change,
-            bip44HDPath.addressIndex
+            bip44HDPath.addressIndex,
           ],
           message
         );
-        await this.interactionKeeper.waitApprove(
+        await this.interactionKeeper.dispatchData(
           env,
           "/ledger-grant",
-          "ledger",
+          "ledger-init",
           {
-            event: "sign"
+            event: "sign",
+            success: true,
           },
           {
             forceOpenWindow: true,
-            channel: "ledger"
+            channel: "ledger",
           }
         );
         return signature;
       } catch (e) {
-        await this.interactionKeeper.waitApprove(
+        await this.interactionKeeper.dispatchData(
           env,
           "/ledger-grant",
-          "ledger",
+          "ledger-init",
           {
-            event: "signRejected"
+            event: "sign",
+            success: false,
           },
           {
             forceOpenWindow: true,
-            channel: "ledger"
+            channel: "ledger",
           }
         );
         throw e;
@@ -146,7 +149,7 @@ export class LedgerKeeper {
           if (_reject) {
             _reject(e);
           }
-        }
+        },
       };
     })();
 
@@ -159,65 +162,46 @@ export class LedgerKeeper {
         return ledger;
       } catch (e) {
         console.log(e);
-        await this.notifyNeedInitializeLedger(env);
 
         await Promise.race([
+          this.interactionKeeper.waitApprove(
+            env,
+            "/ledger-grant",
+            "ledger-init",
+            {
+              event: "init-failed",
+            },
+            {
+              forceOpenWindow: true,
+              channel: "ledger",
+            }
+          ),
           (async () => {
             // If ledger is not initied in 3 minutes, abort it.
             await delay(3 * 60 * 1000);
-            await this.interactionKeeper.waitApprove(
+            await this.interactionKeeper.dispatchData(
               env,
               "/ledger-grant",
-              "ledger",
+              "ledger-init",
               {
-                event: "initAborted"
+                event: "init-aborted",
               },
               {
                 forceOpenWindow: true,
-                channel: "ledger"
+                channel: "ledger",
               }
             );
             throw new Error("Ledger init timeout");
           })(),
           aborter.wait(),
-          this.testLedgerGrantUIOpened(env)
+          this.testLedgerGrantUIOpened(),
         ]);
       }
     }
   }
 
-  async notifyNeedInitializeLedger(env: Env) {
-    await this.interactionKeeper.waitApprove(
-      env,
-      "/ledger-grant",
-      "ledger",
-      {
-        event: "initFailed"
-      },
-      {
-        forceOpenWindow: true,
-        channel: "ledger"
-      }
-    );
-  }
-
-  async resumeInitLedger(env: Env) {
-    await this.interactionKeeper.waitApprove(
-      env,
-      "/ledger-grant",
-      "ledger",
-      {
-        event: "initResumed"
-      },
-      {
-        forceOpenWindow: true,
-        channel: "ledger"
-      }
-    );
-  }
-
   // Test that the exntesion's granting ledger page is opened.
-  async testLedgerGrantUIOpened(env: Env) {
+  async testLedgerGrantUIOpened() {
     await delay(1000);
 
     while (true) {
@@ -235,18 +219,6 @@ export class LedgerKeeper {
       }
 
       if (!find) {
-        await this.interactionKeeper.waitApprove(
-          env,
-          "/ledger-grant",
-          "ledger",
-          {
-            event: "initAborted"
-          },
-          {
-            forceOpenWindow: true,
-            channel: "ledger"
-          }
-        );
         throw new Error("Ledger init aborted");
       }
 

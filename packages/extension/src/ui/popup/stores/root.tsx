@@ -12,29 +12,32 @@ import {
   AccountStore as AccountStoreV2,
   PermissionStore,
   TxConfigStore,
-  SignInteractionStore
+  SignInteractionStore,
+  LedgerInitStore,
 } from "@keplr/stores";
 import { BrowserKVStore } from "../../../common/kvstore";
 import {
   Router,
   ExtensionEnv,
   InExtensionMessageRequester,
-  APP_PORT
+  APP_PORT,
 } from "@keplr/router";
 
 export class RootStore {
-  public chainStore: ChainStore;
-  public keyRingStore: KeyRingStore;
-  public accountStore: AccountStore;
-  public priceStore: PriceStore;
+  public readonly chainStore: ChainStore;
+  public readonly keyRingStore: KeyRingStore;
+  public readonly accountStore: AccountStore;
+  public readonly priceStore: PriceStore;
 
-  protected interactionStore: InteractionStore;
-  public permissionStore: PermissionStore;
-  public txConfigStore: TxConfigStore;
-  public signInteractionStore: SignInteractionStore;
-  public queriesStore: QueriesStore;
-  public accountStoreV2: AccountStoreV2;
-  public priceStoreV2: CoinGeckoPriceStore;
+  protected readonly interactionStore: InteractionStore;
+  public readonly permissionStore: PermissionStore;
+  public readonly txConfigStore: TxConfigStore;
+  public readonly signInteractionStore: SignInteractionStore;
+  public readonly ledgerInitStore: LedgerInitStore;
+
+  public readonly queriesStore: QueriesStore;
+  public readonly accountStoreV2: AccountStoreV2;
+  public readonly priceStoreV2: CoinGeckoPriceStore;
 
   constructor() {
     const router = new Router(ExtensionEnv.produceEnv);
@@ -58,6 +61,11 @@ export class RootStore {
     this.permissionStore = new PermissionStore(this.interactionStore);
     this.txConfigStore = new TxConfigStore(this.interactionStore);
     this.signInteractionStore = new SignInteractionStore(this.interactionStore);
+    this.ledgerInitStore = new LedgerInitStore(
+      this.interactionStore,
+      new InExtensionMessageRequester()
+    );
+
     this.queriesStore = new QueriesStore(
       new BrowserKVStore("queries"),
       this.chainStore
@@ -71,11 +79,11 @@ export class RootStore {
 
     this.priceStoreV2 = new CoinGeckoPriceStore(new BrowserKVStore("prices"), {
       usd: {
-        symbol: "$"
+        symbol: "$",
       },
       krw: {
-        symbol: "₩"
-      }
+        symbol: "₩",
+      },
     });
 
     router.listen(APP_PORT);
