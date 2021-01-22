@@ -1,6 +1,7 @@
 import { MessageRequester } from "../types";
 import { Message } from "../message";
 import { Result } from "../interfaces";
+import { JSONUint8Array } from "../json-uint8-array";
 
 export interface ProxyMessage {
   type: "proxy-message";
@@ -36,7 +37,7 @@ export class InjectedMessageRequester implements MessageRequester {
         const proxyMsgResult: ProxyMessageResult = {
           type: "proxy-message-result",
           id: message.id,
-          result,
+          result: JSONUint8Array.wrap(result),
         };
 
         window.postMessage(proxyMsgResult, window.location.origin);
@@ -78,7 +79,7 @@ export class InjectedMessageRequester implements MessageRequester {
       type: "proxy-message",
       id,
       port,
-      msg,
+      msg: JSONUint8Array.wrap(msg),
       msgType: msg.type(),
     };
 
@@ -96,7 +97,7 @@ export class InjectedMessageRequester implements MessageRequester {
 
         window.removeEventListener("message", receiveResult);
 
-        const result = proxyMsgResult.result;
+        const result = JSONUint8Array.unwrap(proxyMsgResult.result);
 
         if (!result) {
           reject(new Error("Result is null"));

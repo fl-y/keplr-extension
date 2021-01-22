@@ -3,6 +3,7 @@ import { Handler } from "../handler";
 import { Result } from "../interfaces";
 import { EnvProducer, Guard, MessageSender } from "../types";
 import { MessageRegistry } from "../encoding";
+import { JSONUint8Array } from "../json-uint8-array";
 
 export class Router {
   protected msgRegistry: MessageRegistry = new MessageRegistry();
@@ -57,7 +58,7 @@ export class Router {
     }
 
     try {
-      const msg = this.msgRegistry.parseMessage(message);
+      const msg = JSONUint8Array.unwrap(this.msgRegistry.parseMessage(message));
       const env = this.envProducer(sender);
 
       for (const guard of this.guards) {
@@ -76,9 +77,9 @@ export class Router {
         throw new Error("Can't get handler");
       }
 
-      const result = await handler(env, msg);
+      const result = JSONUint8Array.wrap(await handler(env, msg));
       return Promise.resolve({
-        return: result
+        return: result,
       });
     } catch (e) {
       console.log(
@@ -86,11 +87,11 @@ export class Router {
       );
       if (e) {
         return Promise.resolve({
-          error: e.message || e.toString()
+          error: e.message || e.toString(),
         });
       } else {
         return Promise.resolve({
-          error: "Unknown error, and error is null"
+          error: "Unknown error, and error is null",
         });
       }
     }

@@ -1,5 +1,6 @@
 import { MessageRequester } from "../types";
 import { Message } from "../message";
+import { JSONUint8Array } from "../json-uint8-array";
 
 export class InExtensionMessageRequester implements MessageRequester {
   async sendMessage<M extends Message<unknown>>(
@@ -13,13 +14,15 @@ export class InExtensionMessageRequester implements MessageRequester {
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
-    return (
-      await browser.runtime.sendMessage({
-        port,
-        type: msg.type(),
-        msg,
-      })
-    ).return;
+    return JSONUint8Array.unwrap(
+      (
+        await browser.runtime.sendMessage({
+          port,
+          type: msg.type(),
+          msg: JSONUint8Array.wrap(msg),
+        })
+      ).return
+    );
   }
 
   static async sendMessageToTab<M extends Message<unknown>>(
@@ -34,12 +37,14 @@ export class InExtensionMessageRequester implements MessageRequester {
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
-    return (
-      await browser.tabs.sendMessage(tabId, {
-        port,
-        type: msg.type(),
-        msg,
-      })
-    ).return;
+    return JSONUint8Array.unwrap(
+      (
+        await browser.tabs.sendMessage(tabId, {
+          port,
+          type: msg.type(),
+          msg: JSONUint8Array.wrap(msg),
+        })
+      ).return
+    );
   }
 }
