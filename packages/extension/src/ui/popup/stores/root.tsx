@@ -1,8 +1,4 @@
 import { ChainStore } from "./chain";
-import { KeyRingStatus } from "./keyring";
-import { AccountStore } from "./account";
-import { ChainInfo } from "@keplr/types";
-import { PriceStore } from "./price";
 import { EmbedChainInfos } from "../../../config";
 import {
   KeyRingStore,
@@ -26,8 +22,6 @@ import {
 export class RootStore {
   public readonly chainStore: ChainStore;
   public readonly keyRingStore: KeyRingStore;
-  public readonly accountStore: AccountStore;
-  public readonly priceStore: PriceStore;
 
   protected readonly interactionStore: InteractionStore;
   public readonly permissionStore: PermissionStore;
@@ -43,12 +37,10 @@ export class RootStore {
     const router = new Router(ExtensionEnv.produceEnv);
 
     // Order is important.
-    this.accountStore = new AccountStore(this);
     this.interactionStore = new InteractionStore(
       router,
       new InExtensionMessageRequester()
     );
-    this.priceStore = new PriceStore();
 
     this.chainStore = new ChainStore(this, EmbedChainInfos);
 
@@ -90,23 +82,6 @@ export class RootStore {
 
     this.chainStore.init();
     this.keyRingStore.restore();
-  }
-
-  public setChainInfo(info: ChainInfo) {
-    this.accountStore.setChainInfo(info);
-    this.priceStore.setChainInfo(info);
-  }
-
-  public setKeyRingStatus(status: KeyRingStatus) {
-    this.accountStore.setKeyRingStatus(status);
-  }
-
-  public async refreshChainList(): Promise<void> {
-    await this.chainStore.refreshChainList();
-  }
-
-  public changeKeyRing() {
-    this.accountStore.changeKeyRing();
   }
 }
 

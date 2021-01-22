@@ -2,7 +2,7 @@ import React, { FunctionComponent, useEffect, useState } from "react";
 import { Coin } from "@chainapsis/cosmosjs/common/coin";
 import { CoinUtils } from "../../../../common/coin-utils";
 
-import { Dec } from "@chainapsis/cosmosjs/common/decimal";
+import { Dec } from "@keplr/unit";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import { getFiatCurrencyFromLanguage } from "../../../../common/currency";
@@ -17,7 +17,7 @@ import { useLanguage } from "../../language";
 
 export const DetailsTab: FunctionComponent<{ message: string }> = observer(
   ({ message }) => {
-    const { chainStore, priceStore } = useStore();
+    const { chainStore, priceStoreV2 } = useStore();
 
     const intl = useIntl();
 
@@ -63,39 +63,32 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
       let hasCoinGeckoId = true;
 
       for (const coin of fee) {
-        const currency = chainStore.allCurrencies.find(currency => {
+        const currency = chainStore.allCurrencies.find((currency) => {
           return currency.coinMinimalDenom === coin.denom;
         });
         if (currency) {
           if (!currency.coinGeckoId) {
             hasCoinGeckoId = false;
           }
-          if (
-            !priceStore.hasFiat(fiatCurrency.currency) &&
-            currency.coinGeckoId
-          ) {
-            priceStore.fetchValue(
-              [fiatCurrency.currency],
-              [currency.coinGeckoId]
-            );
-          }
-          const value = priceStore.getValue(
-            fiatCurrency.currency,
-            currency.coinGeckoId
+          const value = priceStoreV2.getPrice(
+            currency.coinGeckoId,
+            fiatCurrency.currency
           );
           const parsed = CoinUtils.parseDecAndDenomFromCoin(
             chainStore.allCurrencies,
             coin
           );
           if (value) {
-            price = price.add(new Dec(parsed.amount).mul(value.value));
+            price = price.add(
+              new Dec(parsed.amount).mul(new Dec(value.toString()))
+            );
           }
         }
       }
 
       setHasCoinGeckoId(hasCoinGeckoId);
       setFeeFiat(price);
-    }, [chainStore.allCurrencies, fee, fiatCurrency.currency, priceStore]);
+    }, [chainStore.allCurrencies, fee, fiatCurrency.currency]);
 
     return (
       <div className={styleDetailsTab.container}>
@@ -107,7 +100,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
         >
           <div className={styleDetailsTab.title}>
             {intl.formatMessage({
-              id: "sign.list.messages.label"
+              id: "sign.list.messages.label",
             })}
           </div>
           {msgs.map((msg, i) => {
@@ -129,13 +122,13 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
         <div className={styleDetailsTab.section}>
           <div className={styleDetailsTab.title}>
             {intl.formatMessage({
-              id: "sign.info.fee"
+              id: "sign.info.fee",
             })}
           </div>
           <div className={styleDetailsTab.fee}>
             <div>
               {fee
-                .map(fee => {
+                .map((fee) => {
                   const parsed = CoinUtils.parseDecAndDenomFromCoin(
                     chainStore.allCurrencies,
                     fee
@@ -160,7 +153,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
           <div className={styleDetailsTab.section}>
             <div className={styleDetailsTab.title}>
               {intl.formatMessage({
-                id: "sign.info.memo"
+                id: "sign.info.memo",
               })}
             </div>
             <div className={styleDetailsTab.memo}>{memo}</div>

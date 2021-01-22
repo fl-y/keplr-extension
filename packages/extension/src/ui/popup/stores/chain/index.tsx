@@ -7,12 +7,12 @@ import { ChainInfo } from "@keplr/types";
 import { ChainInfoWithEmbed } from "@keplr/background";
 import {
   SetPersistentMemoryMsg,
-  GetPersistentMemoryMsg
+  GetPersistentMemoryMsg,
 } from "../../../../background/persistent-memory";
 import {
   GetChainInfosMsg,
   RemoveSuggestedChainInfoMsg,
-  TryUpdateChainMsg
+  TryUpdateChainMsg,
 } from "../../../../background/chains/messages";
 import { sendMessage } from "../../../../common/message";
 import { BACKGROUND_PORT } from "../../../../common/message/constant";
@@ -47,10 +47,10 @@ export class ChainStore {
     });
 
     this.setChainList(
-      this.embedChainInfos.map(chainInfo => {
+      this.embedChainInfos.map((chainInfo) => {
         return {
           ...chainInfo,
-          embeded: true
+          embeded: true,
         };
       })
     );
@@ -59,7 +59,7 @@ export class ChainStore {
   }
 
   public getChain(chainId: string): ChainInfo {
-    const chainInfo = this.chainList.find(chainInfo => {
+    const chainInfo = this.chainList.find((chainInfo) => {
       return chainInfo.chainId === chainId;
     });
 
@@ -110,7 +110,7 @@ export class ChainStore {
   public async saveLastViewChainId() {
     // Save last view chain id to persistent background
     const msg = new SetPersistentMemoryMsg({
-      lastViewChainId: this.chainInfo.chainId
+      lastViewChainId: this.chainInfo.chainId,
     });
     await task(sendMessage(BACKGROUND_PORT, msg));
   }
@@ -149,7 +149,7 @@ export class ChainStore {
     this.chainList = chainList;
 
     const allCurrencies = chainList
-      .map(chainInfo => {
+      .map((chainInfo) => {
         return chainInfo.currencies;
       })
       // Flaten
@@ -206,7 +206,7 @@ export class ChainStore {
 
     await this.getChainInfosFromBackground();
 
-    const chainInfo = this.chainList.find(chainInfo => {
+    const chainInfo = this.chainList.find((chainInfo) => {
       return chainInfo.chainId === chainId;
     });
 
