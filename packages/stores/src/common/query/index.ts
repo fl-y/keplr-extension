@@ -285,8 +285,10 @@ export class ObservableQuery<
 
   @action
   protected setUrl(url: string) {
-    this._url = url;
-    this.fetch();
+    if (this._url !== url) {
+      this._url = url;
+      this.fetch();
+    }
   }
 
   protected async fetchResponse(

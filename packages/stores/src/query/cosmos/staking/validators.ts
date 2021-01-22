@@ -5,7 +5,7 @@ import {
 import { BondStatus, Validators, Validator } from "./types";
 import { KVStore } from "@keplr/common";
 import { ChainGetter } from "../../../common/types";
-import { computed, observable, runInAction } from "mobx";
+import { autorun, computed, observable, runInAction } from "mobx";
 import { ObservableQuery, QueryResponse } from "../../../common";
 import Axios, { CancelToken } from "axios";
 import PQueue from "p-queue";
@@ -92,7 +92,7 @@ export class ObservableQueryValidatorsInner extends ObservableChainQuery<Validat
     kvStore: KVStore,
     chainId: string,
     chainGetter: ChainGetter,
-    status: BondStatus
+    protected readonly status: BondStatus
   ) {
     super(
       kvStore,
@@ -103,6 +103,24 @@ export class ObservableQueryValidatorsInner extends ObservableChainQuery<Validat
 
     runInAction(() => {
       this.thumbnailMap = new Map();
+    });
+
+    autorun(() => {
+      const chainInfo = this.chainGetter.getChain(this.chainId);
+      if (chainInfo.features && chainInfo.features.includes("stargate")) {
+        const url = (() => {
+          switch (this.status) {
+            case BondStatus.Bonded:
+              return `/staking/validators?status=BOND_STATUS_BONDED`;
+            case BondStatus.Unbonded:
+              return `/staking/validators?status=BOND_STATUS_UNBONDED`;
+            case BondStatus.Unbonding:
+              return `/staking/validators?status=BOND_STATUS_UNBONDING`;
+          }
+        })();
+
+        this.setUrl(url);
+      }
     });
   }
 
