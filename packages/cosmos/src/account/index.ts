@@ -66,15 +66,12 @@ export class BaseAccount implements Account {
     }
 
     const sequence = value.sequence;
-    if (sequence == null) {
-      throw new Error(`Account's sequence is unknown: ${JSON.stringify(obj)}`);
-    }
 
     return new BaseAccount(
       type,
       address,
       new Int(accountNumber),
-      new Int(sequence)
+      new Int(sequence ?? "0")
     );
   }
 

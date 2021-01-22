@@ -34,6 +34,26 @@ export type Delegation = {
       };
 };
 
+export type DelegationsStargate = {
+  height: string;
+  result: DelegationStargate[];
+};
+
+export type DelegationStargate = {
+  delegation: {
+    delegator_address: string;
+    validator_address: string;
+    // Dec
+    shares: string;
+  };
+  balance:
+    | string
+    | {
+        denom: string;
+        amount: string;
+      };
+};
+
 export type UnbondingDelegations = {
   height: string;
   result: UnbondingDelegation[];

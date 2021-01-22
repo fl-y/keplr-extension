@@ -2,14 +2,16 @@ import {
   ObservableChainQuery,
   ObservableChainQueryMap,
 } from "../../chain-query";
-import { Delegation, Delegations } from "./types";
+import { Delegation, Delegations, DelegationsStargate } from "./types";
 import { KVStore } from "@keplr/common";
 import { ChainGetter } from "../../../common/types";
 import { CoinPretty, Int } from "@keplr/unit";
 import { computed } from "mobx";
 import { computedFn } from "mobx-utils";
 
-export class ObservableQueryDelegationsInner extends ObservableChainQuery<Delegations> {
+export class ObservableQueryDelegationsInner extends ObservableChainQuery<
+  Delegations | DelegationsStargate
+> {
   protected bech32Address: string;
 
   constructor(
@@ -86,7 +88,10 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<Delega
           : delegation.balance.amount;
 
       result.push({
-        validatorAddress: delegation.validator_address,
+        validatorAddress:
+          "validator_address" in delegation
+            ? delegation.validator_address
+            : delegation.delegation.validator_address,
         balance: new CoinPretty(stakeCurrency.coinDenom, new Int(balance))
           .precision(stakeCurrency.coinDecimals)
           .maxDecimals(stakeCurrency.coinDecimals),
@@ -102,7 +107,23 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<Delega
       return [];
     }
 
-    return this.response.data.result;
+    const result = this.response.data.result;
+    if (result.length > 0 && "delegation" in result[0]) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      return result.map((r) => {
+        return {
+          balance: r.balance,
+          delegator_address: r.delegation.delegator_address,
+          validator_address: r.delegation.validator_address,
+          shares: r.delegation.shares,
+        };
+      });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return result;
   }
 
   readonly getDelegationTo = computedFn(
@@ -141,7 +162,9 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<Delega
   );
 }
 
-export class ObservableQueryDelegations extends ObservableChainQueryMap<Delegations> {
+export class ObservableQueryDelegations extends ObservableChainQueryMap<
+  Delegations | DelegationsStargate
+> {
   constructor(
     protected readonly kvStore: KVStore,
     protected readonly chainId: string,
