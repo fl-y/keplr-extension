@@ -1,11 +1,9 @@
-import { Keplr } from "./common";
+import { Keplr } from "@keplr/provider";
 import { OfflineSigner } from "@cosmjs/launchpad";
-import { WalletProvider } from "@chainapsis/cosmosjs/core/walletProvider";
 import { SecretUtils } from "secretjs/types/enigmautils";
 
 export function init(
   keplr: Keplr,
-  cosmosJSWalletProvider: WalletProvider,
   getOfflineSigner: (chainId: string) => OfflineSigner,
   getEnigmaUtils: (chainId: string) => SecretUtils
 ) {
@@ -13,10 +11,6 @@ export function init(
   if (process.env.NODE_ENV !== "production") {
     if (!window.keplr) {
       window.keplr = keplr;
-    }
-
-    if (!window.cosmosJSWalletProvider) {
-      window.cosmosJSWalletProvider = cosmosJSWalletProvider;
     }
 
     if (!window.getOfflineSigner) {
@@ -27,7 +21,6 @@ export function init(
     }
   } else {
     window.keplr = keplr;
-    window.cosmosJSWalletProvider = cosmosJSWalletProvider;
     window.getOfflineSigner = getOfflineSigner;
     window.getEnigmaUtils = getEnigmaUtils;
   }

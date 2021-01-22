@@ -7,6 +7,7 @@ import {
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 import { BroadcastMode, BroadcastTxResult, StdTx } from "@cosmjs/launchpad";
 import {
+  ReqeustAccessMsg,
   EnableKeyRingMsg,
   SuggestChainInfoMsg,
   GetKeyMsg,
@@ -26,8 +27,14 @@ export class Keplr implements IKeplr {
   constructor(protected readonly requester: MessageRequester) {}
 
   async enable(chainId: string): Promise<void> {
-    const msg = new EnableKeyRingMsg(chainId);
-    await this.requester.sendMessage(BACKGROUND_PORT, msg);
+    await this.requester.sendMessage(
+      BACKGROUND_PORT,
+      new ReqeustAccessMsg(chainId, window.location.origin)
+    );
+    await this.requester.sendMessage(
+      BACKGROUND_PORT,
+      new EnableKeyRingMsg(chainId)
+    );
   }
 
   async experimentalSuggestChain(chainInfo: ChainInfo): Promise<void> {
@@ -60,7 +67,7 @@ export class Keplr implements IKeplr {
     mode: BroadcastMode
   ): Promise<BroadcastTxResult> {
     const msg = new SendTxMsg(chainId, stdTx, mode);
-    return await this.requester.sendMessage(BACKGROUND_PORT, msg);
+    return (await this.requester.sendMessage(BACKGROUND_PORT, msg)) as any;
   }
 
   async sign(

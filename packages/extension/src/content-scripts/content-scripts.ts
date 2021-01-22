@@ -1,4 +1,4 @@
-import { InjectedMessageRequester } from "../common/message/send/inject";
+import { InjectedMessageRequester } from "@keplr/router";
 
 InjectedMessageRequester.startProxy();
 

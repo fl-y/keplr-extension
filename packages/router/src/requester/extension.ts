@@ -14,15 +14,23 @@ export class InExtensionMessageRequester implements MessageRequester {
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
-    return JSONUint8Array.unwrap(
-      (
-        await browser.runtime.sendMessage({
-          port,
-          type: msg.type(),
-          msg: JSONUint8Array.wrap(msg),
-        })
-      ).return
+    const result = JSONUint8Array.unwrap(
+      await browser.runtime.sendMessage({
+        port,
+        type: msg.type(),
+        msg: JSONUint8Array.wrap(msg),
+      })
     );
+
+    if (!result) {
+      throw new Error("Null result");
+    }
+
+    if (result.error) {
+      throw new Error(result.error);
+    }
+
+    return result.return;
   }
 
   static async sendMessageToTab<M extends Message<unknown>>(
@@ -37,14 +45,22 @@ export class InExtensionMessageRequester implements MessageRequester {
     // @ts-ignore
     msg["origin"] = window.location.origin;
 
-    return JSONUint8Array.unwrap(
-      (
-        await browser.tabs.sendMessage(tabId, {
-          port,
-          type: msg.type(),
-          msg: JSONUint8Array.wrap(msg),
-        })
-      ).return
+    const result = JSONUint8Array.unwrap(
+      await browser.tabs.sendMessage(tabId, {
+        port,
+        type: msg.type(),
+        msg: JSONUint8Array.wrap(msg),
+      })
     );
+
+    if (!result) {
+      throw new Error("Null result");
+    }
+
+    if (result.error) {
+      throw new Error(result.error);
+    }
+
+    return result.return;
   }
 }

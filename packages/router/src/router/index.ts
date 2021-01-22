@@ -58,7 +58,7 @@ export class Router {
     }
 
     try {
-      const msg = JSONUint8Array.unwrap(this.msgRegistry.parseMessage(message));
+      const msg = this.msgRegistry.parseMessage(JSONUint8Array.unwrap(message));
       const env = this.envProducer(sender);
 
       for (const guard of this.guards) {

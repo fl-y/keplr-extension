@@ -36,11 +36,15 @@ export class JSONUint8Array {
     });
   }
 
-  static wrap<T = unknown>(obj: T): T {
+  static wrap(obj: any): any {
+    if (obj === undefined) return undefined;
+
     return JSON.parse(JSONUint8Array.stringify(obj));
   }
 
-  static unwrap<T = unknown>(obj: T): T {
+  static unwrap(obj: any): any {
+    if (obj === undefined) return undefined;
+
     return JSONUint8Array.parse(JSON.stringify(obj));
   }
 }
