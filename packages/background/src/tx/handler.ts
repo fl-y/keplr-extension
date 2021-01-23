@@ -2,24 +2,24 @@ import { Env, Handler, InternalHandler, Message } from "@keplr/router";
 import {
   RequestBackgroundTxMsg,
   RequestBackgroundTxWithResultMsg,
-  SendTxMsg
+  SendTxMsg,
 } from "./messages";
-import { BackgroundTxKeeper } from "./keeper";
+import { BackgroundTxService } from "./service";
 
-export const getHandler: (keeper: BackgroundTxKeeper) => Handler = (
-  keeper: BackgroundTxKeeper
+export const getHandler: (service: BackgroundTxService) => Handler = (
+  service: BackgroundTxService
 ) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
       case SendTxMsg:
-        return handleSendTxMsg(keeper)(env, msg as SendTxMsg);
+        return handleSendTxMsg(service)(env, msg as SendTxMsg);
       case RequestBackgroundTxMsg:
-        return handleRequestBackgroundTxMsg(keeper)(
+        return handleRequestBackgroundTxMsg(service)(
           env,
           msg as RequestBackgroundTxMsg
         );
       case RequestBackgroundTxWithResultMsg:
-        return handleRequestBackgroundTxWithResultMsg(keeper)(
+        return handleRequestBackgroundTxWithResultMsg(service)(
           env,
           msg as RequestBackgroundTxWithResultMsg
         );
@@ -30,32 +30,32 @@ export const getHandler: (keeper: BackgroundTxKeeper) => Handler = (
 };
 
 const handleSendTxMsg: (
-  keeper: BackgroundTxKeeper
-) => InternalHandler<SendTxMsg> = keeper => {
+  service: BackgroundTxService
+) => InternalHandler<SendTxMsg> = (service) => {
   return async (env, msg) => {
-    await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
 
-    return await keeper.sendTx(msg.chainId, msg.tx, msg.mode);
+    return await service.sendTx(msg.chainId, msg.tx, msg.mode);
   };
 };
 
 const handleRequestBackgroundTxMsg: (
-  keeper: BackgroundTxKeeper
-) => InternalHandler<RequestBackgroundTxMsg> = keeper => {
+  service: BackgroundTxService
+) => InternalHandler<RequestBackgroundTxMsg> = (service) => {
   return async (env, msg) => {
-    await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await keeper.requestTx(msg.chainId, msg.txBytes, msg.mode!, msg.isRestAPI);
+    await service.requestTx(msg.chainId, msg.txBytes, msg.mode!, msg.isRestAPI);
     return {};
   };
 };
 
 const handleRequestBackgroundTxWithResultMsg: (
-  keeper: BackgroundTxKeeper
-) => InternalHandler<RequestBackgroundTxWithResultMsg> = keeper => {
+  service: BackgroundTxService
+) => InternalHandler<RequestBackgroundTxWithResultMsg> = (service) => {
   return async (env, msg) => {
-    await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
-    return await keeper.requestTxWithResult(
+    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    return await service.requestTxWithResult(
       msg.chainId,
       msg.txBytes,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

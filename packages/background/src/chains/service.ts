@@ -1,20 +1,20 @@
 import { AccessOrigin, ChainInfoSchema, ChainInfoWithEmbed } from "./types";
 import { ChainInfo } from "@keplr/types";
 import { KVStore } from "@keplr/common";
-import { ChainUpdaterKeeper } from "../updater/keeper";
-import { TokensKeeper } from "../tokens/keeper";
-import { InteractionKeeper } from "../interaction/keeper";
+import { ChainUpdaterService } from "../updater";
+import { TokensService } from "../tokens";
+import { InteractionService } from "../interaction";
 import { Env } from "@keplr/router";
 import { ReqeustAccessMsg } from "./messages";
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
-export class ChainsKeeper {
+export class ChainsService {
   constructor(
     private readonly kvStore: KVStore,
-    private readonly chainUpdaterKeeper: ChainUpdaterKeeper,
-    private readonly tokensKeeper: TokensKeeper,
-    private readonly interactionKeeper: InteractionKeeper,
+    private readonly chainUpdaterKeeper: ChainUpdaterService,
+    private readonly tokensKeeper: TokensService,
+    private readonly interactionKeeper: InteractionService,
     private readonly embedChainInfos: ChainInfo[],
     private readonly embedAccessOrigins: AccessOrigin[]
   ) {
@@ -128,9 +128,9 @@ export class ChainsKeeper {
     const ambiguousChainInfo = (await this.getChainInfos()).find(
       (savedChainInfo) => {
         return (
-          ChainUpdaterKeeper.getChainVersion(savedChainInfo.chainId)
+          ChainUpdaterService.getChainVersion(savedChainInfo.chainId)
             .identifier ===
-          ChainUpdaterKeeper.getChainVersion(chainInfo.chainId).identifier
+          ChainUpdaterService.getChainVersion(chainInfo.chainId).identifier
         );
       }
     );
@@ -164,8 +164,8 @@ export class ChainsKeeper {
 
     const resultChainInfo = savedChainInfos.filter((chainInfo) => {
       return (
-        ChainUpdaterKeeper.getChainVersion(chainInfo.chainId).identifier !==
-        ChainUpdaterKeeper.getChainVersion(chainId).identifier
+        ChainUpdaterService.getChainVersion(chainInfo.chainId).identifier !==
+        ChainUpdaterService.getChainVersion(chainId).identifier
       );
     });
 
@@ -234,8 +234,8 @@ export class ChainsKeeper {
 
   async addAccessOrigin(chainId: string, origin: string): Promise<void> {
     let accessOrigin = await this.kvStore.get<AccessOrigin>(
-      ChainsKeeper.getAccessOriginKey(
-        ChainUpdaterKeeper.getChainVersion(chainId).identifier
+      ChainsService.getAccessOriginKey(
+        ChainUpdaterService.getChainVersion(chainId).identifier
       )
     );
     if (!accessOrigin) {
@@ -248,8 +248,8 @@ export class ChainsKeeper {
     accessOrigin.origins.push(origin);
 
     await this.kvStore.set<AccessOrigin>(
-      ChainsKeeper.getAccessOriginKey(
-        ChainUpdaterKeeper.getChainVersion(chainId).identifier
+      ChainsService.getAccessOriginKey(
+        ChainUpdaterService.getChainVersion(chainId).identifier
       ),
       accessOrigin
     );
@@ -257,8 +257,8 @@ export class ChainsKeeper {
 
   async removeAccessOrigin(chainId: string, origin: string): Promise<void> {
     const accessOrigin = await this.kvStore.get<AccessOrigin>(
-      ChainsKeeper.getAccessOriginKey(
-        ChainUpdaterKeeper.getChainVersion(chainId).identifier
+      ChainsService.getAccessOriginKey(
+        ChainUpdaterService.getChainVersion(chainId).identifier
       )
     );
     if (!accessOrigin) {
@@ -275,8 +275,8 @@ export class ChainsKeeper {
       .concat(accessOrigin.origins.slice(i + 1));
 
     await this.kvStore.set<AccessOrigin>(
-      ChainsKeeper.getAccessOriginKey(
-        ChainUpdaterKeeper.getChainVersion(chainId).identifier
+      ChainsService.getAccessOriginKey(
+        ChainUpdaterService.getChainVersion(chainId).identifier
       ),
       accessOrigin
     );
@@ -284,8 +284,8 @@ export class ChainsKeeper {
 
   async clearAccessOrigins(chainId: string): Promise<void> {
     await this.kvStore.set<AccessOrigin>(
-      ChainsKeeper.getAccessOriginKey(
-        ChainUpdaterKeeper.getChainVersion(chainId).identifier
+      ChainsService.getAccessOriginKey(
+        ChainUpdaterService.getChainVersion(chainId).identifier
       ),
       null
     );
@@ -295,8 +295,8 @@ export class ChainsKeeper {
     let nativeAccessOrigins: string[] = [];
     for (const access of this.embedAccessOrigins) {
       if (
-        ChainUpdaterKeeper.getChainVersion(access.chainId).identifier ===
-        ChainUpdaterKeeper.getChainVersion(chainId).identifier
+        ChainUpdaterService.getChainVersion(access.chainId).identifier ===
+        ChainUpdaterService.getChainVersion(chainId).identifier
       ) {
         nativeAccessOrigins = access.origins.slice();
         break;
@@ -304,8 +304,8 @@ export class ChainsKeeper {
     }
 
     const accessOrigin = await this.kvStore.get<AccessOrigin>(
-      ChainsKeeper.getAccessOriginKey(
-        ChainUpdaterKeeper.getChainVersion(chainId).identifier
+      ChainsService.getAccessOriginKey(
+        ChainUpdaterService.getChainVersion(chainId).identifier
       )
     );
     return {
@@ -315,10 +315,10 @@ export class ChainsKeeper {
   }
 
   async getAccessOriginWithoutEmbed(chainId: string): Promise<AccessOrigin> {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     const accessOrigin = await this.kvStore.get<AccessOrigin>(
-      ChainsKeeper.getAccessOriginKey(version.identifier)
+      ChainsService.getAccessOriginKey(version.identifier)
     );
     if (accessOrigin) {
       return {

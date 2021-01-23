@@ -15,11 +15,11 @@ import {
 
 import { KVStore } from "@keplr/common";
 
-import { ChainsKeeper } from "../chains/keeper";
-import { LedgerKeeper } from "../ledger/keeper";
+import { ChainsService } from "../chains";
+import { LedgerService } from "../ledger";
 import { BIP44, ChainInfo } from "@keplr/types";
 import { Env } from "@keplr/router";
-import { InteractionKeeper } from "../interaction/keeper";
+import { InteractionService } from "../interaction";
 import {
   EnableKeyRingMsg,
   RequestSignMsg,
@@ -28,17 +28,17 @@ import {
 
 import { Buffer } from "buffer/";
 
-export class KeyRingKeeper {
+export class KeyRingService {
   private readonly keyRing: KeyRing;
 
   constructor(
     embedChainInfos: ChainInfo[],
     kvStore: KVStore,
-    protected readonly interactionKeeper: InteractionKeeper,
-    public readonly chainsKeeper: ChainsKeeper,
-    ledgerKeeper: LedgerKeeper
+    protected readonly interactionService: InteractionService,
+    public readonly chainsService: ChainsService,
+    ledgerService: LedgerService
   ) {
-    this.keyRing = new KeyRing(embedChainInfos, kvStore, ledgerKeeper);
+    this.keyRing = new KeyRing(embedChainInfos, kvStore, ledgerService);
   }
 
   async restore(): Promise<{
@@ -64,7 +64,7 @@ export class KeyRingKeeper {
     }
 
     if (this.keyRing.status === KeyRingStatus.LOCKED) {
-      await this.interactionKeeper.waitApprove(
+      await this.interactionService.waitApprove(
         env,
         "/unlock",
         EnableKeyRingMsg.type(),
@@ -81,7 +81,7 @@ export class KeyRingKeeper {
   }
 
   async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    await this.chainsKeeper.checkAccessOrigin(env, chainId, origin);
+    await this.chainsService.checkAccessOrigin(env, chainId, origin);
   }
 
   async checkBech32Address(chainId: string, bech32Address: string) {
@@ -89,7 +89,7 @@ export class KeyRingKeeper {
     if (
       bech32Address !==
       new Bech32Address(key.address).toBech32(
-        (await this.chainsKeeper.getChainInfo(chainId)).bech32Config
+        (await this.chainsService.getChainInfo(chainId)).bech32Config
           .bech32PrefixAccAddr
       )
     ) {
@@ -160,7 +160,7 @@ export class KeyRingKeeper {
   async getKey(chainId: string): Promise<Key> {
     return this.keyRing.getKey(
       chainId,
-      await this.chainsKeeper.getChainCoinType(chainId)
+      await this.chainsService.getChainCoinType(chainId)
     );
   }
 
@@ -177,7 +177,7 @@ export class KeyRingKeeper {
       return config;
     }
 
-    const result = await this.interactionKeeper.waitApprove(
+    const result = await this.interactionService.waitApprove(
       env,
       "/fee",
       RequestTxBuilderConfigMsg.type(),
@@ -204,12 +204,12 @@ export class KeyRingKeeper {
       return await this.keyRing.sign(
         env,
         chainId,
-        await this.chainsKeeper.getChainCoinType(chainId),
+        await this.chainsService.getChainCoinType(chainId),
         message
       );
     }
 
-    await this.interactionKeeper.waitApprove(
+    await this.interactionService.waitApprove(
       env,
       "/sign",
       RequestSignMsg.type(),
@@ -222,7 +222,7 @@ export class KeyRingKeeper {
     return await this.keyRing.sign(
       env,
       chainId,
-      await this.chainsKeeper.getChainCoinType(chainId),
+      await this.chainsService.getChainCoinType(chainId),
       message
     );
   }
@@ -235,7 +235,7 @@ export class KeyRingKeeper {
     return this.keyRing.sign(
       env,
       chainId,
-      await this.chainsKeeper.getChainCoinType(chainId),
+      await this.chainsService.getChainCoinType(chainId),
       message
     );
   }

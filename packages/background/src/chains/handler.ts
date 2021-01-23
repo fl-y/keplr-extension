@@ -1,5 +1,5 @@
 import { Env, Handler, InternalHandler, Message } from "@keplr/router";
-import { ChainsKeeper } from "./keeper";
+import { ChainsService } from "./service";
 import {
   GetAccessOriginMsg,
   GetChainInfosMsg,
@@ -7,41 +7,41 @@ import {
   RemoveSuggestedChainInfoMsg,
   ReqeustAccessMsg,
   SuggestChainInfoMsg,
-  TryUpdateChainMsg
+  TryUpdateChainMsg,
 } from "./messages";
 import { ChainInfo } from "@keplr/types";
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
-export const getHandler: (keeper: ChainsKeeper) => Handler = keeper => {
+export const getHandler: (service: ChainsService) => Handler = (service) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
       case GetChainInfosMsg:
-        return handleGetChainInfosMsg(keeper)(env, msg as GetChainInfosMsg);
+        return handleGetChainInfosMsg(service)(env, msg as GetChainInfosMsg);
       case SuggestChainInfoMsg:
-        return handleSuggestChainInfoMsg(keeper)(
+        return handleSuggestChainInfoMsg(service)(
           env,
           msg as SuggestChainInfoMsg
         );
       case RemoveSuggestedChainInfoMsg:
-        return handleRemoveSuggestedChainInfoMsg(keeper)(
+        return handleRemoveSuggestedChainInfoMsg(service)(
           env,
           msg as RemoveSuggestedChainInfoMsg
         );
       case ReqeustAccessMsg:
-        return handleRequestAccessMsg(keeper)(env, msg as ReqeustAccessMsg);
+        return handleRequestAccessMsg(service)(env, msg as ReqeustAccessMsg);
       case GetAccessOriginMsg:
-        return handleGetAccessOriginsMsg(keeper)(
+        return handleGetAccessOriginsMsg(service)(
           env,
           msg as GetAccessOriginMsg
         );
       case RemoveAccessOriginMsg:
-        return handleRemoveAccessOriginMsg(keeper)(
+        return handleRemoveAccessOriginMsg(service)(
           env,
           msg as RemoveAccessOriginMsg
         );
       case TryUpdateChainMsg:
-        return handleTryUpdateChainMsg(keeper)(env, msg as TryUpdateChainMsg);
+        return handleTryUpdateChainMsg(service)(env, msg as TryUpdateChainMsg);
       default:
         throw new Error("Unknown msg type");
     }
@@ -49,23 +49,23 @@ export const getHandler: (keeper: ChainsKeeper) => Handler = keeper => {
 };
 
 const handleGetChainInfosMsg: (
-  keeper: ChainsKeeper
-) => InternalHandler<GetChainInfosMsg> = keeper => {
+  service: ChainsService
+) => InternalHandler<GetChainInfosMsg> = (service) => {
   return async () => {
-    const chainInfos = await keeper.getChainInfos();
+    const chainInfos = await service.getChainInfos();
     return {
-      chainInfos
+      chainInfos,
     };
   };
 };
 
 const handleSuggestChainInfoMsg: (
-  keeper: ChainsKeeper
-) => InternalHandler<SuggestChainInfoMsg> = keeper => {
+  service: ChainsService
+) => InternalHandler<SuggestChainInfoMsg> = (service) => {
   return async (env, msg) => {
     if (
-      (await keeper.getChainInfos()).find(
-        chainInfo => chainInfo.chainId === msg.chainInfo.chainId
+      (await service.getChainInfos()).find(
+        (chainInfo) => chainInfo.chainId === msg.chainInfo.chainId
       )
     ) {
       // If suggested chain info is already registered, just return.
@@ -73,8 +73,8 @@ const handleSuggestChainInfoMsg: (
     }
 
     if (
-      (await keeper.getChainInfos(false)).find(
-        chainInfo => chainInfo.chainId === msg.chainInfo.chainId
+      (await service.getChainInfos(false)).find(
+        (chainInfo) => chainInfo.chainId === msg.chainInfo.chainId
       )
     ) {
       // If suggested chain info is already registered without considering the chain update, throw an error because it probably needs to be updated.
@@ -87,51 +87,51 @@ const handleSuggestChainInfoMsg: (
     // And, always handle it as beta.
     chainInfo.beta = true;
 
-    await keeper.suggestChainInfo(env, chainInfo, msg.origin);
+    await service.suggestChainInfo(env, chainInfo, msg.origin);
   };
 };
 
 const handleRemoveSuggestedChainInfoMsg: (
-  keeper: ChainsKeeper
-) => InternalHandler<RemoveSuggestedChainInfoMsg> = keeper => {
+  service: ChainsService
+) => InternalHandler<RemoveSuggestedChainInfoMsg> = (service) => {
   return async (_, msg) => {
-    await keeper.removeChainInfo(msg.chainId);
-    return await keeper.getChainInfos();
+    await service.removeChainInfo(msg.chainId);
+    return await service.getChainInfos();
   };
 };
 
 const handleRequestAccessMsg: (
-  keeper: ChainsKeeper
-) => InternalHandler<ReqeustAccessMsg> = keeper => {
+  service: ChainsService
+) => InternalHandler<ReqeustAccessMsg> = (service) => {
   return async (env, msg) => {
-    await keeper.requestAccess(env, msg.chainId, [msg.appOrigin]);
+    await service.requestAccess(env, msg.chainId, [msg.appOrigin]);
   };
 };
 
 const handleGetAccessOriginsMsg: (
-  keeper: ChainsKeeper
-) => InternalHandler<GetAccessOriginMsg> = keeper => {
+  service: ChainsService
+) => InternalHandler<GetAccessOriginMsg> = (service) => {
   return async (_, msg) => {
-    return await keeper.getAccessOriginWithoutEmbed(msg.chainId);
+    return await service.getAccessOriginWithoutEmbed(msg.chainId);
   };
 };
 
 const handleRemoveAccessOriginMsg: (
-  keeper: ChainsKeeper
-) => InternalHandler<RemoveAccessOriginMsg> = keeper => {
+  service: ChainsService
+) => InternalHandler<RemoveAccessOriginMsg> = (service) => {
   return async (_, msg) => {
-    await keeper.removeAccessOrigin(msg.chainId, msg.appOrigin);
+    await service.removeAccessOrigin(msg.chainId, msg.appOrigin);
   };
 };
 
 const handleTryUpdateChainMsg: (
-  keeper: ChainsKeeper
-) => InternalHandler<TryUpdateChainMsg> = keeper => {
+  service: ChainsService
+) => InternalHandler<TryUpdateChainMsg> = (service) => {
   return async (_, msg) => {
-    const chainId = await keeper.tryUpdateChain(msg.chainId);
+    const chainId = await service.tryUpdateChain(msg.chainId);
     return {
       chainId: chainId,
-      chainInfos: await keeper.getChainInfos()
+      chainInfos: await service.getChainInfos(),
     };
   };
 };

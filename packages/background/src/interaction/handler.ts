@@ -1,19 +1,19 @@
 import { Env, Handler, InternalHandler, Message } from "@keplr/router";
 import { ApproveInteractionMsg, RejectInteractionMsg } from "./messages";
-import { InteractionKeeper } from "./keeper";
+import { InteractionService } from "./service";
 
-export const getHandler: (keeper: InteractionKeeper) => Handler = (
-  keeper: InteractionKeeper
+export const getHandler: (service: InteractionService) => Handler = (
+  service: InteractionService
 ) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
       case ApproveInteractionMsg:
-        return handleApproveInteractionMsg(keeper)(
+        return handleApproveInteractionMsg(service)(
           env,
           msg as ApproveInteractionMsg
         );
       case RejectInteractionMsg:
-        return handleRejectInteractionMsg(keeper)(
+        return handleRejectInteractionMsg(service)(
           env,
           msg as RejectInteractionMsg
         );
@@ -24,17 +24,17 @@ export const getHandler: (keeper: InteractionKeeper) => Handler = (
 };
 
 const handleApproveInteractionMsg: (
-  keeper: InteractionKeeper
-) => InternalHandler<ApproveInteractionMsg> = keeper => {
+  service: InteractionService
+) => InternalHandler<ApproveInteractionMsg> = (service) => {
   return (_, msg) => {
-    return keeper.approve(msg.id, msg.result);
+    return service.approve(msg.id, msg.result);
   };
 };
 
 const handleRejectInteractionMsg: (
-  keeper: InteractionKeeper
-) => InternalHandler<RejectInteractionMsg> = keeper => {
+  service: InteractionService
+) => InternalHandler<RejectInteractionMsg> = (service) => {
   return (_, msg) => {
-    return keeper.reject(msg.id);
+    return service.reject(msg.id);
   };
 };

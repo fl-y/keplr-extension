@@ -2,7 +2,7 @@ import { Router, MessageRequester, BACKGROUND_PORT } from "@keplr/router";
 import {
   InteractionForegroundHandler,
   interactionForegroundInit,
-  InteractionForegroundKeeper,
+  InteractionForegroundService,
   InteractionWaitingData,
   ApproveInteractionMsg,
   RejectInteractionMsg,
@@ -22,8 +22,8 @@ export class InteractionStore implements InteractionForegroundHandler {
       this.datas = new Map();
     });
 
-    const keeper = new InteractionForegroundKeeper(this);
-    interactionForegroundInit(router, keeper);
+    const service = new InteractionForegroundService(this);
+    interactionForegroundInit(router, service);
   }
 
   getDatas<T = unknown>(type: string): InteractionWaitingData<T>[] {

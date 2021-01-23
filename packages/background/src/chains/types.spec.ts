@@ -4,7 +4,7 @@ import {
   Bech32ConfigSchema,
   ChainInfoSchema,
   CurrencySchema,
-  CW20CurrencyShema
+  CW20CurrencyShema,
 } from "./types";
 import { AppCurrency, ChainInfo, Currency, CW20Currency } from "@keplr/types";
 import { Bech32Config } from "@keplr/types";
@@ -23,7 +23,7 @@ describe("Test chain info schema", () => {
       const currency: Currency = {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 6
+        coinDecimals: 6,
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -33,7 +33,7 @@ describe("Test chain info schema", () => {
       const currency: Currency = {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 18
+        coinDecimals: 18,
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -43,7 +43,7 @@ describe("Test chain info schema", () => {
       const currency: Currency = {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 0
+        coinDecimals: 0,
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -54,7 +54,7 @@ describe("Test chain info schema", () => {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
         coinDecimals: 6,
-        coinGeckoId: "test"
+        coinGeckoId: "test",
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -66,7 +66,7 @@ describe("Test chain info schema", () => {
         // coinDenom: "TEST",
         coinMinimalDenom: "utest",
         coinDecimals: 6,
-        coinGeckoId: "test"
+        coinGeckoId: "test",
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -77,7 +77,7 @@ describe("Test chain info schema", () => {
       const currency: Currency = {
         coinDenom: "TEST",
         // coinMinimalDenom: "utest",
-        coinDecimals: 6
+        coinDecimals: 6,
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -87,7 +87,7 @@ describe("Test chain info schema", () => {
       // @ts-ignore
       const currency: Currency = {
         coinDenom: "TEST",
-        coinMinimalDenom: "utest"
+        coinMinimalDenom: "utest",
         // coinDecimals: 6,
       };
 
@@ -99,7 +99,7 @@ describe("Test chain info schema", () => {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
         // @ts-ignore
-        coinDecimals: "should number"
+        coinDecimals: "should number",
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -111,7 +111,7 @@ describe("Test chain info schema", () => {
         coinMinimalDenom: "utest",
         coinDecimals: 6,
         // @ts-ignore
-        coinGeckoId: 45
+        coinGeckoId: 45,
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -121,7 +121,7 @@ describe("Test chain info schema", () => {
       const currency: Currency = {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 19
+        coinDecimals: 19,
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -131,7 +131,7 @@ describe("Test chain info schema", () => {
       const currency: Currency = {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: -1
+        coinDecimals: -1,
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -141,7 +141,7 @@ describe("Test chain info schema", () => {
       const currency: Currency = {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 1.5
+        coinDecimals: 1.5,
       };
 
       await CurrencySchema.validateAsync(currency);
@@ -153,7 +153,7 @@ describe("Test chain info schema", () => {
         contractAddress: "this should be validated in the keeper",
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 0
+        coinDecimals: 0,
       };
 
       currency = await CW20CurrencyShema.validateAsync(currency);
@@ -173,7 +173,7 @@ describe("Test chain info schema", () => {
         contractAddress: "this should be validated in the keeper",
         coinDenom: "TEST",
         coinMinimalDenom: "cw20:this should be validated in the keeper:utest",
-        coinDecimals: 0
+        coinDecimals: 0,
       };
 
       currency = await CW20CurrencyShema.validateAsync(currency);
@@ -194,7 +194,7 @@ describe("Test chain info schema", () => {
         contractAddress: "this should be validated in the keeper",
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 0
+        coinDecimals: 0,
       };
 
       await CW20CurrencyShema.validateAsync(currency);
@@ -206,7 +206,7 @@ describe("Test chain info schema", () => {
         contractAddress: "this should be validated in the keeper",
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 0
+        coinDecimals: 0,
       };
 
       await CW20CurrencyShema.validateAsync(currency);
@@ -218,7 +218,7 @@ describe("Test chain info schema", () => {
         type: "cw20",
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 0
+        coinDecimals: 0,
       };
 
       await CW20CurrencyShema.validateAsync(currency);
@@ -230,7 +230,7 @@ describe("Test chain info schema", () => {
         contractAddress: "this should be validated in the keeper",
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 0
+        coinDecimals: 0,
       };
 
       const currencies = await AppCurrencyShemaTest.validateAsync([currency]);
@@ -247,7 +247,7 @@ describe("Test chain info schema", () => {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
         coinDecimals: 6,
-        coinGeckoId: "test"
+        coinGeckoId: "test",
       };
 
       await AppCurrencyShemaTest.validateAsync([currency]);
@@ -259,7 +259,7 @@ describe("Test chain info schema", () => {
         type: "cw20",
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 0
+        coinDecimals: 0,
       };
 
       await AppCurrencyShemaTest.validateAsync([currency]);
@@ -269,7 +269,7 @@ describe("Test chain info schema", () => {
       const currency: Currency = {
         coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 1.5
+        coinDecimals: 1.5,
       };
 
       await AppCurrencyShemaTest.validateAsync([currency]);
@@ -284,7 +284,7 @@ describe("Test chain info schema", () => {
         bech32PrefixValAddr: "test",
         bech32PrefixValPub: "test",
         bech32PrefixConsAddr: "test",
-        bech32PrefixConsPub: "test"
+        bech32PrefixConsPub: "test",
       };
 
       await Bech32ConfigSchema.validateAsync(bech32Config);
@@ -299,7 +299,7 @@ describe("Test chain info schema", () => {
         bech32PrefixValAddr: "test",
         bech32PrefixValPub: "test",
         bech32PrefixConsAddr: "test",
-        bech32PrefixConsPub: "test"
+        bech32PrefixConsPub: "test",
       };
 
       // @ts-ignore
@@ -317,7 +317,7 @@ describe("Test chain info schema", () => {
         bech32PrefixValAddr: "test",
         bech32PrefixValPub: "test",
         bech32PrefixConsAddr: "test",
-        bech32PrefixConsPub: "test"
+        bech32PrefixConsPub: "test",
       };
 
       // @ts-ignore
@@ -385,10 +385,10 @@ describe("Test chain info schema", () => {
         stakeCurrency: {
           coinDenom: "TEST",
           coinMinimalDenom: "utest",
-          coinDecimals: 6
+          coinDecimals: 6,
         },
         bip44: {
-          coinType: 118
+          coinType: 118,
         },
         bech32Config: {
           bech32PrefixAccAddr: "test",
@@ -396,22 +396,22 @@ describe("Test chain info schema", () => {
           bech32PrefixValAddr: "test",
           bech32PrefixValPub: "test",
           bech32PrefixConsAddr: "test",
-          bech32PrefixConsPub: "test"
+          bech32PrefixConsPub: "test",
         },
         currencies: [
           {
             coinDenom: "TEST",
             coinMinimalDenom: "utest",
-            coinDecimals: 6
-          }
+            coinDecimals: 6,
+          },
         ],
         feeCurrencies: [
           {
             coinDenom: "TEST",
             coinMinimalDenom: "utest",
-            coinDecimals: 6
-          }
-        ]
+            coinDecimals: 6,
+          },
+        ],
       };
     };
 
@@ -428,15 +428,15 @@ describe("Test chain info schema", () => {
         {
           coinDenom: "TEST",
           coinMinimalDenom: "utest",
-          coinDecimals: 6
+          coinDecimals: 6,
         },
         {
           type: "cw20",
           contractAddress: "this should be validated in the keeper",
           coinDenom: "TEST",
           coinMinimalDenom: "utest",
-          coinDecimals: 6
-        }
+          coinDecimals: 6,
+        },
       ];
 
       chainInfo = await ChainInfoSchema.validateAsync(chainInfo);
@@ -539,7 +539,7 @@ describe("Test chain info schema", () => {
       chainInfo["stakeCurrency"] = {
         // coinDenom: "TEST",
         coinMinimalDenom: "utest",
-        coinDecimals: 6
+        coinDecimals: 6,
       };
 
       await ChainInfoSchema.validateAsync(chainInfo);
@@ -605,7 +605,7 @@ describe("Test chain info schema", () => {
       const chainInfo = generatePlainChainInfo();
       // @ts-ignore
       chainInfo["bech32Config"] = {
-        bech32PrefixAccAddr: "test"
+        bech32PrefixAccAddr: "test",
       };
 
       await ChainInfoSchema.validateAsync(chainInfo);
@@ -634,13 +634,13 @@ describe("Test chain info schema", () => {
         {
           coinDenom: "TEST",
           coinMinimalDenom: "utest",
-          coinDecimals: 6
+          coinDecimals: 6,
         },
         {
           // coinDenom: "TEST",
           coinMinimalDenom: "utest",
-          coinDecimals: 6
-        }
+          coinDecimals: 6,
+        },
       ];
 
       await ChainInfoSchema.validateAsync(chainInfo);
@@ -669,13 +669,13 @@ describe("Test chain info schema", () => {
         {
           coinDenom: "TEST",
           coinMinimalDenom: "utest",
-          coinDecimals: 6
+          coinDecimals: 6,
         },
         {
           // coinDenom: "TEST",
           coinMinimalDenom: "utest",
-          coinDecimals: 6
-        }
+          coinDecimals: 6,
+        },
       ];
 
       await ChainInfoSchema.validateAsync(chainInfo);

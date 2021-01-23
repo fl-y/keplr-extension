@@ -6,13 +6,13 @@ import {
   RemoveAccessOriginMsg,
   SuggestChainInfoMsg,
   RemoveSuggestedChainInfoMsg,
-  TryUpdateChainMsg
+  TryUpdateChainMsg,
 } from "./messages";
 import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
-import { ChainsKeeper } from "./keeper";
+import { ChainsService } from "./service";
 
-export function init(router: Router, keeper: ChainsKeeper): void {
+export function init(router: Router, keeper: ChainsService): void {
   router.registerMessage(GetChainInfosMsg);
   router.registerMessage(SuggestChainInfoMsg);
   router.registerMessage(RemoveSuggestedChainInfoMsg);

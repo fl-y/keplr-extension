@@ -7,7 +7,7 @@ import { AppCurrency } from "@keplr/types";
 // The chainID must be in the form: `{identifier}-{version}`
 const VersionFormatRegExp = /(.+)-([\d]+)/;
 
-export class ChainUpdaterKeeper {
+export class ChainUpdaterService {
   constructor(private readonly kvStore: KVStore) {}
 
   async putUpdatedPropertyToChainInfo(
@@ -19,15 +19,15 @@ export class ChainUpdaterKeeper {
 
     return {
       ...chainInfo,
-      ...updatedProperty
+      ...updatedProperty,
     };
   }
 
   async updateChainCurrencies(chainId: string, currencies: AppCurrency[]) {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     const chainInfo: Partial<ChainInfo> = {
-      currencies
+      currencies,
     };
 
     await this.saveChainProperty(version.identifier, chainInfo);
@@ -35,7 +35,7 @@ export class ChainUpdaterKeeper {
 
   async clearUpdatedProperty(chainId: string) {
     await this.kvStore.set(
-      ChainUpdaterKeeper.getChainVersion(chainId).identifier,
+      ChainUpdaterService.getChainVersion(chainId).identifier,
       null
     );
   }
@@ -43,12 +43,12 @@ export class ChainUpdaterKeeper {
   async tryUpdateChainId(chainInfo: ChainInfo): Promise<string> {
     // If chain id is not fomatted as {chainID}-{version},
     // there is no way to deal with the updated chain id.
-    if (!ChainUpdaterKeeper.hasChainVersion(chainInfo.chainId)) {
+    if (!ChainUpdaterService.hasChainVersion(chainInfo.chainId)) {
       return chainInfo.chainId;
     }
 
     const instance = Axios.create({
-      baseURL: chainInfo.rpc
+      baseURL: chainInfo.rpc,
     });
 
     // Get the latest block.
@@ -63,11 +63,13 @@ export class ChainUpdaterKeeper {
     }>("/block");
 
     let resultChainId = chainInfo.chainId;
-    const version = ChainUpdaterKeeper.getChainVersion(chainInfo.chainId);
+    const version = ChainUpdaterService.getChainVersion(chainInfo.chainId);
     const fetchedChainId = result.data.result.block.header.chain_id;
 
     if (chainInfo.chainId !== fetchedChainId) {
-      const fetchedVersion = ChainUpdaterKeeper.getChainVersion(fetchedChainId);
+      const fetchedVersion = ChainUpdaterService.getChainVersion(
+        fetchedChainId
+      );
 
       // TODO: Should throw an error?
       if (version.identifier !== fetchedVersion.identifier) {
@@ -81,7 +83,7 @@ export class ChainUpdaterKeeper {
 
     if (resultChainId !== chainInfo.chainId) {
       await this.saveChainProperty(version.identifier, {
-        chainId: resultChainId
+        chainId: resultChainId,
       });
     }
 
@@ -91,7 +93,7 @@ export class ChainUpdaterKeeper {
   private async getUpdatedChainProperty(
     chainId: string
   ): Promise<Partial<ChainInfo>> {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     return await this.loadChainProperty(version.identifier);
   }
@@ -104,7 +106,7 @@ export class ChainUpdaterKeeper {
 
     await this.kvStore.set(identifier, {
       ...saved,
-      ...chainInfo
+      ...chainInfo,
     });
   }
 
@@ -128,12 +130,12 @@ export class ChainUpdaterKeeper {
 
     // If chain id is not fomatted as {chainID}-{version},
     // there is no way to deal with the updated chain id.
-    if (!ChainUpdaterKeeper.hasChainVersion(chainId)) {
+    if (!ChainUpdaterService.hasChainVersion(chainId)) {
       return false;
     }
 
     const instance = Axios.create({
-      baseURL: chainInfo.rpc
+      baseURL: chainInfo.rpc,
     });
 
     // Get the latest block.
@@ -149,8 +151,8 @@ export class ChainUpdaterKeeper {
 
     const resultChainId = result.data.result.block.header.chain_id;
 
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
-    const fetchedVersion = ChainUpdaterKeeper.getChainVersion(resultChainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
+    const fetchedVersion = ChainUpdaterService.getChainVersion(resultChainId);
 
     // TODO: Should throw an error?
     if (version.identifier !== fetchedVersion.identifier) {
@@ -167,7 +169,7 @@ export class ChainUpdaterKeeper {
     if (split.length !== 2) {
       return {
         identifier: chainId,
-        version: 0
+        version: 0,
       };
     } else {
       return { identifier: split[0], version: parseInt(split[1]) };
@@ -175,7 +177,7 @@ export class ChainUpdaterKeeper {
   }
 
   static hasChainVersion(chainId: string) {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
     return version.identifier !== chainId;
   }
 }

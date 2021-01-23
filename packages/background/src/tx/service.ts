@@ -1,5 +1,5 @@
 import Axios, { AxiosInstance } from "axios";
-import { ChainsKeeper } from "../chains/keeper";
+import { ChainsService } from "../chains";
 import { Env } from "@keplr/router";
 
 const Buffer = require("buffer/").Buffer;
@@ -17,42 +17,42 @@ interface ABCIMessageLog {
   // Events StringEvents
 }
 
-export class BackgroundTxKeeper {
-  constructor(private chainsKeeper: ChainsKeeper) {}
+export class BackgroundTxService {
+  constructor(private chainsService: ChainsService) {}
 
   async sendTx(
     chainId: string,
     tx: unknown,
     mode: "async" | "sync" | "block"
   ): Promise<unknown> {
-    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
     const restInstance = Axios.create({
       ...{
-        baseURL: chainInfo.rest
+        baseURL: chainInfo.rest,
       },
-      ...chainInfo.restConfig
+      ...chainInfo.restConfig,
     });
 
     browser.notifications.create({
       type: "basic",
       iconUrl: browser.runtime.getURL("assets/temp-icon.svg"),
       title: "Tx is pending...",
-      message: "Wait a second"
+      message: "Wait a second",
     });
 
     const params = {
       tx,
-      mode
+      mode,
     };
 
     try {
       const result = await restInstance.post("/txs", params);
-      BackgroundTxKeeper.processTxResultNotification(result.data);
+      BackgroundTxService.processTxResultNotification(result.data);
 
       return result.data;
     } catch (e) {
       console.log(e);
-      BackgroundTxKeeper.processTxErrorNotification(e);
+      BackgroundTxService.processTxErrorNotification(e);
       throw e;
     }
   }
@@ -63,22 +63,22 @@ export class BackgroundTxKeeper {
     mode: "sync" | "async" | "commit",
     isRestAPI: boolean
   ) {
-    const info = await this.chainsKeeper.getChainInfo(chainId);
+    const info = await this.chainsService.getChainInfo(chainId);
     const rpcInstance = Axios.create({
       ...{
-        baseURL: info.rpc
+        baseURL: info.rpc,
       },
-      ...info.rpcConfig
+      ...info.rpcConfig,
     });
     const restInstance = Axios.create({
       ...{
-        baseURL: info.rest
+        baseURL: info.rest,
       },
-      ...info.restConfig
+      ...info.restConfig,
     });
 
     // Do not await.
-    BackgroundTxKeeper.sendTransaction(
+    BackgroundTxService.sendTransaction(
       chainId,
       rpcInstance,
       restInstance,
@@ -96,21 +96,21 @@ export class BackgroundTxKeeper {
     mode: "sync" | "async" | "commit",
     isRestAPI: boolean
   ): Promise<unknown> {
-    const info = await this.chainsKeeper.getChainInfo(chainId);
+    const info = await this.chainsService.getChainInfo(chainId);
     const rpcInstance = Axios.create({
       ...{
-        baseURL: info.rpc
+        baseURL: info.rpc,
       },
-      ...info.rpcConfig
+      ...info.rpcConfig,
     });
     const restInstance = Axios.create({
       ...{
-        baseURL: info.rest
+        baseURL: info.rest,
       },
-      ...info.restConfig
+      ...info.restConfig,
     });
 
-    return await BackgroundTxKeeper.sendTransaction(
+    return await BackgroundTxService.sendTransaction(
       chainId,
       rpcInstance,
       restInstance,
@@ -134,21 +134,21 @@ export class BackgroundTxKeeper {
       type: "basic",
       iconUrl: browser.runtime.getURL("assets/temp-icon.svg"),
       title: "Tx is pending...",
-      message: "Wait a second"
+      message: "Wait a second",
     });
 
     try {
       if (!isRestAPI) {
         result = await rpcInstance.get(`/broadcast_tx_${mode}`, {
           params: {
-            tx: "0x" + txBytes
-          }
+            tx: "0x" + txBytes,
+          },
         });
       } else {
         const json = JSON.parse(Buffer.from(txBytes, "hex").toString());
         const restResult = await restInstance.post<unknown>("/txs", {
           tx: json,
-          mode: mode === "commit" ? "block" : mode
+          mode: mode === "commit" ? "block" : mode,
         });
 
         if (restResult.status !== 200 && restResult.status !== 202) {
@@ -158,7 +158,7 @@ export class BackgroundTxKeeper {
         result = restResult.data;
       }
 
-      BackgroundTxKeeper.processTxResultNotification(result);
+      BackgroundTxService.processTxResultNotification(result);
 
       try {
         // TODO: FIXME
@@ -168,7 +168,7 @@ export class BackgroundTxKeeper {
         // No matter if error is thrown.
       }
     } catch (e) {
-      BackgroundTxKeeper.processTxErrorNotification(e);
+      BackgroundTxService.processTxErrorNotification(e);
 
       throw e;
     }
@@ -201,10 +201,10 @@ export class BackgroundTxKeeper {
         iconUrl: browser.runtime.getURL("assets/temp-icon.svg"),
         title: "Tx succeeds",
         // TODO: Let users know the tx id?
-        message: "Congratulations!"
+        message: "Congratulations!",
       });
     } catch (e) {
-      BackgroundTxKeeper.processTxErrorNotification(e);
+      BackgroundTxService.processTxErrorNotification(e);
     }
   }
 
@@ -253,11 +253,11 @@ export class BackgroundTxKeeper {
       type: "basic",
       iconUrl: browser.runtime.getURL("assets/temp-icon.svg"),
       title: "Tx failed",
-      message
+      message,
     });
   }
 
   async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    await this.chainsKeeper.checkAccessOrigin(env, chainId, origin);
+    await this.chainsService.checkAccessOrigin(env, chainId, origin);
   }
 }

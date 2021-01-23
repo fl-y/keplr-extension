@@ -1,6 +1,6 @@
 import { EnigmaUtils } from "secretjs";
-import { KeyRingKeeper } from "../keyring/keeper";
-import { ChainsKeeper } from "../chains/keeper";
+import { KeyRingService } from "../keyring";
+import { ChainsService } from "../chains";
 import { Crypto } from "../keyring/crypto";
 import { KVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
@@ -9,17 +9,17 @@ import { Env } from "@keplr/router";
 
 const Buffer = require("buffer/").Buffer;
 
-export class SecretWasmKeeper {
+export class SecretWasmService {
   constructor(
     private readonly kvStore: KVStore,
-    private readonly chainsKeeper: ChainsKeeper,
-    private readonly keyRingKeeper: KeyRingKeeper
+    private readonly chainsService: ChainsService,
+    private readonly keyRingService: KeyRingService
   ) {}
 
   async getPubkey(env: Env, chainId: string): Promise<Uint8Array> {
-    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
 
-    const keyRingType = await this.keyRingKeeper.getKeyRingType();
+    const keyRingType = await this.keyRingService.getKeyRingType();
     if (keyRingType === "none") {
       throw new Error("Key ring is not initialized");
     }
@@ -37,9 +37,9 @@ export class SecretWasmKeeper {
     contractCodeHash: string,
     msg: object
   ): Promise<Uint8Array> {
-    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
 
-    const keyRingType = await this.keyRingKeeper.getKeyRingType();
+    const keyRingType = await this.keyRingService.getKeyRingType();
     if (keyRingType === "none") {
       throw new Error("Key ring is not initialized");
     }
@@ -62,9 +62,9 @@ export class SecretWasmKeeper {
     ciphertext: Uint8Array,
     nonce: Uint8Array
   ): Promise<Uint8Array> {
-    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
 
-    const keyRingType = await this.keyRingKeeper.getKeyRingType();
+    const keyRingType = await this.keyRingService.getKeyRingType();
     if (keyRingType === "none") {
       throw new Error("Key ring is not initialized");
     }
@@ -82,7 +82,7 @@ export class SecretWasmKeeper {
   }
 
   private async getSeed(env: Env, chainInfo: ChainInfo): Promise<Uint8Array> {
-    const key = await this.keyRingKeeper.getKey(chainInfo.chainId);
+    const key = await this.keyRingService.getKey(chainInfo.chainId);
 
     const storeKey = `seed-${chainInfo.chainId}-${new Bech32Address(
       key.address
@@ -95,7 +95,7 @@ export class SecretWasmKeeper {
 
     const seed = Crypto.sha256(
       Buffer.from(
-        await this.keyRingKeeper.sign(
+        await this.keyRingService.sign(
           env,
           chainInfo.chainId,
           Buffer.from(
@@ -108,7 +108,7 @@ export class SecretWasmKeeper {
               memo:
                 "Create Keplr Secret encryption key. Only approve requests by Keplr.",
               msgs: [],
-              sequence: 0
+              sequence: 0,
             })
           )
         )
@@ -121,6 +121,6 @@ export class SecretWasmKeeper {
   }
 
   async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    await this.chainsKeeper.checkAccessOrigin(env, chainId, origin);
+    await this.chainsService.checkAccessOrigin(env, chainId, origin);
   }
 }

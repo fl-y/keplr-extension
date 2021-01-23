@@ -1,19 +1,19 @@
 import { Env, Handler, InternalHandler, Message } from "@keplr/router";
 import { LedgerGetWebHIDFlagMsg, LedgerSetWebHIDFlagMsg } from "./messages";
-import { LedgerKeeper } from "./keeper";
+import { LedgerService } from "./service";
 
-export const getHandler: (keeper: LedgerKeeper) => Handler = (
-  keeper: LedgerKeeper
+export const getHandler: (service: LedgerService) => Handler = (
+  service: LedgerService
 ) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
       case LedgerGetWebHIDFlagMsg:
-        return handleLedgerGetWebHIDFlagMsg(keeper)(
+        return handleLedgerGetWebHIDFlagMsg(service)(
           env,
           msg as LedgerGetWebHIDFlagMsg
         );
       case LedgerSetWebHIDFlagMsg:
-        return handleLedgerSetWebHIDFlagMsg(keeper)(
+        return handleLedgerSetWebHIDFlagMsg(service)(
           env,
           msg as LedgerSetWebHIDFlagMsg
         );
@@ -24,17 +24,17 @@ export const getHandler: (keeper: LedgerKeeper) => Handler = (
 };
 
 const handleLedgerGetWebHIDFlagMsg: (
-  keeper: LedgerKeeper
-) => InternalHandler<LedgerGetWebHIDFlagMsg> = (keeper) => {
+  service: LedgerService
+) => InternalHandler<LedgerGetWebHIDFlagMsg> = (service) => {
   return async (_env, _msg) => {
-    return await keeper.getWebHIDFlag();
+    return await service.getWebHIDFlag();
   };
 };
 
 const handleLedgerSetWebHIDFlagMsg: (
-  keeper: LedgerKeeper
-) => InternalHandler<LedgerSetWebHIDFlagMsg> = (keeper) => {
+  service: LedgerService
+) => InternalHandler<LedgerSetWebHIDFlagMsg> = (service) => {
   return async (_env, msg) => {
-    return await keeper.setWebHIDFlag(msg.flag);
+    return await service.setWebHIDFlag(msg.flag);
   };
 };

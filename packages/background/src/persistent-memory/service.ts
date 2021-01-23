@@ -1,4 +1,4 @@
-export class PersistentMemoryKeeper {
+export class PersistentMemoryService {
   data: any = {};
 
   set(data: any) {

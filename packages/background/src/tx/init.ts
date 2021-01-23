@@ -2,13 +2,13 @@ import { Router } from "@keplr/router";
 import {
   RequestBackgroundTxMsg,
   RequestBackgroundTxWithResultMsg,
-  SendTxMsg
+  SendTxMsg,
 } from "./messages";
 import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
-import { BackgroundTxKeeper } from "./keeper";
+import { BackgroundTxService } from "./service";
 
-export function init(router: Router, keeper: BackgroundTxKeeper): void {
+export function init(router: Router, keeper: BackgroundTxService): void {
   router.registerMessage(SendTxMsg);
   router.registerMessage(RequestBackgroundTxMsg);
   router.registerMessage(RequestBackgroundTxWithResultMsg);

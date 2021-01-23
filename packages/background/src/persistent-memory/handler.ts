@@ -1,19 +1,19 @@
 import { Env, Handler, InternalHandler, Message } from "@keplr/router";
 import { SetPersistentMemoryMsg, GetPersistentMemoryMsg } from "./messages";
-import { PersistentMemoryKeeper } from "./keeper";
+import { PersistentMemoryService } from "./service";
 
-export const getHandler: (
-  keeper: PersistentMemoryKeeper
-) => Handler = keeper => {
+export const getHandler: (service: PersistentMemoryService) => Handler = (
+  service
+) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
       case SetPersistentMemoryMsg:
-        return handleSetPersistentMemoryMsg(keeper)(
+        return handleSetPersistentMemoryMsg(service)(
           env,
           msg as SetPersistentMemoryMsg
         );
       case GetPersistentMemoryMsg:
-        return keeper.get();
+        return service.get();
       default:
         throw new Error("Unknown msg type");
     }
@@ -21,12 +21,12 @@ export const getHandler: (
 };
 
 const handleSetPersistentMemoryMsg: (
-  keeper: PersistentMemoryKeeper
+  service: PersistentMemoryService
 ) => InternalHandler<SetPersistentMemoryMsg> = (
-  keeper: PersistentMemoryKeeper
+  service: PersistentMemoryService
 ) => (_, msg) => {
-  keeper.set(msg.data);
+  service.set(msg.data);
   return {
-    success: true
+    success: true,
   };
 };

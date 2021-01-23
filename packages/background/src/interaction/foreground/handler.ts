@@ -1,14 +1,14 @@
 import { Env, Handler, InternalHandler, Message } from "@keplr/router";
 import { PushInteractionDataMsg } from "./messages";
-import { InteractionForegroundKeeper } from "./keeper";
+import { InteractionForegroundService } from "./service";
 
-export const getHandler: (keeper: InteractionForegroundKeeper) => Handler = (
-  keeper: InteractionForegroundKeeper
+export const getHandler: (service: InteractionForegroundService) => Handler = (
+  service: InteractionForegroundService
 ) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
       case PushInteractionDataMsg:
-        return handlePushInteractionDataMsg(keeper)(
+        return handlePushInteractionDataMsg(service)(
           env,
           msg as PushInteractionDataMsg
         );
@@ -19,9 +19,9 @@ export const getHandler: (keeper: InteractionForegroundKeeper) => Handler = (
 };
 
 const handlePushInteractionDataMsg: (
-  keeper: InteractionForegroundKeeper
-) => InternalHandler<PushInteractionDataMsg> = keeper => {
+  service: InteractionForegroundService
+) => InternalHandler<PushInteractionDataMsg> = (service) => {
   return (_, msg) => {
-    return keeper.pushData(msg.data);
+    return service.pushData(msg.data);
   };
 };

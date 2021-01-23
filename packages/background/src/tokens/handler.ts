@@ -1,20 +1,20 @@
 import { Env, Handler, InternalHandler, Message } from "@keplr/router";
-import { TokensKeeper } from "./keeper";
+import { TokensService } from "./service";
 import {
   AddTokenMsg,
   GetSecret20ViewingKey,
-  SuggestTokenMsg
+  SuggestTokenMsg,
 } from "./messages";
 
-export const getHandler: (keeper: TokensKeeper) => Handler = keeper => {
+export const getHandler: (service: TokensService) => Handler = (service) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
       case SuggestTokenMsg:
-        return handleSuggestTokenMsg(keeper)(env, msg as SuggestTokenMsg);
+        return handleSuggestTokenMsg(service)(env, msg as SuggestTokenMsg);
       case AddTokenMsg:
-        return handleAddTokenMsg(keeper)(env, msg as AddTokenMsg);
+        return handleAddTokenMsg(service)(env, msg as AddTokenMsg);
       case GetSecret20ViewingKey:
-        return handleGetSecret20ViewingKey(keeper)(
+        return handleGetSecret20ViewingKey(service)(
           env,
           msg as GetSecret20ViewingKey
         );
@@ -25,29 +25,32 @@ export const getHandler: (keeper: TokensKeeper) => Handler = keeper => {
 };
 
 const handleSuggestTokenMsg: (
-  keeper: TokensKeeper
-) => InternalHandler<SuggestTokenMsg> = keeper => {
+  service: TokensService
+) => InternalHandler<SuggestTokenMsg> = (service) => {
   return async (env, msg) => {
-    await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
 
-    await keeper.suggestToken(env, msg.chainId, msg.contractAddress);
+    await service.suggestToken(env, msg.chainId, msg.contractAddress);
   };
 };
 
 const handleAddTokenMsg: (
-  keeper: TokensKeeper
-) => InternalHandler<AddTokenMsg> = keeper => {
+  service: TokensService
+) => InternalHandler<AddTokenMsg> = (service) => {
   return async (_, msg) => {
-    await keeper.addToken(msg.chainId, msg.currency);
+    await service.addToken(msg.chainId, msg.currency);
   };
 };
 
 const handleGetSecret20ViewingKey: (
-  keeper: TokensKeeper
-) => InternalHandler<GetSecret20ViewingKey> = keeper => {
+  service: TokensService
+) => InternalHandler<GetSecret20ViewingKey> = (service) => {
   return async (env, msg) => {
-    await keeper.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
 
-    return await keeper.getSecret20ViewingKey(msg.chainId, msg.contractAddress);
+    return await service.getSecret20ViewingKey(
+      msg.chainId,
+      msg.contractAddress
+    );
   };
 };

@@ -1,4 +1,4 @@
-export * from "./keeper";
+export * from "./service";
 export * from "./messages";
 export * from "./types";
 export * from "./init";

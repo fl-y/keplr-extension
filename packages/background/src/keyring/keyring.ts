@@ -1,9 +1,9 @@
 import { Crypto, KeyStore } from "./crypto";
 import { Mnemonic, PubKeySecp256k1, PrivKeySecp256k1 } from "@keplr/crypto";
 import { KVStore } from "@keplr/common";
-import { LedgerKeeper } from "../ledger/keeper";
+import { LedgerService } from "../ledger/service";
 import { BIP44HDPath } from "./types";
-import { ChainUpdaterKeeper } from "../updater/keeper";
+import { ChainUpdaterService } from "../updater/service";
 import { ChainInfo } from "@keplr/types";
 import { Env } from "@keplr/router";
 
@@ -61,7 +61,7 @@ export class KeyRing {
   constructor(
     private readonly embedChainInfos: ChainInfo[],
     private readonly kvStore: KVStore,
-    private readonly ledgerKeeper: LedgerKeeper
+    private readonly ledgerKeeper: LedgerService
   ) {
     this.loaded = false;
     this.keyStore = null;
@@ -150,7 +150,7 @@ export class KeyRing {
     }
 
     return this.keyStore.coinTypeForChain[
-      ChainUpdaterKeeper.getChainVersion(chainId).identifier
+      ChainUpdaterService.getChainVersion(chainId).identifier
     ];
   }
 
@@ -174,7 +174,7 @@ export class KeyRing {
       throw new Error("Key Store is empty");
     }
 
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
     return this.keyStore.coinTypeForChain
       ? this.keyStore.coinTypeForChain[version.identifier] ?? defaultCoinType
       : defaultCoinType;
@@ -357,7 +357,7 @@ export class KeyRing {
   private updateLegacyKeyStore(keyStore: KeyStore) {
     keyStore.version = "1.2";
     for (const chainInfo of this.embedChainInfos) {
-      const version = ChainUpdaterKeeper.getChainVersion(chainInfo.chainId);
+      const version = ChainUpdaterService.getChainVersion(chainInfo.chainId);
       const coinType = (() => {
         if (
           chainInfo.alternativeBIP44s &&
@@ -380,7 +380,7 @@ export class KeyRing {
       throw new Error("Empty key store");
     }
 
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     return (
       this.keyStore.coinTypeForChain &&
@@ -393,7 +393,7 @@ export class KeyRing {
       throw new Error("Empty key store");
     }
 
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     if (
       this.keyStore.coinTypeForChain &&

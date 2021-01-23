@@ -27,7 +27,7 @@ import { actionAsync, task } from "mobx-utils";
 
 import { Buffer } from "buffer/";
 import { InteractionStore } from "./interaction";
-import { ChainGetter } from "../common/types";
+import { ChainGetter } from "../common";
 import { BIP44 } from "@keplr/types";
 
 export type SelectableAccount = {

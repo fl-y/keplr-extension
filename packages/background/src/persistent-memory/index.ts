@@ -1,2 +1,2 @@
-export * from "./keeper";
+export * from "./service";
 export * from "./messages";

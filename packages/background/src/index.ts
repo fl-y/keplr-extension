@@ -30,23 +30,23 @@ export function init(
   embedChainInfos: ChainInfo[],
   embedAccessOrigins: AccessOrigin[]
 ) {
-  const interactionKeeper = new Interaction.InteractionKeeper();
+  const interactionKeeper = new Interaction.InteractionService();
   Interaction.init(router, interactionKeeper);
 
-  const persistentMemory = new PersistentMemory.PersistentMemoryKeeper();
+  const persistentMemory = new PersistentMemory.PersistentMemoryService();
   PersistentMemory.init(router, persistentMemory);
 
-  const chainUpdaterKeeper = new Updater.ChainUpdaterKeeper(
+  const chainUpdaterKeeper = new Updater.ChainUpdaterService(
     storeCreator("updater")
   );
 
-  const tokensKeeper = new Tokens.TokensKeeper(
+  const tokensKeeper = new Tokens.TokensService(
     storeCreator("tokens"),
     interactionKeeper
   );
   Tokens.init(router, tokensKeeper);
 
-  const chainsKeeper = new Chains.ChainsKeeper(
+  const chainsKeeper = new Chains.ChainsService(
     storeCreator("chains"),
     chainUpdaterKeeper,
     tokensKeeper,
@@ -56,13 +56,13 @@ export function init(
   );
   Chains.init(router, chainsKeeper);
 
-  const ledgerKeeper = new Ledger.LedgerKeeper(
+  const ledgerKeeper = new Ledger.LedgerService(
     storeCreator("ledger"),
     interactionKeeper
   );
   Ledger.init(router, ledgerKeeper);
 
-  const keyRingKeeper = new KeyRing.KeyRingKeeper(
+  const keyRingKeeper = new KeyRing.KeyRingService(
     embedChainInfos,
     storeCreator("keyring"),
     interactionKeeper,
@@ -73,13 +73,13 @@ export function init(
 
   tokensKeeper.init(chainsKeeper, keyRingKeeper);
 
-  const secretWasmKeeper = new SecretWasm.SecretWasmKeeper(
+  const secretWasmKeeper = new SecretWasm.SecretWasmService(
     storeCreator("secretwasm"),
     chainsKeeper,
     keyRingKeeper
   );
   SecretWasm.init(router, secretWasmKeeper);
 
-  const backgroundTxKeeper = new BackgroundTx.BackgroundTxKeeper(chainsKeeper);
+  const backgroundTxKeeper = new BackgroundTx.BackgroundTxService(chainsKeeper);
   BackgroundTx.init(router, backgroundTxKeeper);
 }

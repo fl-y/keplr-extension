@@ -5,16 +5,16 @@ import delay from "delay";
 import { Env } from "@keplr/router";
 import { BIP44HDPath } from "../keyring";
 import { KVStore } from "@keplr/common";
-import { InteractionKeeper } from "../interaction";
+import { InteractionService } from "../interaction";
 
 const Buffer = require("buffer/").Buffer;
 
-export class LedgerKeeper {
+export class LedgerService {
   private previousInitAborter: ((e: Error) => void) | undefined;
 
   constructor(
     protected readonly kvStore: KVStore,
-    protected readonly interactionKeeper: InteractionKeeper
+    protected readonly interactionService: InteractionService
   ) {}
 
   async getPublicKey(env: Env, bip44HDPath: BIP44HDPath): Promise<Uint8Array> {
@@ -29,7 +29,7 @@ export class LedgerKeeper {
           bip44HDPath.addressIndex,
         ]);
       } finally {
-        await this.interactionKeeper.dispatchData(
+        await this.interactionService.dispatchData(
           env,
           "/ledger-grant",
           "ledger-init",
@@ -78,7 +78,7 @@ export class LedgerKeeper {
           ],
           message
         );
-        await this.interactionKeeper.dispatchData(
+        await this.interactionService.dispatchData(
           env,
           "/ledger-grant",
           "ledger-init",
@@ -93,7 +93,7 @@ export class LedgerKeeper {
         );
         return signature;
       } catch (e) {
-        await this.interactionKeeper.dispatchData(
+        await this.interactionService.dispatchData(
           env,
           "/ledger-grant",
           "ledger-init",
@@ -164,7 +164,7 @@ export class LedgerKeeper {
         console.log(e);
 
         await Promise.race([
-          this.interactionKeeper.waitApprove(
+          this.interactionService.waitApprove(
             env,
             "/ledger-grant",
             "ledger-init",
@@ -179,7 +179,7 @@ export class LedgerKeeper {
           (async () => {
             // If ledger is not initied in 3 minutes, abort it.
             await delay(3 * 60 * 1000);
-            await this.interactionKeeper.dispatchData(
+            await this.interactionService.dispatchData(
               env,
               "/ledger-grant",
               "ledger-init",

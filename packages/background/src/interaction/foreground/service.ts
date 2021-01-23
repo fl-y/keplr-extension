@@ -1,7 +1,7 @@
 import { InteractionForegroundHandler } from "./types";
 import { InteractionWaitingData } from "../types";
 
-export class InteractionForegroundKeeper {
+export class InteractionForegroundService {
   constructor(protected handler: InteractionForegroundHandler) {}
 
   pushData(data: InteractionWaitingData): void {

@@ -3,42 +3,42 @@ import {
   ChainInfo,
   AppCurrency,
   CW20Currency,
-  Secret20Currency
+  Secret20Currency,
 } from "@keplr/types";
 import {
   CurrencySchema,
   CW20CurrencyShema,
-  Secret20CurrencyShema
+  Secret20CurrencyShema,
 } from "../chains";
 import { Bech32Address } from "@keplr/cosmos";
-import { ChainsKeeper } from "../chains/keeper";
-import { KeyRingKeeper } from "../keyring/keeper";
+import { ChainsService } from "../chains";
+import { KeyRingService } from "../keyring";
 import { KVStore } from "@keplr/common";
 import { KeyRingStatus } from "../keyring";
-import { ChainUpdaterKeeper } from "../updater/keeper";
-import { InteractionKeeper } from "../interaction/keeper";
+import { ChainUpdaterService } from "../updater";
+import { InteractionService } from "../interaction";
 
 const Buffer = require("buffer/").Buffer;
 
-export class TokensKeeper {
-  private chainsKeeper!: ChainsKeeper;
-  private keyRingKeeper!: KeyRingKeeper;
+export class TokensService {
+  private chainsService!: ChainsService;
+  private keyRingService!: KeyRingService;
 
   constructor(
     private readonly kvStore: KVStore,
-    private readonly interactionKeeper: InteractionKeeper
+    private readonly interactionService: InteractionService
   ) {}
 
-  init(chainsKeeper: ChainsKeeper, keyRingKeeper: KeyRingKeeper) {
-    this.chainsKeeper = chainsKeeper;
-    this.keyRingKeeper = keyRingKeeper;
+  init(chainsKeeper: ChainsService, keyRingKeeper: KeyRingService) {
+    this.chainsService = chainsKeeper;
+    this.keyRingService = keyRingKeeper;
   }
 
   async suggestToken(env: Env, chainId: string, contractAddress: string) {
-    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
 
     const find = chainInfo.currencies.find(
-      currency =>
+      (currency) =>
         "contractAddress" in currency &&
         currency.contractAddress === contractAddress
     );
@@ -55,13 +55,13 @@ export class TokensKeeper {
 
     const params = {
       chainId,
-      contractAddress
+      contractAddress,
     };
 
     // TODO: Currently, this line just opens the adding token page to the user.
     //       and, just expects that the adding token page will add the token without knowing the result.
     //       Probably, this approach can be improved.
-    this.interactionKeeper.waitApprove(
+    this.interactionService.waitApprove(
       env,
       "/setting/token/add",
       "suggest-token",
@@ -70,9 +70,9 @@ export class TokensKeeper {
   }
 
   async addToken(chainId: string, currency: AppCurrency) {
-    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
 
-    currency = await TokensKeeper.validateCurrency(chainInfo, currency);
+    currency = await TokensService.validateCurrency(chainInfo, currency);
 
     const chainCurrencies = chainInfo.currencies;
 
@@ -102,7 +102,7 @@ export class TokensKeeper {
         await this.saveTokensToChainAndAccount(chainId, currencies);
       } else {
         const index = currencies.findIndex(
-          cur => cur.coinMinimalDenom === currency.coinMinimalDenom
+          (cur) => cur.coinMinimalDenom === currency.coinMinimalDenom
         );
         if (index >= 0) {
           currencies[index] = currency;
@@ -116,7 +116,7 @@ export class TokensKeeper {
     chainId: string,
     defaultCurrencies: AppCurrency[]
   ): Promise<AppCurrency[]> {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     let chainCurrencies =
       (await this.kvStore.get<AppCurrency[]>(version.identifier)) ?? [];
@@ -128,8 +128,8 @@ export class TokensKeeper {
     }
 
     let keyCurrencies: AppCurrency[] = [];
-    if (this.keyRingKeeper.keyRingStatus === KeyRingStatus.UNLOCKED) {
-      const currentKey = await this.keyRingKeeper.getKey(chainId);
+    if (this.keyRingService.keyRingStatus === KeyRingStatus.UNLOCKED) {
+      const currentKey = await this.keyRingService.getKey(chainId);
 
       keyCurrencies =
         (await this.kvStore.get<AppCurrency[]>(
@@ -143,7 +143,7 @@ export class TokensKeeper {
   }
 
   public async clearTokens(chainId: string): Promise<void> {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     await this.kvStore.set(version.identifier, null);
 
@@ -155,13 +155,13 @@ export class TokensKeeper {
   }
 
   private async getTokensFromChain(chainId: string): Promise<AppCurrency[]> {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     return (await this.kvStore.get<AppCurrency[]>(version.identifier)) ?? [];
   }
 
   private async saveTokensToChain(chainId: string, currencies: AppCurrency[]) {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     await this.kvStore.set(version.identifier, currencies);
   }
@@ -169,9 +169,9 @@ export class TokensKeeper {
   private async getTokensFromChainAndAccount(
     chainId: string
   ): Promise<AppCurrency[]> {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
-    const currentKey = await this.keyRingKeeper.getKey(chainId);
+    const currentKey = await this.keyRingService.getKey(chainId);
     return (
       (await this.kvStore.get<Promise<AppCurrency[]>>(
         `${version.identifier}-${Buffer.from(currentKey.address).toString(
@@ -185,9 +185,9 @@ export class TokensKeeper {
     chainId: string,
     currencies: AppCurrency[]
   ) {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
-    const currentKey = await this.keyRingKeeper.getKey(chainId);
+    const currentKey = await this.keyRingService.getKey(chainId);
     const hexAddress = Buffer.from(currentKey.address).toString("hex");
     await this.kvStore.set(`${version.identifier}-${hexAddress}`, currencies);
 
@@ -195,7 +195,7 @@ export class TokensKeeper {
   }
 
   private async getTokensToAccountReverse(chainId: string): Promise<string[]> {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     return (await this.kvStore.get(`${version.identifier}-addresses`)) ?? [];
   }
@@ -204,7 +204,7 @@ export class TokensKeeper {
     chainId: string,
     addresses: string[]
   ) {
-    const version = ChainUpdaterKeeper.getChainVersion(chainId);
+    const version = ChainUpdaterService.getChainVersion(chainId);
 
     await this.kvStore.set(`${version.identifier}-addresses`, addresses);
   }
@@ -221,7 +221,7 @@ export class TokensKeeper {
     chainId: string,
     contractAddress: string
   ): Promise<string> {
-    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
 
     for (const currency of chainInfo.currencies) {
       if ("type" in currency && currency.type === "secret20") {
@@ -235,7 +235,7 @@ export class TokensKeeper {
   }
 
   async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    await this.chainsKeeper.checkAccessOrigin(env, chainId, origin);
+    await this.chainsService.checkAccessOrigin(env, chainId, origin);
   }
 
   static async validateCurrency(
@@ -246,13 +246,13 @@ export class TokensKeeper {
     if ("type" in currency) {
       switch (currency.type) {
         case "cw20":
-          currency = await TokensKeeper.validateCW20Currency(
+          currency = await TokensService.validateCW20Currency(
             chainInfo,
             currency
           );
           break;
         case "secret20":
-          currency = await TokensKeeper.validateSecret20Currency(
+          currency = await TokensService.validateSecret20Currency(
             chainInfo,
             currency
           );

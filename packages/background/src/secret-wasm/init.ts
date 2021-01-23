@@ -1,10 +1,10 @@
 import { Router } from "@keplr/router";
 import { GetPubkeyMsg, ReqeustEncryptMsg, RequestDecryptMsg } from "./messages";
-import { SecretWasmKeeper } from "./keeper";
+import { SecretWasmService } from "./service";
 import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
 
-export function init(router: Router, keeper: SecretWasmKeeper): void {
+export function init(router: Router, keeper: SecretWasmService): void {
   router.registerMessage(GetPubkeyMsg);
   router.registerMessage(ReqeustEncryptMsg);
   router.registerMessage(RequestDecryptMsg);

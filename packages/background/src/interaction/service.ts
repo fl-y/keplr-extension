@@ -1,8 +1,8 @@
 import { InteractionWaitingData } from "./types";
 import { Env, FnRequestInteractionOptions } from "@keplr/router";
-import { PushInteractionDataMsg } from "./foreground/messages";
+import { PushInteractionDataMsg } from "./foreground";
 
-export class InteractionKeeper {
+export class InteractionService {
   protected waitingMap: Map<string, InteractionWaitingData> = new Map();
   protected resolverMap: Map<
     string,
