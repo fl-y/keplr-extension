@@ -9,6 +9,7 @@ import * as BackgroundTx from "./tx/internal";
 import * as Updater from "./updater/internal";
 import * as Tokens from "./tokens/internal";
 import * as Interaction from "./interaction/internal";
+import * as Permission from "./permission/internal";
 
 export * from "./persistent-memory";
 export * from "./chains";
@@ -30,56 +31,64 @@ export function init(
   embedChainInfos: ChainInfo[],
   embedAccessOrigins: AccessOrigin[]
 ) {
-  const interactionKeeper = new Interaction.InteractionService();
-  Interaction.init(router, interactionKeeper);
+  const interactionService = new Interaction.InteractionService();
+  Interaction.init(router, interactionService);
 
   const persistentMemory = new PersistentMemory.PersistentMemoryService();
   PersistentMemory.init(router, persistentMemory);
 
-  const chainUpdaterKeeper = new Updater.ChainUpdaterService(
+  const permissionService = new Permission.PermissionService(
+    storeCreator("permission"),
+    interactionService
+  );
+  Permission.init(router, permissionService);
+
+  const chainUpdaterService = new Updater.ChainUpdaterService(
     storeCreator("updater")
   );
 
-  const tokensKeeper = new Tokens.TokensService(
+  const tokensService = new Tokens.TokensService(
     storeCreator("tokens"),
-    interactionKeeper
+    interactionService
   );
-  Tokens.init(router, tokensKeeper);
+  Tokens.init(router, tokensService);
 
-  const chainsKeeper = new Chains.ChainsService(
+  const chainsService = new Chains.ChainsService(
     storeCreator("chains"),
-    chainUpdaterKeeper,
-    tokensKeeper,
-    interactionKeeper,
+    chainUpdaterService,
+    tokensService,
+    interactionService,
     embedChainInfos,
     embedAccessOrigins
   );
-  Chains.init(router, chainsKeeper);
+  Chains.init(router, chainsService);
 
-  const ledgerKeeper = new Ledger.LedgerService(
+  const ledgerService = new Ledger.LedgerService(
     storeCreator("ledger"),
-    interactionKeeper
+    interactionService
   );
-  Ledger.init(router, ledgerKeeper);
+  Ledger.init(router, ledgerService);
 
-  const keyRingKeeper = new KeyRing.KeyRingService(
+  const keyRingService = new KeyRing.KeyRingService(
     embedChainInfos,
     storeCreator("keyring"),
-    interactionKeeper,
-    chainsKeeper,
-    ledgerKeeper
+    interactionService,
+    chainsService,
+    ledgerService
   );
-  KeyRing.init(router, keyRingKeeper);
+  KeyRing.init(router, keyRingService);
 
-  tokensKeeper.init(chainsKeeper, keyRingKeeper);
+  tokensService.init(chainsService, keyRingService);
 
-  const secretWasmKeeper = new SecretWasm.SecretWasmService(
+  const secretWasmService = new SecretWasm.SecretWasmService(
     storeCreator("secretwasm"),
-    chainsKeeper,
-    keyRingKeeper
+    chainsService,
+    keyRingService
   );
-  SecretWasm.init(router, secretWasmKeeper);
+  SecretWasm.init(router, secretWasmService);
 
-  const backgroundTxKeeper = new BackgroundTx.BackgroundTxService(chainsKeeper);
-  BackgroundTx.init(router, backgroundTxKeeper);
+  const backgroundTxService = new BackgroundTx.BackgroundTxService(
+    chainsService
+  );
+  BackgroundTx.init(router, backgroundTxService);
 }
