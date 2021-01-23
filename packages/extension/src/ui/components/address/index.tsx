@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ToolTip } from "../tooltip";
-import { shortenAddress } from "../../../common/address";
+import { Bech32Address } from "@keplr/cosmos";
 
 export interface AddressProps {
   maxCharacters: number;
@@ -55,7 +55,7 @@ export class Address extends React.Component<AddressProps> {
           </div>
         }
       >
-        {shortenAddress(children, this.props.maxCharacters)}
+        {Bech32Address.shortenAddress(children, this.props.maxCharacters)}
       </ToolTip>
     );
   }

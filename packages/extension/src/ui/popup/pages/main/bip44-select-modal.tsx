@@ -1,13 +1,12 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { Button, Col, CustomInput, Modal, ModalBody, Row } from "reactstrap";
-import { shortenAddress } from "../../../../common/address";
+import { Bech32Address } from "@keplr/cosmos";
 
 import style from "./bip44-select-modal.module.scss";
 import { SelectableAccount } from "../../../../background/keyring/types";
 import { useStore } from "../../stores";
 import { observer } from "mobx-react";
-import { CoinUtils } from "../../../../common/coin-utils";
-import { Int } from "@chainapsis/cosmosjs/common/int";
+import { CoinUtils, Int } from "@keplr/unit";
 import { FormattedMessage } from "react-intl";
 
 const BIP44Selectable: FunctionComponent<{
@@ -49,7 +48,7 @@ const BIP44Selectable: FunctionComponent<{
                 <FormattedMessage id="main.modal.select-account.label.address" />
               </div>
               <div className={style.value}>
-                {shortenAddress(selectable.bech32Address, 26)}
+                {Bech32Address.shortenAddress(selectable.bech32Address, 26)}
               </div>
             </Col>
           </Row>

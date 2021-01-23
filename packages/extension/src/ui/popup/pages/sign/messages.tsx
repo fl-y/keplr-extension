@@ -1,8 +1,7 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { shortenAddress } from "../../../../common/address";
+import { Bech32Address } from "@keplr/cosmos";
 import { truncHashPortion } from "../../../../common/hash";
-import { CoinUtils } from "../../../../common/coin-utils";
-import { Coin } from "@chainapsis/cosmosjs/common/coin";
+import { CoinUtils, Coin } from "@keplr/unit";
 import { IntlShape, FormattedMessage, useIntl } from "react-intl";
 import { Currency } from "../../../../common/currency";
 import { Button, Badge } from "reactstrap";
@@ -179,7 +178,7 @@ export function renderMessage(
           id="sign.list.message.cosmos-sdk/MsgSend.content"
           values={{
             b: (...chunks: any[]) => <b>{chunks}</b>,
-            recipient: shortenAddress(msg.value.to_address, 20),
+            recipient: Bech32Address.shortenAddress(msg.value.to_address, 20),
             amount: receives
               .map((coin) => {
                 return `${coin.amount} ${coin.denom}`;
@@ -207,8 +206,14 @@ export function renderMessage(
           id="sign.list.message.cosmos-sdk/MsgBeginRedelegate.content"
           values={{
             b: (...chunks: any[]) => <b>{chunks}</b>,
-            fromValidator: shortenAddress(msg.value.validator_src_address, 24),
-            toValidator: shortenAddress(msg.value.validator_dst_address, 24),
+            fromValidator: Bech32Address.shortenAddress(
+              msg.value.validator_src_address,
+              24
+            ),
+            toValidator: Bech32Address.shortenAddress(
+              msg.value.validator_dst_address,
+              24
+            ),
             amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`,
           }}
         />
@@ -233,7 +238,10 @@ export function renderMessage(
           values={{
             b: (...chunks: any[]) => <b>{chunks}</b>,
             br: <br />,
-            validator: shortenAddress(msg.value.validator_address, 24),
+            validator: Bech32Address.shortenAddress(
+              msg.value.validator_address,
+              24
+            ),
             amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`,
           }}
         />
@@ -257,7 +265,10 @@ export function renderMessage(
           id="sign.list.message.cosmos-sdk/MsgDelegate.content"
           values={{
             b: (...chunks: any[]) => <b>{chunks}</b>,
-            validator: shortenAddress(msg.value.validator_address, 24),
+            validator: Bech32Address.shortenAddress(
+              msg.value.validator_address,
+              24
+            ),
             amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`,
           }}
         />
@@ -281,7 +292,10 @@ export function renderMessage(
           id="sign.list.message.cosmos-sdk/MsgWithdrawDelegatorReward.content"
           values={{
             b: (...chunks: any[]) => <b>{chunks}</b>,
-            validator: shortenAddress(msg.value.validator_address, 34),
+            validator: Bech32Address.shortenAddress(
+              msg.value.validator_address,
+              34
+            ),
           }}
         />
       ),
@@ -312,7 +326,9 @@ export function renderMessage(
             values={{
               b: (...chunks: any[]) => <b>{chunks}</b>,
               br: <br />,
-              admin: msg.value.admin ? shortenAddress(msg.value.admin, 30) : "",
+              admin: msg.value.admin
+                ? Bech32Address.shortenAddress(msg.value.admin, 30)
+                : "",
               ["only-admin-exist"]: (...chunks: any[]) =>
                 msg.value.admin ? chunks : "",
               codeId: msg.value.code_id,
@@ -360,7 +376,7 @@ export function renderMessage(
             values={{
               b: (...chunks: any[]) => <b>{chunks}</b>,
               br: <br />,
-              address: shortenAddress(msg.value.contract, 26),
+              address: Bech32Address.shortenAddress(msg.value.contract, 26),
               ["only-sent-exist"]: (...chunks: any[]) =>
                 sent.length > 0 ? chunks : "",
               sent: sent
@@ -406,7 +422,7 @@ export function renderMessage(
           values={{
             b: (...chunks: any[]) => <b>{chunks}</b>,
             br: <br />,
-            address: shortenAddress(msg.value.address, 20),
+            address: Bech32Address.shortenAddress(msg.value.address, 20),
             link: cyberlinks
               .map((link) => {
                 return `${truncHashPortion(

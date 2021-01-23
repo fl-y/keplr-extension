@@ -27,7 +27,7 @@ import { AddressBookData } from "./types";
 import { AddressBookKVStore } from "./kv-store";
 import { BrowserKVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
-import { shortenAddress } from "../../../../../common/address";
+import { Bech32Address } from "@keplr/cosmos";
 import { useConfirm } from "../../../../components/confirm";
 
 export const AddressBookPage: FunctionComponent<{
@@ -286,7 +286,7 @@ export const AddressBookPage: FunctionComponent<{
                   data.address.indexOf(
                     chainStore.chainInfo.bech32Config.bech32PrefixAccAddr
                   ) === 0
-                    ? shortenAddress(data.address, 34)
+                    ? Bech32Address.shortenAddress(data.address, 34)
                     : data.address
                 }
                 subParagraph={data.memo}

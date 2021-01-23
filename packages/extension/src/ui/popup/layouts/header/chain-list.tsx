@@ -5,7 +5,7 @@ import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 
 import style from "./chain-list.module.scss";
-import { ChainInfoWithEmbed } from "../../../../background/chains";
+import { ChainInfoWithEmbed } from "@keplr/background";
 import { useConfirm } from "../../../components/confirm";
 import { useIntl } from "react-intl";
 
@@ -22,22 +22,22 @@ const ChainElement: FunctionComponent<{
     <div
       className={classnames({
         [style.chainName]: true,
-        selected: chainInfo.chainId === chainStore.chainInfo.chainId
+        selected: chainInfo.chainId === chainStore.current.chainId,
       })}
       onClick={() => {
-        if (chainInfo.chainId !== chainStore.chainInfo.chainId) {
-          chainStore.setChain(chainInfo.chainId);
+        if (chainInfo.chainId !== chainStore.current.chainId) {
+          chainStore.selectChain(chainInfo.chainId);
           chainStore.saveLastViewChainId();
         }
       }}
     >
       {chainInfo.chainName}
       {!chainInfo.embeded &&
-      chainStore.chainInfo.chainId !== chainInfo.chainId ? (
+      chainStore.current.chainId !== chainInfo.chainId ? (
         <div className={style.removeBtn}>
           <i
             className="fas fa-times-circle"
-            onClick={async e => {
+            onClick={async (e) => {
               e.preventDefault();
               e.stopPropagation();
 
@@ -45,12 +45,12 @@ const ChainElement: FunctionComponent<{
                 await confirm.confirm({
                   paragraph: intl.formatMessage(
                     {
-                      id: "chain.remove.confirm.paragraph"
+                      id: "chain.remove.confirm.paragraph",
                     },
                     {
-                      chainName: chainInfo.chainName
+                      chainName: chainInfo.chainName,
                     }
-                  )
+                  ),
                 })
               ) {
                 await chainStore.removeChainInfo(chainInfo.chainId);
@@ -66,16 +66,16 @@ const ChainElement: FunctionComponent<{
 export const ChainList: FunctionComponent = observer(() => {
   const { chainStore } = useStore();
 
-  const mainChainList = chainStore.chainList.filter(
-    chainInfo => !chainInfo.beta
+  const mainChainList = chainStore.chainInfos.filter(
+    (chainInfo) => !chainInfo.beta
   );
-  const betaChainList = chainStore.chainList.filter(
-    chainInfo => chainInfo.beta
+  const betaChainList = chainStore.chainInfos.filter(
+    (chainInfo) => chainInfo.beta
   );
 
   return (
     <div className={style.chainListContainer}>
-      {mainChainList.map(chainInfo => (
+      {mainChainList.map((chainInfo) => (
         <ChainElement key={chainInfo.chainId} chainInfo={chainInfo} />
       ))}
       {betaChainList.length > 0 ? (
@@ -84,14 +84,14 @@ export const ChainList: FunctionComponent = observer(() => {
             className="my-3"
             style={{
               flex: 1,
-              borderTop: "1px solid rgba(255, 255, 255)"
+              borderTop: "1px solid rgba(255, 255, 255)",
             }}
           />
           <div
             style={{
               fontSize: "14px",
               color: "rgba(255, 255, 255)",
-              margin: "0 8px"
+              margin: "0 8px",
             }}
           >
             Beta support
@@ -100,12 +100,12 @@ export const ChainList: FunctionComponent = observer(() => {
             className="my-3"
             style={{
               flex: 1,
-              borderTop: "1px solid rgba(255, 255, 255)"
+              borderTop: "1px solid rgba(255, 255, 255)",
             }}
           />
         </div>
       ) : null}
-      {betaChainList.map(chainInfo => (
+      {betaChainList.map((chainInfo) => (
         <ChainElement key={chainInfo.chainId} chainInfo={chainInfo} />
       ))}
     </div>

@@ -3,7 +3,8 @@ import React from "react";
 import { FiatCurrency } from "./common/currency";
 import { BIP44 } from "@chainapsis/cosmosjs/core/bip44";
 import { defaultBech32Config } from "@chainapsis/cosmosjs/core/bech32Config";
-import { ChainInfo, AccessOrigin } from "./background/chains";
+import { ChainInfo } from "@keplr/types";
+import { AccessOrigin } from "@keplr/background";
 
 import {
   COSMOS_REST_CONFIG,
@@ -28,7 +29,7 @@ import {
   BETA_STRAIGHTEDGE_RPC_ENDPOINT,
   BETA_STRAIGHTEDGE_RPC_CONFIG,
   ADDITIONAL_SIGN_IN_PREPEND,
-  ADDITIONAL_INTL_MESSAGES
+  ADDITIONAL_INTL_MESSAGES,
 } from "./config.var";
 import { IntlMessages } from "./ui/popup/language";
 
@@ -54,7 +55,7 @@ export const EmbedChainInfos: ChainInfo[] = [
       coinDenom: "ATOM",
       coinMinimalDenom: "uatom",
       coinDecimals: 6,
-      coinGeckoId: "cosmos"
+      coinGeckoId: "cosmos",
     },
     walletUrl:
       process.env.NODE_ENV === "production"
@@ -71,18 +72,18 @@ export const EmbedChainInfos: ChainInfo[] = [
         coinDenom: "ATOM",
         coinMinimalDenom: "uatom",
         coinDecimals: 6,
-        coinGeckoId: "cosmos"
-      }
+        coinGeckoId: "cosmos",
+      },
     ],
     feeCurrencies: [
       {
         coinDenom: "ATOM",
         coinMinimalDenom: "uatom",
         coinDecimals: 6,
-        coinGeckoId: "cosmos"
-      }
+        coinGeckoId: "cosmos",
+      },
     ],
-    coinType: 118
+    coinType: 118,
   },
   {
     rpc: KAVA_RPC_ENDPOINT,
@@ -95,7 +96,7 @@ export const EmbedChainInfos: ChainInfo[] = [
       coinDenom: "KAVA",
       coinMinimalDenom: "ukava",
       coinDecimals: 6,
-      coinGeckoId: "kava"
+      coinGeckoId: "kava",
     },
     walletUrl:
       process.env.NODE_ENV === "production"
@@ -113,18 +114,18 @@ export const EmbedChainInfos: ChainInfo[] = [
         coinDenom: "KAVA",
         coinMinimalDenom: "ukava",
         coinDecimals: 6,
-        coinGeckoId: "kava"
-      }
+        coinGeckoId: "kava",
+      },
     ],
     feeCurrencies: [
       {
         coinDenom: "KAVA",
         coinMinimalDenom: "ukava",
         coinDecimals: 6,
-        coinGeckoId: "kava"
-      }
+        coinGeckoId: "kava",
+      },
     ],
-    coinType: 459
+    coinType: 459,
   },
   {
     rpc: SECRET_NETWORK_RPC_ENDPOINT,
@@ -137,7 +138,7 @@ export const EmbedChainInfos: ChainInfo[] = [
       coinDenom: "SCRT",
       coinMinimalDenom: "uscrt",
       coinDecimals: 6,
-      coinGeckoId: "secret"
+      coinGeckoId: "secret",
     },
     walletUrl:
       process.env.NODE_ENV === "production"
@@ -155,24 +156,24 @@ export const EmbedChainInfos: ChainInfo[] = [
         coinDenom: "SCRT",
         coinMinimalDenom: "uscrt",
         coinDecimals: 6,
-        coinGeckoId: "secret"
-      }
+        coinGeckoId: "secret",
+      },
     ],
     feeCurrencies: [
       {
         coinDenom: "SCRT",
         coinMinimalDenom: "uscrt",
         coinDecimals: 6,
-        coinGeckoId: "secret"
-      }
+        coinGeckoId: "secret",
+      },
     ],
     coinType: 529,
     gasPriceStep: {
       low: 0.1,
       average: 0.25,
-      high: 0.4
+      high: 0.4,
     },
-    features: ["secretwasm"]
+    features: ["secretwasm"],
   },
   {
     rpc: BETA_CYBER_NETWORK_RPC_ENDPOINT,
@@ -184,7 +185,7 @@ export const EmbedChainInfos: ChainInfo[] = [
     stakeCurrency: {
       coinDenom: "EUL",
       coinMinimalDenom: "eul",
-      coinDecimals: 0
+      coinDecimals: 0,
     },
     walletUrl:
       process.env.NODE_ENV === "production"
@@ -200,17 +201,17 @@ export const EmbedChainInfos: ChainInfo[] = [
       {
         coinDenom: "EUL",
         coinMinimalDenom: "eul",
-        coinDecimals: 0
-      }
+        coinDecimals: 0,
+      },
     ],
     feeCurrencies: [
       {
         coinDenom: "EUL",
         coinMinimalDenom: "eul",
-        coinDecimals: 0
-      }
+        coinDecimals: 0,
+      },
     ],
-    beta: true
+    beta: true,
   },
   {
     rpc: BETA_STRAIGHTEDGE_RPC_ENDPOINT,
@@ -222,7 +223,7 @@ export const EmbedChainInfos: ChainInfo[] = [
     stakeCurrency: {
       coinDenom: "STR",
       coinMinimalDenom: "astr",
-      coinDecimals: 18
+      coinDecimals: 18,
     },
     walletUrl:
       process.env.NODE_ENV === "production"
@@ -238,15 +239,15 @@ export const EmbedChainInfos: ChainInfo[] = [
       {
         coinDenom: "STR",
         coinMinimalDenom: "astr",
-        coinDecimals: 18
-      }
+        coinDecimals: 18,
+      },
     ],
     feeCurrencies: [
       {
         coinDenom: "STR",
         coinMinimalDenom: "astr",
-        coinDecimals: 18
-      }
+        coinDecimals: 18,
+      },
     ],
     coinType: 551,
     // STR's decimal is high. Thus, if gas price is set as 0.025, it produces very low and long fee.
@@ -255,10 +256,10 @@ export const EmbedChainInfos: ChainInfo[] = [
     gasPriceStep: {
       low: 0.01 * Math.pow(10, 12),
       average: 0.025 * Math.pow(10, 12),
-      high: 0.04 * Math.pow(10, 12)
+      high: 0.04 * Math.pow(10, 12),
     },
-    beta: true
-  }
+    beta: true,
+  },
 ];
 
 /**
@@ -270,28 +271,28 @@ export const EmbedAccessOrigins: AccessOrigin[] = [
     origins:
       process.env.NODE_ENV === "production"
         ? ["https://wallet.keplr.app"]
-        : ["https://wallet.keplr.app"]
+        : ["https://wallet.keplr.app"],
   },
   {
     chainId: "kava-3",
     origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : []
+      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : [],
   },
   {
     chainId: "secret-1",
     origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : []
+      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : [],
   },
   {
     chainId: "euler-6",
     origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : []
+      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : [],
   },
   {
     chainId: "straightedge-2",
     origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : []
-  }
+      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : [],
+  },
 ];
 
 export const LanguageToFiatCurrency: {
@@ -306,9 +307,9 @@ export const LanguageToFiatCurrency: {
         fractionDigits = 4;
       }
       return value.toLocaleString("en-US", {
-        maximumFractionDigits: fractionDigits
+        maximumFractionDigits: fractionDigits,
       });
-    }
+    },
   },
   ko: {
     currency: "krw",
@@ -319,10 +320,10 @@ export const LanguageToFiatCurrency: {
         fractionDigits = 1;
       }
       return value.toLocaleString("ko-KR", {
-        maximumFractionDigits: fractionDigits
+        maximumFractionDigits: fractionDigits,
       });
-    }
-  }
+    },
+  },
 };
 
 export const AdditionalSignInPrepend:
