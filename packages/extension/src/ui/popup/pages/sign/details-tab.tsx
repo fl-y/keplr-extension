@@ -1,8 +1,5 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { Coin } from "@chainapsis/cosmosjs/common/coin";
-import { CoinUtils } from "../../../../common/coin-utils";
 
-import { Dec } from "@keplr/unit";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import { getFiatCurrencyFromLanguage } from "../../../../common/currency";
@@ -11,13 +8,13 @@ import styleDetailsTab from "./details-tab.module.scss";
 import classnames from "classnames";
 
 import { MessageObj, renderMessage } from "./messages";
-import { DecUtils } from "../../../../common/dec-utils";
+import { DecUtils, CoinUtils, Coin, Dec } from "@keplr/unit";
 import { useIntl } from "react-intl";
 import { useLanguage } from "../../language";
 
 export const DetailsTab: FunctionComponent<{ message: string }> = observer(
   ({ message }) => {
-    const { chainStore, priceStoreV2 } = useStore();
+    const { chainStore, priceStore } = useStore();
 
     const intl = useIntl();
 
@@ -70,7 +67,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
           if (!currency.coinGeckoId) {
             hasCoinGeckoId = false;
           }
-          const value = priceStoreV2.getPrice(
+          const value = priceStore.getPrice(
             currency.coinGeckoId,
             fiatCurrency.currency
           );

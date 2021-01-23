@@ -4,7 +4,7 @@ import React, {
   useCallback,
   useEffect,
   useRef,
-  useState
+  useState,
 } from "react";
 
 import styleTxButton from "./tx-button.module.scss";
@@ -52,8 +52,8 @@ const DepositModal: FunctionComponent<{
         content: "Address copied!",
         canDelete: true,
         transition: {
-          duration: 0.25
-        }
+          duration: 0.25,
+        },
       });
 
       e.preventDefault();
@@ -87,10 +87,10 @@ const DepositModal: FunctionComponent<{
 };
 
 export const TxButtonView: FunctionComponent = observer(() => {
-  const { accountStoreV2, chainStore, queriesStore } = useStore();
+  const { accountStore, chainStore, queriesStore } = useStore();
 
-  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
-  const queries = queriesStore.get(chainStore.chainInfo.chainId);
+  const accountInfo = accountStore.getAccount(chainStore.current.chainId);
+  const queries = queriesStore.get(chainStore.current.chainId);
   const queryBalances = queries
     .getQueryBalances()
     .getQueryBech32Address(accountInfo.bech32Address);
@@ -102,7 +102,7 @@ export const TxButtonView: FunctionComponent = observer(() => {
   const history = useHistory();
 
   const hasAssets =
-    queryBalances.balances.find(bal => bal.balance.toDec().gt(new Dec(0))) !==
+    queryBalances.balances.find((bal) => bal.balance.toDec().gt(new Dec(0))) !==
     undefined;
 
   return (
@@ -120,7 +120,7 @@ export const TxButtonView: FunctionComponent = observer(() => {
         className={styleTxButton.button}
         color="primary"
         outline
-        onClick={e => {
+        onClick={(e) => {
           e.preventDefault();
 
           setIsDepositOpen(true);
@@ -136,11 +136,11 @@ export const TxButtonView: FunctionComponent = observer(() => {
       <Button
         id="btn-send"
         className={classnames(styleTxButton.button, {
-          disabled: !hasAssets
+          disabled: !hasAssets,
         })}
         color="primary"
         outline
-        onClick={e => {
+        onClick={(e) => {
           e.preventDefault();
 
           if (hasAssets) {
@@ -155,7 +155,7 @@ export const TxButtonView: FunctionComponent = observer(() => {
           placement="bottom"
           isOpen={tooltipOpen}
           target="btn-send"
-          toggle={() => setTooltipOpen(value => !value)}
+          toggle={() => setTooltipOpen((value) => !value)}
           fade
         >
           <FormattedMessage id="main.account.tooltip.no-asset" />

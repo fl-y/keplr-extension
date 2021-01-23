@@ -3,7 +3,7 @@ import React, {
   MouseEvent,
   useCallback,
   useEffect,
-  useState
+  useState,
 } from "react";
 import { observer } from "mobx-react";
 import { HeaderLayout } from "../../../layouts/header-layout";
@@ -17,7 +17,7 @@ import {
   DropdownMenu,
   DropdownToggle,
   Modal,
-  ModalBody
+  ModalBody,
 } from "reactstrap";
 import styleAddressBook from "./style.module.scss";
 import { useStore } from "../../../stores";
@@ -25,8 +25,8 @@ import { PageButton } from "../page-button";
 import { AddAddressModal } from "./add-address-modal";
 import { AddressBookData } from "./types";
 import { AddressBookKVStore } from "./kv-store";
-import { BrowserKVStore } from "../../../../../common/kvstore";
-import { ChainInfo } from "../../../../../background/chains";
+import { BrowserKVStore } from "@keplr/common";
+import { ChainInfo } from "@keplr/types";
 import { shortenAddress } from "../../../../../common/address";
 import { useConfirm } from "../../../../components/confirm";
 
@@ -52,9 +52,10 @@ export const AddressBookPage: FunctionComponent<{
     [addressBookKVStore]
   );
 
+  const current = chainStore.current;
   useEffect(() => {
-    refreshAddressBook(chainStore.chainInfo);
-  }, [addressBookKVStore, chainStore.chainInfo, refreshAddressBook]);
+    refreshAddressBook(current);
+  }, [current, refreshAddressBook]);
 
   const [dropdownOpen, setOpen] = useState(false);
   const toggle = () => setOpen(!dropdownOpen);
@@ -92,7 +93,7 @@ export const AddressBookPage: FunctionComponent<{
       addressBookKVStore,
       chainStore.chainInfo,
       closeAddAddressModal,
-      refreshAddressBook
+      refreshAddressBook,
     ]
   );
 
@@ -107,11 +108,11 @@ export const AddressBookPage: FunctionComponent<{
             />
           ),
           title: intl.formatMessage({
-            id: "setting.address-book.confirm.delete-address.title"
+            id: "setting.address-book.confirm.delete-address.title",
           }),
           paragraph: intl.formatMessage({
-            id: "setting.address-book.confirm.delete-address.paragraph"
-          })
+            id: "setting.address-book.confirm.delete-address.paragraph",
+          }),
         })
       ) {
         closeAddAddressModal();
@@ -125,7 +126,7 @@ export const AddressBookPage: FunctionComponent<{
       closeAddAddressModal,
       confirm,
       intl,
-      refreshAddressBook
+      refreshAddressBook,
     ]
   );
 
@@ -199,7 +200,7 @@ export const AddressBookPage: FunctionComponent<{
           data-index={index}
           style={{ cursor: "pointer" }}
           onClick={removeAddressBookClick}
-        />
+        />,
       ];
     },
     [editAddressBookClick, removeAddressBookClick]
@@ -214,7 +215,7 @@ export const AddressBookPage: FunctionComponent<{
       showChainName={false}
       canChangeChainInfo={false}
       alternativeTitle={intl.formatMessage({
-        id: "main.menu.address-book"
+        id: "main.menu.address-book",
       })}
       onBackButton={onBackButton ? onBackButton : defaultOnBackButton}
     >
@@ -243,7 +244,7 @@ export const AddressBookPage: FunctionComponent<{
                 {chainStore.chainInfo.chainName}
               </DropdownToggle>
               <DropdownMenu>
-                {chainStore.chainList.map(chainInfo => {
+                {chainStore.chainList.map((chainInfo) => {
                   return (
                     <DropdownItem
                       key={chainInfo.chainId}
@@ -263,7 +264,7 @@ export const AddressBookPage: FunctionComponent<{
             style={{
               display: "flex",
               flexDirection: "column",
-              justifyContent: "center"
+              justifyContent: "center",
             }}
           >
             <Button color="primary" size="sm" onClick={openAddAddressModal}>

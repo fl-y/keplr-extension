@@ -3,7 +3,7 @@ import { useParams } from "react-router";
 import {
   ApproveSuggestedChainInfoMsg,
   GetSuggestedChainInfoMsg,
-  RejectSuggestedChainInfoMsg
+  RejectSuggestedChainInfoMsg,
 } from "../../../../../background/chains/messages";
 import { sendMessage } from "../../../../../common/message/send";
 import { BACKGROUND_PORT } from "../../../../../common/message/constant";
@@ -103,7 +103,7 @@ export const ChainSuggestedPage: FunctionComponent = () => {
               host: chainInfo?.origin,
               chainId: chainInfo?.chainId,
               // eslint-disable-next-line react/display-name
-              b: (...chunks: any) => <b>{chunks}</b>
+              b: (...chunks: any) => <b>{chunks}</b>,
             }}
           />
         </p>
@@ -130,7 +130,7 @@ export const ChainSuggestedPage: FunctionComponent = () => {
             color="danger"
             outline
             disabled={!chainInfo}
-            onClick={async e => {
+            onClick={async (e) => {
               e.preventDefault();
 
               await reject();
@@ -142,7 +142,7 @@ export const ChainSuggestedPage: FunctionComponent = () => {
             className={style.button}
             color="primary"
             disabled={!chainInfo}
-            onClick={async e => {
+            onClick={async (e) => {
               e.preventDefault();
 
               await approve();

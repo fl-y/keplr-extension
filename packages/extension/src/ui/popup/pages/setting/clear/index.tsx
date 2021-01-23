@@ -3,9 +3,9 @@ import React, {
   useCallback,
   useState,
   useEffect,
-  useMemo
+  useMemo,
 } from "react";
-import { HeaderLayout } from "../../../layouts/header-layout";
+import { HeaderLayout } from "../../../layouts";
 
 import { useHistory, useRouteMatch } from "react-router";
 import { FormattedMessage, useIntl } from "react-intl";
@@ -33,8 +33,8 @@ export const ClearPage: FunctionComponent = observer(() => {
   const { keyRingStore } = useStore();
   const { register, handleSubmit, setError, errors } = useForm<FormData>({
     defaultValues: {
-      password: ""
-    }
+      password: "",
+    },
   });
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export const ClearPage: FunctionComponent = observer(() => {
       showChainName={false}
       canChangeChainInfo={false}
       alternativeTitle={intl.formatMessage({
-        id: "setting.clear"
+        id: "setting.clear",
       })}
       onBackButton={useCallback(() => {
         history.goBack();
@@ -66,7 +66,7 @@ export const ClearPage: FunctionComponent = observer(() => {
           />
         ) : null}
         <Form
-          onSubmit={handleSubmit(async data => {
+          onSubmit={handleSubmit(async (data) => {
             setLoading(true);
             try {
               // Make sure that password is valid and keyring is cleared.
@@ -84,7 +84,7 @@ export const ClearPage: FunctionComponent = observer(() => {
                 "password",
                 "invalid",
                 intl.formatMessage({
-                  id: "setting.clear.input.password.error.invalid"
+                  id: "setting.clear.input.password.error.invalid",
                 })
               );
               setLoading(false);
@@ -94,14 +94,14 @@ export const ClearPage: FunctionComponent = observer(() => {
           <Input
             type="password"
             label={intl.formatMessage({
-              id: "setting.clear.input.password"
+              id: "setting.clear.input.password",
             })}
             name="password"
             error={errors.password && errors.password.message}
             ref={register({
               required: intl.formatMessage({
-                id: "setting.clear.input.password.error.required"
-              })
+                id: "setting.clear.input.password.error.required",
+              }),
             })}
           />
           <Button type="submit" color="primary" block data-loading={loading}>

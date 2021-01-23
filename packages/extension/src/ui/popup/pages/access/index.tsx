@@ -22,16 +22,17 @@ export const AccessPage: FunctionComponent = observer(() => {
     permissionStore.rejectAll();
   });
 
+  const current = chainStore.current;
   const isSecretWasm = useMemo(() => {
-    if (chainStore.chainInfo.features) {
-      return chainStore.chainInfo.features.indexOf("secretwasm") >= 0;
+    if (current.features) {
+      return current.features.indexOf("secretwasm") >= 0;
     }
     return false;
-  }, [chainStore.chainInfo.features]);
+  }, [current]);
 
   useEffect(() => {
     if (waitingPermission) {
-      chainStore.setChain(waitingPermission.data.chainId);
+      chainStore.selectChain(waitingPermission.data.chainId);
     }
   }, [chainStore, waitingPermission]);
 

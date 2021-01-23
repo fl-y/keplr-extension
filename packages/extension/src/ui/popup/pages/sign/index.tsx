@@ -37,7 +37,7 @@ export const SignPage: FunctionComponent = observer(() => {
 
   useEffect(() => {
     if (signInteractionStore.waitingData) {
-      chainStore.setChain(signInteractionStore.waitingData.chainId);
+      chainStore.selectChain(signInteractionStore.waitingData.chainId);
     }
   }, [chainStore, signInteractionStore.waitingData]);
 

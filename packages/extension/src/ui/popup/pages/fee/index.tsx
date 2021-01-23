@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useEffect } from "react";
 
-import { HeaderLayout } from "../../layouts/header-layout";
+import { HeaderLayout } from "../../layouts";
 
 import { FeeButtons, GasInput, MemoInput } from "../../../components/form";
 import { Button } from "reactstrap";
@@ -22,7 +22,7 @@ export const FeePage: FunctionComponent = observer(() => {
 
   const { chainStore, txConfigStore } = useStore();
   const txConfig = useTxConfig(chainStore);
-  txConfig.setChain(chainStore.chainInfo.chainId);
+  txConfig.setChain(chainStore.current.chainId);
 
   const interactionInfo = useInteractionInfo(() => {
     txConfigStore.rejectAll();
@@ -31,16 +31,16 @@ export const FeePage: FunctionComponent = observer(() => {
   useEffect(() => {
     const config = txConfigStore.waitingData;
     if (config) {
-      chainStore.setChain(config.chainId);
+      chainStore.selectChain(config.chainId);
       txConfig.setGas(parseFloat(config.gas));
       txConfig.setMemo(config.memo);
     }
-  }, [chainStore, txConfigStore.waitingData]);
+  }, [chainStore, txConfig, txConfigStore.waitingData]);
 
   // Cyber chain (eular-6) doesn't require the fees to send tx.
   // So, don't need to show the fee input.
   // This is temporary hardcoding.
-  const isCyberNetwork = /^(euler-)(\d)+/.test(chainStore.chainInfo.chainId);
+  const isCyberNetwork = /^(euler-)(\d)+/.test(chainStore.current.chainId);
   const txStateIsValid = true;
 
   return (

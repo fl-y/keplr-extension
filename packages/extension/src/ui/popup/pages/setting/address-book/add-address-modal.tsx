@@ -2,7 +2,7 @@ import React, {
   FunctionComponent,
   useCallback,
   useState,
-  useEffect
+  useEffect,
 } from "react";
 import { HeaderLayout } from "../../../layouts/header-layout";
 import { AddressInput, Input, MemoInput } from "../../../../components/form";
@@ -42,7 +42,7 @@ export const AddAddressModal: FunctionComponent<{
     useEffect(() => {
       if (!editingLoaded) {
         if (index >= 0) {
-          addressBookKVStore.getAddressBook(chainInfo).then(datas => {
+          addressBookKVStore.getAddressBook(chainInfo).then((datas) => {
             const data = datas[index];
             setName(data.name);
             txState.setRawAddress(data.address);
@@ -60,10 +60,10 @@ export const AddAddressModal: FunctionComponent<{
         alternativeTitle={
           index >= 0
             ? intl.formatMessage({
-                id: "setting.address-book.edit-address.title"
+                id: "setting.address-book.edit-address.title",
               })
             : intl.formatMessage({
-                id: "setting.address-book.add-address.title"
+                id: "setting.address-book.add-address.title",
               })
         }
         onBackButton={closeModal}
@@ -76,7 +76,7 @@ export const AddAddressModal: FunctionComponent<{
             label={intl.formatMessage({ id: "setting.address-book.name" })}
             autoComplete="off"
             value={name}
-            onChange={useCallback(e => {
+            onChange={useCallback((e) => {
               setName(e.target.value);
             }, [])}
           />
@@ -86,20 +86,20 @@ export const AddAddressModal: FunctionComponent<{
             coinType={chainInfo.coinType}
             errorTexts={{
               invalidBech32Address: intl.formatMessage({
-                id: "setting.address-book.address.error.invalid"
+                id: "setting.address-book.address.error.invalid",
               }),
               invalidENSName: intl.formatMessage({
-                id: "send.input.recipient.error.ens-invalid-name"
+                id: "send.input.recipient.error.ens-invalid-name",
               }),
               ensNameNotFound: intl.formatMessage({
-                id: "send.input.recipient.error.ens-not-found"
+                id: "send.input.recipient.error.ens-not-found",
               }),
               ensUnsupported: intl.formatMessage({
-                id: "send.input.recipient.error.ens-not-supported"
+                id: "send.input.recipient.error.ens-not-supported",
               }),
               ensUnknownError: intl.formatMessage({
-                id: "sned.input.recipient.error.ens-unknown-error"
-              })
+                id: "sned.input.recipient.error.ens-unknown-error",
+              }),
             }}
             disableAddressBook={true}
           />
@@ -112,7 +112,7 @@ export const AddAddressModal: FunctionComponent<{
             color="primary"
             disabled={!name || !txState.isValid("recipient", "memo")}
             onClick={useCallback(
-              e => {
+              (e) => {
                 if (!txState.recipient) {
                   throw new Error("Invalid address");
                 }
@@ -120,7 +120,7 @@ export const AddAddressModal: FunctionComponent<{
                 addAddressBook({
                   name,
                   address: txState.rawAddress,
-                  memo: txState.memo
+                  memo: txState.memo,
                 });
 
                 e.preventDefault();
@@ -130,7 +130,7 @@ export const AddAddressModal: FunctionComponent<{
                 name,
                 txState.memo,
                 txState.rawAddress,
-                txState.recipient
+                txState.recipient,
               ]
             )}
           >

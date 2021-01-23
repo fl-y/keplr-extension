@@ -18,13 +18,13 @@ const BIP44Selectable: FunctionComponent<{
   const { chainStore } = useStore();
 
   const coin = selectable.coins.find(
-    coin => coin.denom === chainStore.chainInfo.stakeCurrency.coinMinimalDenom
+    (coin) => coin.denom === chainStore.current.stakeCurrency.coinMinimalDenom
   );
 
   return (
     <div
       style={{ cursor: "pointer" }}
-      onClick={e => {
+      onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -62,12 +62,12 @@ const BIP44Selectable: FunctionComponent<{
                 {coin
                   ? CoinUtils.shrinkDecimals(
                       new Int(coin.amount),
-                      chainStore.chainInfo.stakeCurrency.coinDecimals,
+                      chainStore.current.stakeCurrency.coinDecimals,
                       0,
                       4
                     )
                   : "0"}{" "}
-                {chainStore.chainInfo.stakeCurrency.coinDenom}
+                {chainStore.current.stakeCurrency.coinDenom}
               </div>
             </Col>
             <Col>
@@ -100,7 +100,7 @@ export const BIP44SelectModal: FunctionComponent<{
   const select = async () => {
     if (selectedCoinType !== -1) {
       await keyRingStore.setKeyStoreCoinType(
-        chainStore.chainInfo.chainId,
+        chainStore.current.chainId,
         selectedCoinType
       );
     }
@@ -113,7 +113,7 @@ export const BIP44SelectModal: FunctionComponent<{
           <FormattedMessage id="main.modal.select-account.title" />
         </div>
         <div>
-          {accounts.map(selectable => {
+          {accounts.map((selectable) => {
             return (
               <BIP44Selectable
                 key={selectable.bech32Address}
@@ -131,7 +131,7 @@ export const BIP44SelectModal: FunctionComponent<{
           color="primary"
           block
           style={{ marginTop: "10px" }}
-          onClick={async e => {
+          onClick={async (e) => {
             e.preventDefault();
             e.stopPropagation();
 

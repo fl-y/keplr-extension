@@ -5,7 +5,7 @@ import { Button, ButtonGroup, Form } from "reactstrap";
 import {
   RegisterMode,
   RegisterStatus,
-  useRegisterState
+  useRegisterState,
 } from "../../../contexts/register";
 
 import { FormattedMessage, useIntl } from "react-intl";
@@ -13,7 +13,7 @@ import style from "./style.module.scss";
 import { BackButton, NunWords } from "./index";
 import { Input, TextArea } from "../../../components/form";
 import useForm from "react-hook-form";
-import { KeyRingStore } from "../../stores/keyring";
+import { KeyRingStore } from "@keplr/stores";
 import { AdvancedBIP44Option } from "./advanced-bip44";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -38,7 +38,7 @@ export const NewMnemonicPage: FunctionComponent = () => {
           color="primary"
           outline
           block
-          onClick={e => {
+          onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
 
@@ -64,15 +64,19 @@ const NewMnemonicPageIn: FunctionComponent = () => {
 
   const [numWords, setNumWords] = useState<NunWords>(NunWords.WORDS12);
 
-  const { register, handleSubmit, setValue, getValues, errors } = useForm<
-    FormData
-  >({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    getValues,
+    errors,
+  } = useForm<FormData>({
     defaultValues: {
       name: "",
       words: "",
       password: "",
-      confirmPassword: ""
-    }
+      confirmPassword: "",
+    },
   });
 
   useEffect(() => {
@@ -111,7 +115,7 @@ const NewMnemonicPageIn: FunctionComponent = () => {
         <div>
           <div className={style.title}>
             {intl.formatMessage({
-              id: "register.create.title"
+              id: "register.create.title",
             })}
             <div style={{ float: "right" }}>
               <ButtonGroup size="sm" style={{ marginBottom: "4px" }}>
@@ -151,7 +155,7 @@ const NewMnemonicPageIn: FunctionComponent = () => {
             <TextArea
               className={style.mnemonic}
               placeholder={intl.formatMessage({
-                id: "register.create.textarea.mnemonic.place-holder"
+                id: "register.create.textarea.mnemonic.place-holder",
               })}
               name="words"
               rows={numWords === NunWords.WORDS24 ? 5 : 3}
@@ -161,29 +165,29 @@ const NewMnemonicPageIn: FunctionComponent = () => {
                 validate: (value: string): string | undefined => {
                   if (value.split(" ").length < 8) {
                     return intl.formatMessage({
-                      id: "register.create.textarea.mnemonic.error.too-short"
+                      id: "register.create.textarea.mnemonic.error.too-short",
                     });
                   }
 
                   if (!bip39.validateMnemonic(value)) {
                     return intl.formatMessage({
-                      id: "register.create.textarea.mnemonic.error.invalid"
+                      id: "register.create.textarea.mnemonic.error.invalid",
                     });
                   }
-                }
+                },
               })}
               error={errors.words && errors.words.message}
             />
             <Input
               label={intl.formatMessage({
-                id: "register.name"
+                id: "register.name",
               })}
               type="text"
               name="name"
               ref={register({
                 required: intl.formatMessage({
-                  id: "register.name.error.required"
-                })
+                  id: "register.name.error.required",
+                }),
               })}
               error={errors.name && errors.name.message}
             />
@@ -191,43 +195,43 @@ const NewMnemonicPageIn: FunctionComponent = () => {
               <React.Fragment>
                 <Input
                   label={intl.formatMessage({
-                    id: "register.create.input.password"
+                    id: "register.create.input.password",
                   })}
                   type="password"
                   name="password"
                   ref={register({
                     required: intl.formatMessage({
-                      id: "register.create.input.password.error.required"
+                      id: "register.create.input.password.error.required",
                     }),
                     validate: (password: string): string | undefined => {
                       if (password.length < 8) {
                         return intl.formatMessage({
-                          id: "register.create.input.password.error.too-short"
+                          id: "register.create.input.password.error.too-short",
                         });
                       }
-                    }
+                    },
                   })}
                   error={errors.password && errors.password.message}
                 />
                 <Input
                   label={intl.formatMessage({
-                    id: "register.create.input.confirm-password"
+                    id: "register.create.input.confirm-password",
                   })}
                   type="password"
                   name="confirmPassword"
                   ref={register({
                     required: intl.formatMessage({
                       id:
-                        "register.create.input.confirm-password.error.required"
+                        "register.create.input.confirm-password.error.required",
                     }),
                     validate: (confirmPassword: string): string | undefined => {
                       if (confirmPassword !== getValues()["password"]) {
                         return intl.formatMessage({
                           id:
-                            "register.create.input.confirm-password.error.unmatched"
+                            "register.create.input.confirm-password.error.unmatched",
                         });
                       }
-                    }
+                    },
                   })}
                   error={
                     errors.confirmPassword && errors.confirmPassword.message

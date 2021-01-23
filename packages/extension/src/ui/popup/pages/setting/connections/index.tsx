@@ -4,9 +4,9 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useState
+  useState,
 } from "react";
-import { HeaderLayout } from "../../../layouts/header-layout";
+import { HeaderLayout } from "../../../layouts";
 
 import style from "../style.module.scss";
 import { useHistory } from "react-router";
@@ -16,7 +16,7 @@ import { AccessOrigin } from "../../../../../background/chains";
 import { PageButton } from "../page-button";
 import {
   GetAccessOriginMsg,
-  RemoveAccessOriginMsg
+  RemoveAccessOriginMsg,
 } from "../../../../../background/chains/messages";
 import { sendMessage } from "../../../../../common/message/send";
 import { BACKGROUND_PORT } from "../../../../../common/message/constant";
@@ -24,7 +24,7 @@ import {
   ButtonDropdown,
   DropdownItem,
   DropdownMenu,
-  DropdownToggle
+  DropdownToggle,
 } from "reactstrap";
 
 import styleConnections from "./style.module.scss";
@@ -76,11 +76,11 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
               />
             ),
             title: intl.formatMessage({
-              id: "setting.connections.confirm.delete-connection.title"
+              id: "setting.connections.confirm.delete-connection.title",
             }),
             paragraph: intl.formatMessage({
-              id: "setting.connections.confirm.delete-connection.paragraph"
-            })
+              id: "setting.connections.confirm.delete-connection.paragraph",
+            }),
           })
         ) {
           const msg = new RemoveAccessOriginMsg(chainId, origin);
@@ -102,7 +102,7 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
       showChainName={false}
       canChangeChainInfo={false}
       alternativeTitle={intl.formatMessage({
-        id: "setting.connections"
+        id: "setting.connections",
       })}
       onBackButton={useCallback(() => {
         history.goBack();
@@ -118,7 +118,7 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
             {chainStore.chainInfo.chainName}
           </DropdownToggle>
           <DropdownMenu>
-            {chainStore.chainList.map(chainInfo => {
+            {chainStore.chainList.map((chainInfo) => {
               return (
                 <DropdownItem
                   key={chainInfo.chainId}
@@ -133,7 +133,7 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
           </DropdownMenu>
         </ButtonDropdown>
         {accessOrigin
-          ? accessOrigin.origins.map(origin => {
+          ? accessOrigin.origins.map((origin) => {
               return (
                 <PageButton
                   title={origin}

@@ -14,7 +14,7 @@ import {
   RegisterMode,
   RegisterStatus,
   useRegisterState,
-  withRegisterStateProvider
+  withRegisterStateProvider,
 } from "../../../contexts/register";
 
 import { AdditionalSignInPrepend } from "../../../../config";
@@ -29,11 +29,11 @@ import { AddLedgerPage } from "./add-ledger";
 
 export enum NunWords {
   WORDS12,
-  WORDS24
+  WORDS24,
 }
 
 export const BackButton: FunctionComponent<{ onClick: () => void }> = ({
-  onClick
+  onClick,
 }) => {
   return (
     <div className={style.backButton}>
@@ -77,7 +77,7 @@ export const RegisterPage: FunctionComponent = withRegisterStateProvider(
         registerState.setBIP44HDPath({
           account: 0,
           change: 0,
-          addressIndex: 0
+          addressIndex: 0,
         });
       }
     }, [registerState]);
@@ -120,7 +120,7 @@ export const RegisterPage: FunctionComponent = withRegisterStateProvider(
             <FormattedMessage
               id="register.intro.sub-content"
               values={{
-                br: <br />
+                br: <br />,
               }}
             />
           </div>

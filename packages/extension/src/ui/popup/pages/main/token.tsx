@@ -16,7 +16,7 @@ const TokenView: FunctionComponent<{
     "#5e72e4",
     "#11cdef",
     "#2dce89",
-    "#fb6340"
+    "#fb6340",
   ]);
 
   const backgroundColor = useMemo(() => {
@@ -31,7 +31,7 @@ const TokenView: FunctionComponent<{
   return (
     <div
       className={styleToken.tokenContainer}
-      onClick={e => {
+      onClick={(e) => {
         e.preventDefault();
 
         onClick();
@@ -50,7 +50,7 @@ const TokenView: FunctionComponent<{
             alignItems: "center",
 
             color: "#FFFFFF",
-            fontSize: "16px"
+            fontSize: "16px",
           }}
         >
           {name.length > 0 ? name[0] : "?"}
@@ -70,12 +70,12 @@ const TokenView: FunctionComponent<{
 };
 
 export const TokensView: FunctionComponent = observer(() => {
-  const { chainStore, accountStoreV2, queriesStore } = useStore();
+  const { chainStore, accountStore, queriesStore } = useStore();
 
-  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
+  const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 
   const tokens = queriesStore
-    .get(chainStore.chainInfo.chainId)
+    .get(chainStore.current.chainId)
     .getQueryBalances()
     .getQueryBech32Address(accountInfo.bech32Address).unstakables;
 
@@ -97,7 +97,7 @@ export const TokensView: FunctionComponent = observer(() => {
             onClick={() => {
               history.push({
                 pathname: "/send",
-                search: `?defaultdenom=${"TODO"}`
+                search: `?defaultdenom=${"TODO"}`,
               });
             }}
           />

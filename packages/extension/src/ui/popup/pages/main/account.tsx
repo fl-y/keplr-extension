@@ -10,8 +10,8 @@ import { useNotification } from "../../../components/notification";
 import { useIntl } from "react-intl";
 
 export const AccountView: FunctionComponent = observer(() => {
-  const { accountStoreV2, chainStore } = useStore();
-  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
+  const { accountStore, chainStore } = useStore();
+  const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 
   const intl = useIntl();
 
@@ -25,14 +25,14 @@ export const AccountView: FunctionComponent = observer(() => {
       type: "success",
       duration: 2,
       content: intl.formatMessage({
-        id: "main.address.copied"
+        id: "main.address.copied",
       }),
       canDelete: true,
       transition: {
-        duration: 0.25
-      }
+        duration: 0.25,
+      },
     });
-  }, [notification, accountInfo.bech32Address]);
+  }, [accountInfo.bech32Address, notification, intl]);
 
   return (
     <div>
@@ -41,7 +41,7 @@ export const AccountView: FunctionComponent = observer(() => {
         <div className={styleAccount.name}>
           {accountInfo.name ||
             intl.formatMessage({
-              id: "setting.keyring.unnamed-account"
+              id: "setting.keyring.unnamed-account",
             })}
         </div>
         <div style={{ flex: 1 }} />

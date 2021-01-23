@@ -28,17 +28,17 @@ export const SendPage: FunctionComponent = observer(() => {
 
   const notification = useNotification();
 
-  const { chainStore, accountStoreV2 } = useStore();
+  const { chainStore, accountStore } = useStore();
 
-  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
+  const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 
   const txConfig = useTxConfig(chainStore);
-  txConfig.setChain(chainStore.chainInfo.chainId);
+  txConfig.setChain(chainStore.current.chainId);
 
   // Cyber chain (eular-6) doesn't require the fees to send tx.
   // So, don't need to show the fee input.
   // This is temporary hardcoding.
-  const isCyberNetwork = /^(euler-)(\d)+/.test(chainStore.chainInfo.chainId);
+  const isCyberNetwork = /^(euler-)(\d)+/.test(chainStore.current.chainId);
   const txStateIsValid = isCyberNetwork
     ? txConfig.isValid("recipient", "amount", "memo", "gas")
     : txConfig.isValid("recipient", "amount", "memo", "fee", "gas");
@@ -59,6 +59,7 @@ export const SendPage: FunctionComponent = observer(() => {
           if (accountInfo.isReadyToSendMsgs && txStateIsValid) {
             accountInfo.sendToken(
               txConfig.amount,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               txConfig.sendCurrency!,
               txConfig.recipient,
               txConfig.toStdFee(),

@@ -165,14 +165,14 @@ export function renderMessage(
 
       receives.push({
         amount: clearDecimals(parsed.amount),
-        denom: parsed.denom
+        denom: parsed.denom,
       });
     }
 
     return {
       icon: "fas fa-paper-plane",
       title: intl.formatMessage({
-        id: "sign.list.message.cosmos-sdk/MsgSend.title"
+        id: "sign.list.message.cosmos-sdk/MsgSend.title",
       }),
       content: (
         <FormattedMessage
@@ -181,13 +181,13 @@ export function renderMessage(
             b: (...chunks: any[]) => <b>{chunks}</b>,
             recipient: shortenAddress(msg.value.to_address, 20),
             amount: receives
-              .map(coin => {
+              .map((coin) => {
                 return `${coin.amount} ${coin.denom}`;
               })
-              .join(",")
+              .join(","),
           }}
         />
-      )
+      ),
     };
   }
 
@@ -200,7 +200,7 @@ export function renderMessage(
     return {
       icon: "fas fa-layer-group",
       title: intl.formatMessage({
-        id: "sign.list.message.cosmos-sdk/MsgBeginRedelegate.title"
+        id: "sign.list.message.cosmos-sdk/MsgBeginRedelegate.title",
       }),
       content: (
         <FormattedMessage
@@ -209,10 +209,10 @@ export function renderMessage(
             b: (...chunks: any[]) => <b>{chunks}</b>,
             fromValidator: shortenAddress(msg.value.validator_src_address, 24),
             toValidator: shortenAddress(msg.value.validator_dst_address, 24),
-            amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`
+            amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`,
           }}
         />
-      )
+      ),
     };
   }
 
@@ -225,7 +225,7 @@ export function renderMessage(
     return {
       icon: "fas fa-layer-group",
       title: intl.formatMessage({
-        id: "sign.list.message.cosmos-sdk/MsgUndelegate.title"
+        id: "sign.list.message.cosmos-sdk/MsgUndelegate.title",
       }),
       content: (
         <FormattedMessage
@@ -234,10 +234,10 @@ export function renderMessage(
             b: (...chunks: any[]) => <b>{chunks}</b>,
             br: <br />,
             validator: shortenAddress(msg.value.validator_address, 24),
-            amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`
+            amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`,
           }}
         />
-      )
+      ),
     };
   }
 
@@ -250,7 +250,7 @@ export function renderMessage(
     return {
       icon: "fas fa-layer-group",
       title: intl.formatMessage({
-        id: "sign.list.message.cosmos-sdk/MsgDelegate.title"
+        id: "sign.list.message.cosmos-sdk/MsgDelegate.title",
       }),
       content: (
         <FormattedMessage
@@ -258,10 +258,10 @@ export function renderMessage(
           values={{
             b: (...chunks: any[]) => <b>{chunks}</b>,
             validator: shortenAddress(msg.value.validator_address, 24),
-            amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`
+            amount: `${clearDecimals(parsed.amount)} ${parsed.denom}`,
           }}
         />
-      )
+      ),
     };
   }
 
@@ -274,17 +274,17 @@ export function renderMessage(
     return {
       icon: "fas fa-money-bill",
       title: intl.formatMessage({
-        id: "sign.list.message.cosmos-sdk/MsgWithdrawDelegatorReward.title"
+        id: "sign.list.message.cosmos-sdk/MsgWithdrawDelegatorReward.title",
       }),
       content: (
         <FormattedMessage
           id="sign.list.message.cosmos-sdk/MsgWithdrawDelegatorReward.content"
           values={{
             b: (...chunks: any[]) => <b>{chunks}</b>,
-            validator: shortenAddress(msg.value.validator_address, 34)
+            validator: shortenAddress(msg.value.validator_address, 34),
           }}
         />
-      )
+      ),
     };
   }
 
@@ -296,14 +296,14 @@ export function renderMessage(
 
       funds.push({
         amount: clearDecimals(parsed.amount),
-        denom: parsed.denom
+        denom: parsed.denom,
       });
     }
 
     return {
       icon: "fas fa-cog",
       title: intl.formatMessage({
-        id: "sign.list.message.wasm/MsgInstantiateContract.title"
+        id: "sign.list.message.wasm/MsgInstantiateContract.title",
       }),
       content: (
         <React.Fragment>
@@ -320,16 +320,16 @@ export function renderMessage(
               ["only-funds-exist"]: (...chunks: any[]) =>
                 funds.length > 0 ? chunks : "",
               funds: funds
-                .map(coin => {
+                .map((coin) => {
                   return `${coin.amount} ${coin.denom}`;
                 })
-                .join(",")
+                .join(","),
             }}
           />
           <br />
           <WasmExecutionMsgView msg={msg.value.init_msg} />
         </React.Fragment>
-      )
+      ),
     };
   }
 
@@ -342,7 +342,7 @@ export function renderMessage(
 
       sent.push({
         amount: clearDecimals(parsed.amount),
-        denom: parsed.denom
+        denom: parsed.denom,
       });
     }
 
@@ -351,7 +351,7 @@ export function renderMessage(
     return {
       icon: "fas fa-cog",
       title: intl.formatMessage({
-        id: "sign.list.message.wasm/MsgExecuteContract.title"
+        id: "sign.list.message.wasm/MsgExecuteContract.title",
       }),
       content: (
         <React.Fragment>
@@ -364,10 +364,10 @@ export function renderMessage(
               ["only-sent-exist"]: (...chunks: any[]) =>
                 sent.length > 0 ? chunks : "",
               sent: sent
-                .map(coin => {
+                .map((coin) => {
                   return `${coin.amount} ${coin.denom}`;
                 })
-                .join(",")
+                .join(","),
             }}
           />
           {isSecretWasm ? (
@@ -382,7 +382,7 @@ export function renderMessage(
           )}
           <WasmExecutionMsgView msg={msg.value.msg} />
         </React.Fragment>
-      )
+      ),
     };
   }
 
@@ -391,14 +391,14 @@ export function renderMessage(
     for (const link of msg.value.links) {
       cyberlinks.push({
         from: link.from,
-        to: link.to
+        to: link.to,
       });
     }
 
     return {
       icon: "fas fa-paper-plane",
       title: intl.formatMessage({
-        id: "sign.list.message.cyber/Link.title"
+        id: "sign.list.message.cyber/Link.title",
       }),
       content: (
         <FormattedMessage
@@ -408,24 +408,24 @@ export function renderMessage(
             br: <br />,
             address: shortenAddress(msg.value.address, 20),
             link: cyberlinks
-              .map(link => {
+              .map((link) => {
                 return `${truncHashPortion(
                   link.from,
                   7,
                   7
                 )} → ${truncHashPortion(link.to, 7, 7)}`;
               })
-              .join(", ")
+              .join(", "),
           }}
         />
-      )
+      ),
     };
   }
 
   return {
     icon: undefined,
     title: "Unknown",
-    content: <b>Check data tab</b>
+    content: <b>Check data tab</b>,
   };
 }
 /* eslint-enable react/display-name */
@@ -437,7 +437,7 @@ export const WasmExecutionMsgView: FunctionComponent<{
   const [isOpen, setIsOpen] = useState(false);
   const intl = useIntl();
 
-  const toggleOpen = () => setIsOpen(isOpen => !isOpen);
+  const toggleOpen = () => setIsOpen((isOpen) => !isOpen);
 
   const [detailsMsg, setDetailsMsg] = useState(JSON.stringify(msg, null, 2));
   const [warningMsg, setWarningMsg] = useState("");
@@ -459,7 +459,7 @@ export const WasmExecutionMsgView: FunctionComponent<{
             await sendMessage(
               BACKGROUND_PORT,
               new RequestDecryptMsg(
-                chainStore.chainInfo.chainId,
+                chainStore.current.chainId,
                 cipherText.toString("hex"),
                 nonce.toString("hex")
               )
@@ -478,13 +478,13 @@ export const WasmExecutionMsgView: FunctionComponent<{
           setWarningMsg(
             intl.formatMessage({
               id:
-                "sign.list.message.wasm/MsgExecuteContract.content.warning.secret-wasm.failed-decryption"
+                "sign.list.message.wasm/MsgExecuteContract.content.warning.secret-wasm.failed-decryption",
             })
           );
         }
       })();
     }
-  }, [chainStore.chainInfo.chainId, intl, msg]);
+  }, [chainStore.current.chainId, intl, msg]);
 
   return (
     <div>
@@ -497,7 +497,7 @@ export const WasmExecutionMsgView: FunctionComponent<{
       <Button
         size="sm"
         style={{ position: "absolute", right: "20px" }}
-        onClick={e => {
+        onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
 
@@ -506,10 +506,10 @@ export const WasmExecutionMsgView: FunctionComponent<{
       >
         {isOpen
           ? intl.formatMessage({
-              id: "sign.list.message.wasm.button.close"
+              id: "sign.list.message.wasm.button.close",
             })
           : intl.formatMessage({
-              id: "sign.list.message.wasm.button.details"
+              id: "sign.list.message.wasm.button.details",
             })}
       </Button>
       <div style={{ height: "36px" }} />

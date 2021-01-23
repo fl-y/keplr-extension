@@ -5,7 +5,7 @@ import {
   InteractionStore,
   QueriesStore,
   CoinGeckoPriceStore,
-  AccountStore as AccountStoreV2,
+  AccountStore,
   PermissionStore,
   TxConfigStore,
   SignInteractionStore,
@@ -30,7 +30,7 @@ export class RootStore {
   public readonly ledgerInitStore: LedgerInitStore;
 
   public readonly queriesStore: QueriesStore;
-  public readonly accountStore: AccountStoreV2;
+  public readonly accountStore: AccountStore;
   public readonly priceStore: CoinGeckoPriceStore;
 
   constructor() {
@@ -66,7 +66,7 @@ export class RootStore {
       this.chainStore
     );
 
-    this.accountStore = new AccountStoreV2(
+    this.accountStore = new AccountStore(
       new BrowserKVStore("store_account"),
       this.chainStore,
       this.queriesStore

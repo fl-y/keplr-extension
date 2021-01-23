@@ -22,15 +22,15 @@ export const AdvancedBIP44Option: FunctionComponent<{
       if (
         await confirm.confirm({
           paragraph: intl.formatMessage({
-            id: "register.bip44.confirm.clear"
-          })
+            id: "register.bip44.confirm.clear",
+          }),
         })
       ) {
         setIsOpen(false);
         registerState.setBIP44HDPath({
           account: 0,
           change: 0,
-          addressIndex: 0
+          addressIndex: 0,
         });
       }
     } else {
@@ -43,7 +43,7 @@ export const AdvancedBIP44Option: FunctionComponent<{
       <Button
         type="button"
         color="link"
-        onClick={e => {
+        onClick={(e) => {
           e.preventDefault();
           toggleOpen();
         }}
@@ -59,7 +59,7 @@ export const AdvancedBIP44Option: FunctionComponent<{
             id="bip44-path"
             style={{
               display: "flex",
-              alignItems: "baseline"
+              alignItems: "baseline",
             }}
           >
             <div>{`m/44'/${coinType != null ? coinType : "···"}'/`}</div>
@@ -68,7 +68,7 @@ export const AdvancedBIP44Option: FunctionComponent<{
               className="form-control-alternative"
               style={{ width: "100px", textAlign: "right" }}
               value={registerState.bip44HDPath.account.toString()}
-              onChange={e => {
+              onChange={(e) => {
                 e.preventDefault();
 
                 let value = e.target.value;
@@ -90,7 +90,7 @@ export const AdvancedBIP44Option: FunctionComponent<{
                       registerState.setBIP44HDPath({
                         account: parsed,
                         change: 0,
-                        addressIndex: 0
+                        addressIndex: 0,
                       });
                     }
                   }
@@ -99,7 +99,7 @@ export const AdvancedBIP44Option: FunctionComponent<{
                     registerState.setBIP44HDPath({
                       account: 0,
                       change: 0,
-                      addressIndex: 0
+                      addressIndex: 0,
                     });
                   }
                 }

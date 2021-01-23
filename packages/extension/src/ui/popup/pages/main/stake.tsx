@@ -18,9 +18,9 @@ import { FormattedMessage } from "react-intl";
 
 export const StakeView: FunctionComponent = observer(() => {
   const history = useHistory();
-  const { chainStore, accountStoreV2, queriesStore } = useStore();
-  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
-  const queries = queriesStore.get(chainStore.chainInfo.chainId);
+  const { chainStore, accountStore, queriesStore } = useStore();
+  const accountInfo = accountStore.getAccount(chainStore.current.chainId);
+  const queries = queriesStore.get(chainStore.current.chainId);
 
   const notification = useNotification();
 
@@ -47,7 +47,7 @@ export const StakeView: FunctionComponent = observer(() => {
           amount: [{ denom: "uatom", amount: "1" }],
           gas: (
             rewards.pendingRewardValidatorAddresses.length * 140000
-          ).toString()
+          ).toString(),
         },
         "",
         "block",
@@ -63,8 +63,8 @@ export const StakeView: FunctionComponent = observer(() => {
             content: `Fail to withdraw rewards: ${e.message}`,
             canDelete: true,
             transition: {
-              duration: 0.25
-            }
+              duration: 0.25,
+            },
           });
         }
       );
@@ -72,7 +72,7 @@ export const StakeView: FunctionComponent = observer(() => {
   };
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
-  const toogleTooltip = () => setTooltipOpen(value => !value);
+  const toogleTooltip = () => setTooltipOpen((value) => !value);
 
   return (
     <div>
@@ -100,10 +100,7 @@ export const StakeView: FunctionComponent = observer(() => {
                   styleStake.paragraphMain
                 )}
               >
-                {stakableReward
-                  .shrink(true)
-                  .maxDecimals(6)
-                  .toString()}
+                {stakableReward.shrink(true).maxDecimals(6).toString()}
                 {rewards.isFetching ? (
                   <span>
                     <i className="fas fa-spinner fa-spin" />
@@ -154,27 +151,24 @@ export const StakeView: FunctionComponent = observer(() => {
               values={{
                 apr: (
                   <React.Fragment>
-                    {inflation.inflation
-                      .trim(true)
-                      .maxDecimals(2)
-                      .toString()}
+                    {inflation.inflation.trim(true).maxDecimals(2).toString()}
                     {inflation.isFetching ? (
                       <span>
                         <i className="fas fa-spinner fa-spin" />
                       </span>
                     ) : null}
                   </React.Fragment>
-                )
+                ),
               }}
             />
           </p>
         </div>
         <div style={{ flex: 1 }} />
         <a
-          href={chainStore.chainInfo.walletUrlForStaking}
+          href={chainStore.current.walletUrlForStaking}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={e => {
+          onClick={(e) => {
             if (!isStakableExist) {
               e.preventDefault();
             }
@@ -188,7 +182,7 @@ export const StakeView: FunctionComponent = observer(() => {
           <Button
             id="btn-stake"
             className={classnames(styleStake.button, {
-              disabled: !isStakableExist
+              disabled: !isStakableExist,
             })}
             color="primary"
             size="sm"

@@ -15,7 +15,7 @@ const LazyDoughnut = React.lazy(async () => {
     /* webpackChunkName: "reactChartJS" */ "react-chartjs-2"
   );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   const chartJS = module.Chart as any;
 
@@ -108,7 +108,7 @@ const LazyDoughnut = React.lazy(async () => {
 });
 
 export const AssetStakedChartView: FunctionComponent = observer(() => {
-  const { chainStore, accountStoreV2, queriesStore, priceStoreV2 } = useStore();
+  const { chainStore, accountStore, queriesStore, priceStore } = useStore();
 
   const intl = useIntl();
 
@@ -116,14 +116,14 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
 
   const fiatCurrency = getFiatCurrencyFromLanguage(language.language);
 
-  const current = chainStore.chainInfo;
+  const current = chainStore.current;
   const stakeCurrency = current.stakeCurrency;
 
   const hasCoinGeckoId = stakeCurrency.coinGeckoId != null;
 
   const queries = queriesStore.get(current.chainId);
 
-  const accountInfo = accountStoreV2.getAccount(current.chainId);
+  const accountInfo = accountStore.getAccount(current.chainId);
 
   const balanceStakableQuery = queries
     .getQueryBalances()
@@ -145,18 +145,18 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
 
   const total = stakable.add(stakedSum);
 
-  const stakablePrice = priceStoreV2.calculatePrice(
+  const stakablePrice = priceStore.calculatePrice(
     stakeCurrency.coinGeckoId || "",
     fiatCurrency.currency,
     stakable
   );
-  const stakedSumPrice = priceStoreV2.calculatePrice(
+  const stakedSumPrice = priceStore.calculatePrice(
     stakeCurrency.coinGeckoId || "",
     fiatCurrency.currency,
     stakedSum
   );
 
-  const totalPrice = priceStoreV2.calculatePrice(
+  const totalPrice = priceStore.calculatePrice(
     stakeCurrency.coinGeckoId || "",
     fiatCurrency.currency,
     total

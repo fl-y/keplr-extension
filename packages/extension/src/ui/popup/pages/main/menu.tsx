@@ -18,7 +18,7 @@ export const Menu: FunctionComponent = observer(() => {
         className={styleMenu.item}
         onClick={useCallback(() => {
           history.push({
-            pathname: "/setting/address-book"
+            pathname: "/setting/address-book",
           });
         }, [history])}
       >
@@ -28,20 +28,20 @@ export const Menu: FunctionComponent = observer(() => {
         className={styleMenu.item}
         onClick={useCallback(() => {
           history.push({
-            pathname: "/setting"
+            pathname: "/setting",
           });
         }, [history])}
       >
         <FormattedMessage id="main.menu.settings" />
       </div>
-      {(chainStore.chainInfo.features ?? []).find(
-        feature => feature === "cosmwasm" || feature === "secretwasm"
+      {(chainStore.current.features ?? []).find(
+        (feature) => feature === "cosmwasm" || feature === "secretwasm"
       ) ? (
         <div
           className={styleMenu.item}
           onClick={() => {
             history.push({
-              pathname: "/setting/token/add"
+              pathname: "/setting/token/add",
             });
           }}
         >

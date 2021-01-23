@@ -5,7 +5,7 @@ import { Button, Form } from "reactstrap";
 import {
   RegisterMode,
   RegisterStatus,
-  useRegisterState
+  useRegisterState,
 } from "../../../contexts/register";
 
 import { FormattedMessage, useIntl } from "react-intl";
@@ -35,7 +35,7 @@ export const AddLedgerPage: FunctionComponent = () => {
           color="primary"
           outline
           block
-          onClick={e => {
+          onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
 
@@ -65,8 +65,8 @@ const AddLedgerPageIn: FunctionComponent = observer(() => {
     defaultValues: {
       name: "",
       password: "",
-      confirmPassword: ""
-    }
+      confirmPassword: "",
+    },
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +77,7 @@ const AddLedgerPageIn: FunctionComponent = observer(() => {
         <div>
           <div className={style.title}>
             {intl.formatMessage({
-              id: "register.name"
+              id: "register.name",
             })}
           </div>
           <Form
@@ -89,7 +89,7 @@ const AddLedgerPageIn: FunctionComponent = observer(() => {
                 if (registerState.mode === RegisterMode.ADD) {
                   await keyRingStore.addLedgerKey(
                     {
-                      name: data.name
+                      name: data.name,
                     },
                     registerState.bip44HDPath
                   );
@@ -97,7 +97,7 @@ const AddLedgerPageIn: FunctionComponent = observer(() => {
                   await keyRingStore.createLedgerKey(
                     data.password,
                     {
-                      name: data.name
+                      name: data.name,
                     },
                     registerState.bip44HDPath
                   );
@@ -112,14 +112,14 @@ const AddLedgerPageIn: FunctionComponent = observer(() => {
           >
             <Input
               label={intl.formatMessage({
-                id: "register.name"
+                id: "register.name",
               })}
               type="text"
               name="name"
               ref={register({
                 required: intl.formatMessage({
-                  id: "register.name.error.required"
-                })
+                  id: "register.name.error.required",
+                }),
               })}
               error={errors.name && errors.name.message}
             />
@@ -127,43 +127,43 @@ const AddLedgerPageIn: FunctionComponent = observer(() => {
               <React.Fragment>
                 <Input
                   label={intl.formatMessage({
-                    id: "register.create.input.password"
+                    id: "register.create.input.password",
                   })}
                   type="password"
                   name="password"
                   ref={register({
                     required: intl.formatMessage({
-                      id: "register.create.input.password.error.required"
+                      id: "register.create.input.password.error.required",
                     }),
                     validate: (password: string): string | undefined => {
                       if (password.length < 8) {
                         return intl.formatMessage({
-                          id: "register.create.input.password.error.too-short"
+                          id: "register.create.input.password.error.too-short",
                         });
                       }
-                    }
+                    },
                   })}
                   error={errors.password && errors.password.message}
                 />
                 <Input
                   label={intl.formatMessage({
-                    id: "register.create.input.confirm-password"
+                    id: "register.create.input.confirm-password",
                   })}
                   type="password"
                   name="confirmPassword"
                   ref={register({
                     required: intl.formatMessage({
                       id:
-                        "register.create.input.confirm-password.error.required"
+                        "register.create.input.confirm-password.error.required",
                     }),
                     validate: (confirmPassword: string): string | undefined => {
                       if (confirmPassword !== getValues()["password"]) {
                         return intl.formatMessage({
                           id:
-                            "register.create.input.confirm-password.error.unmatched"
+                            "register.create.input.confirm-password.error.unmatched",
                         });
                       }
-                    }
+                    },
                   })}
                   error={
                     errors.confirmPassword && errors.confirmPassword.message
