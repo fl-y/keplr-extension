@@ -113,6 +113,7 @@ export class PermissionService {
     let innerMap = this.permissionMap[type];
     if (!innerMap) {
       innerMap = {};
+      this.permissionMap[type] = innerMap;
     }
 
     for (const origin of origins) {

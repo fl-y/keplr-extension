@@ -3,7 +3,7 @@ import { ChainIdHelper } from "@keplr/cosmos";
 export const INTERACTION_TYPE_PERMISSION = "permission";
 
 export function getBasicAccessPermissionType(chainId: string) {
-  const identifier = ChainIdHelper.parse(chainId);
+  const identifier = ChainIdHelper.parse(chainId).identifier;
 
   return `basic-access/${identifier}`;
 }

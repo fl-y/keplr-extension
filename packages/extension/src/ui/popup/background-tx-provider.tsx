@@ -1,7 +1,7 @@
-import React, { FunctionComponent, useCallback, useEffect } from "react";
-import { useStore } from "./stores";
+import React, { FunctionComponent } from "react";
 
 export const BackgroundTxProvider: FunctionComponent = ({ children }) => {
+  /*
   const { chainStore, accountStore } = useStore();
 
   const updateAssets = useCallback(
@@ -24,6 +24,7 @@ export const BackgroundTxProvider: FunctionComponent = ({ children }) => {
       window.removeEventListener("backgroundTxCommitted", updateAssets as any);
     };
   }, [updateAssets]);
+     */
 
   return <React.Fragment>{children}</React.Fragment>;
 };

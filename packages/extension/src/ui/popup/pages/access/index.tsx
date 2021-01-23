@@ -25,6 +25,7 @@ export const AccessPage: FunctionComponent = observer(() => {
   });
 
   const current = chainStore.current;
+
   const isSecretWasm = useMemo(() => {
     if (current.features) {
       return current.features.indexOf("secretwasm") >= 0;

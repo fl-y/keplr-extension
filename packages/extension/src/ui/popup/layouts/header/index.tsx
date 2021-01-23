@@ -35,14 +35,14 @@ export const Header: FunctionComponent<Props & LocalProps> = observer(
     menuRenderer,
     rightRenderer,
     isMenuOpen,
-    onBackButton
+    onBackButton,
   }) => {
     const { chainStore } = useStore();
     const menu = useMenu();
 
     const chainInfoChangable =
       canChangeChainInfo &&
-      chainStore.chainList.length > 1 &&
+      chainStore.chainInfos.length > 1 &&
       alternativeTitle == null;
 
     return (
@@ -97,7 +97,7 @@ export const Header: FunctionComponent<Props & LocalProps> = observer(
             >
               <div className={style.title}>
                 {showChainName
-                  ? chainStore.chainInfo.chainName
+                  ? chainStore.current.chainName
                   : alternativeTitle}
               </div>
 

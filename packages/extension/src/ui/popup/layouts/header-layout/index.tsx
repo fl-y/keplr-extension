@@ -11,7 +11,7 @@ export interface Props extends HeaderProps {
   style?: CSSProperties;
 }
 
-export const HeaderLayout: FunctionComponent<Props> = props => {
+export const HeaderLayout: FunctionComponent<Props> = (props) => {
   const { children } = props;
 
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -25,7 +25,7 @@ export const HeaderLayout: FunctionComponent<Props> = props => {
     },
     toggle: () => {
       setMenuOpen(!isMenuOpen);
-    }
+    },
   };
 
   return (

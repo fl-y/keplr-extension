@@ -47,7 +47,7 @@ export class BasicAccessPermissionInnerStore {
 
   @actionAsync
   protected async refreshOrigins() {
-    await task(
+    this._origins = await task(
       this.requester.sendMessage(
         BACKGROUND_PORT,
         new GetPermissionOriginsMsg(getBasicAccessPermissionType(this.chainId))

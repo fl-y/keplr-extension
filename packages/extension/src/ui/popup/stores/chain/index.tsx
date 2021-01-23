@@ -49,7 +49,7 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
   @computed
   get current(): ChainInfoWithEmbed {
     if (this.hasChain(this.selectedChainId)) {
-      this.getChain(this.selectedChainId);
+      return this.getChain(this.selectedChainId);
     }
 
     return this.chainInfos[0];

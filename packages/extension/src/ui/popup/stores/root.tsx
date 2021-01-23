@@ -53,7 +53,10 @@ export class RootStore {
       this.interactionStore
     );
 
-    this.permissionStore = new PermissionStore(this.interactionStore);
+    this.permissionStore = new PermissionStore(
+      this.interactionStore,
+      new InExtensionMessageRequester()
+    );
     this.txConfigStore = new TxConfigStore(this.interactionStore);
     this.signInteractionStore = new SignInteractionStore(this.interactionStore);
     this.ledgerInitStore = new LedgerInitStore(

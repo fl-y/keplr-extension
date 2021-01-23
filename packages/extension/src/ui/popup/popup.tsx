@@ -27,7 +27,7 @@ import { configure } from "mobx";
 import { observer } from "mobx-react";
 
 import { StoreProvider, useStore } from "./stores";
-import { KeyRingStatus } from "./stores/keyring";
+import { KeyRingStatus } from "@keplr/background";
 import { SignPage } from "./pages/sign";
 import { FeePage } from "./pages/fee";
 import { ChainSuggestedPage } from "./pages/chain/suggest";
