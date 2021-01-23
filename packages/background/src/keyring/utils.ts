@@ -70,7 +70,7 @@ export function txBuilderConfigToPrimitive(
     gasAdjustment: config.gasAdjustment,
     memo: config.memo,
     fee: feeToString(config.fee),
-    gasPrice: config.gasPrice
+    gasPrice: config.gasPrice,
   };
 }
 
@@ -96,6 +96,6 @@ export function txBuilderConfigFromPrimitive(
     gasAdjustment: primitive.gasAdjustment,
     memo: primitive.memo,
     fee: feeFromString(primitive.fee),
-    gasPrice: primitive.gasPrice
+    gasPrice: primitive.gasPrice,
   };
 }

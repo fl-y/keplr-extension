@@ -34,7 +34,7 @@ export async function sendMessage<M extends Message<unknown>>(
       resolve(result.return);
     });
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     msg["origin"] = opts.origin;
 

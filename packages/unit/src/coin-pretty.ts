@@ -14,7 +14,7 @@ export class CoinPretty {
     separator: " ",
     upperCase: false,
     lowerCase: false,
-    denomToPrefix: false
+    denomToPrefix: false,
   };
 
   constructor(
@@ -133,7 +133,7 @@ export class CoinPretty {
   clone(): CoinPretty {
     const pretty = new CoinPretty(this.denom, this.amount);
     pretty.options = {
-      ...this.options
+      ...this.options,
     };
     pretty.intPretty = this.intPretty.clone();
     return pretty;

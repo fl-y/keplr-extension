@@ -80,7 +80,7 @@ export class IndexedDBKVStore implements KVStore {
       };
 
       request.onupgradeneeded = (event) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         const db = event.target.result;
 

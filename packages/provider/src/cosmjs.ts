@@ -91,9 +91,7 @@ export class CosmJSOfflineSigner implements OfflineSigner {
     }
 
     const newSignDoc: StdSignDoc = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       chain_id: signDoc.chain_id,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       account_number: txConfig.accountNumber ?? signDoc.account_number,
       sequence: txConfig.sequence ?? signDoc.sequence,
       fee: {

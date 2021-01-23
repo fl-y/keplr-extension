@@ -1,6 +1,6 @@
 const PopupSize = {
   width: 360,
-  height: 580
+  height: 580,
 };
 
 const lastWindowIds: Record<string, number | undefined> = {};
@@ -19,7 +19,7 @@ export async function openPopupWindow(
     width: PopupSize.width,
     height: PopupSize.height,
     url: url,
-    type: "popup" as "popup"
+    type: "popup" as "popup",
   };
 
   if (lastWindowIds[channel] !== undefined) {
@@ -27,7 +27,7 @@ export async function openPopupWindow(
       const window = await browser.windows.get(
         lastWindowIds[channel] as number,
         {
-          populate: true
+          populate: true,
         }
       );
       if (window?.tabs?.length) {
@@ -50,7 +50,7 @@ export async function openPopupWindow(
   if (lastWindowIds[channel]) {
     try {
       await browser.windows.update(lastWindowIds[channel] as number, {
-        focused: true
+        focused: true,
       });
     } catch (e) {
       console.log(`Failed to update window focus: ${e.message}`);
@@ -79,15 +79,15 @@ export function fitPopupWindow() {
   // Get the gap size like title bar or menu bar, etc...
   const gap = {
     width: window.outerWidth - window.innerWidth,
-    height: window.outerHeight - window.innerHeight
+    height: window.outerHeight - window.innerHeight,
   };
 
   if (browser.windows) {
-    browser.windows.getCurrent().then(window => {
+    browser.windows.getCurrent().then((window) => {
       if (window?.id != null) {
         browser.windows.update(window.id, {
           width: PopupSize.width + gap.width,
-          height: PopupSize.height + gap.height
+          height: PopupSize.height + gap.height,
         });
       }
     });

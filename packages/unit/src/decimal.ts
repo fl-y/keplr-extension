@@ -16,6 +16,7 @@ export class Dec {
       throw new Error("Too much precision");
     }
     if (Dec.precisionMultipliers[prec.toString()]) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return Dec.precisionMultipliers[prec.toString()]!;
     }
 
@@ -267,7 +268,7 @@ export class Dec {
       !(integer.eq(bigInteger(0)) && fractionStr.length === 0);
 
     const integerStr = locale
-      ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      ? // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         BigInt(integer.toString()).toLocaleString("en-US")
       : integer.toString();

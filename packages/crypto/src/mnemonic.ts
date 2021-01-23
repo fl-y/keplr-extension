@@ -38,7 +38,7 @@ export class Mnemonic {
 
     return {
       privKey,
-      mnemonic
+      mnemonic,
     };
   }
 

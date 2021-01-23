@@ -19,7 +19,7 @@ export class IntPretty {
     trim: false,
     shrink: false,
     ready: true,
-    locale: true
+    locale: true,
   };
 
   constructor(num: Int | Dec) {
@@ -128,7 +128,7 @@ export class IntPretty {
   clone(): IntPretty {
     const pretty = new IntPretty(this.int);
     pretty.options = {
-      ...this.options
+      ...this.options,
     };
     return pretty;
   }

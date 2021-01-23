@@ -10,38 +10,38 @@ const Buffer = require("buffer/").Buffer;
 @DefineStruct()
 export class MsgExecuteContract extends Msg {
   @Field.Defined(0, {
-    jsonName: "sender"
+    jsonName: "sender",
   })
   public sender: AccAddress;
 
   @Field.Defined(1, {
-    jsonName: "contract"
+    jsonName: "contract",
   })
   public contract: AccAddress;
 
   @Field.Slice(
     2,
     {
-      type: Type.Uint8
+      type: Type.Uint8,
     },
     {
-      jsonName: "msg"
+      jsonName: "msg",
     }
   )
   public msg?: Uint8Array;
 
   @Field.String(3, {
-    jsonName: "callback_code_hash"
+    jsonName: "callback_code_hash",
   })
   public callbackCodeHash: string;
 
   @Field.Slice(
     4,
     {
-      type: Type.Defined
+      type: Type.Defined,
     },
     {
-      jsonName: "sent_funds"
+      jsonName: "sent_funds",
     }
   )
   public sentFunds: Coin[];
@@ -94,7 +94,6 @@ export class MsgExecuteContract extends Msg {
 
     // Due to the limitation of ts-animo implementation, don't support the callbackSig for now, and assume that it is null.
     const json = JSON.parse(Buffer.from(signBytes).toString());
-    // eslint-disable-next-line @typescript-eslint/camelcase
     json.value.callback_sig = null;
     return Buffer.from(JSON.stringify(json));
   }

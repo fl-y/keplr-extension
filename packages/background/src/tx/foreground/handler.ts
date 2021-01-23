@@ -17,7 +17,7 @@ export const getHandler: (keeper: BackgroundTxNotifyKeeper) => Handler = (
 
 const handleTxCommittedMsg: (
   keeper: BackgroundTxNotifyKeeper
-) => InternalHandler<TxCommittedMsg> = keeper => {
+) => InternalHandler<TxCommittedMsg> = (keeper) => {
   return (_env, msg) => {
     return keeper.onTxCommitted(msg.chainId);
   };

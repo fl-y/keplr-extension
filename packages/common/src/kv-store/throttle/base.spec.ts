@@ -10,7 +10,7 @@ describe("Test throttled kv store", () => {
     const kvStore = new ThrottelableKVStore("test", {
       interval: 100,
       limit: 7,
-      dev: true
+      dev: true,
     });
 
     for (let i = 0; i < 99; i++) {
@@ -35,7 +35,7 @@ describe("Test throttled kv store", () => {
     const kvStore = new ThrottelableKVStore("test", {
       interval: 100,
       limit: 7,
-      dev: true
+      dev: true,
     });
 
     for (let i = 0; i < 99; i++) {

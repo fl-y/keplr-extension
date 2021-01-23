@@ -101,15 +101,13 @@ export class SecretWasmKeeper {
           chainInfo.chainId,
           Buffer.from(
             JSON.stringify({
-              // eslint-disable-next-line @typescript-eslint/camelcase
               account_number: 0,
-              // eslint-disable-next-line @typescript-eslint/camelcase
               chain_id: chainInfo.chainId,
               fee: [],
               memo:
                 "Create Keplr Secret encryption key. Only approve requests by Keplr.",
               msgs: [],
-              sequence: 0
+              sequence: 0,
             })
           )
         )

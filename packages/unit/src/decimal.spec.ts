@@ -57,7 +57,7 @@ describe("Test decimals", () => {
         expQuoRoundUp: new Dec(0),
         expQuoTruncate: new Dec(0),
         expAdd: new Dec(0),
-        expSub: new Dec(0)
+        expSub: new Dec(0),
       },
       {
         d1: new Dec(0),
@@ -68,7 +68,7 @@ describe("Test decimals", () => {
         expQuoRoundUp: new Dec(0),
         expQuoTruncate: new Dec(0),
         expAdd: new Dec(1),
-        expSub: new Dec(-1)
+        expSub: new Dec(-1),
       },
       {
         d1: new Dec(-1),
@@ -79,7 +79,7 @@ describe("Test decimals", () => {
         expQuoRoundUp: new Dec(0),
         expQuoTruncate: new Dec(0),
         expAdd: new Dec(-1),
-        expSub: new Dec(-1)
+        expSub: new Dec(-1),
       },
       {
         d1: new Dec(-1),
@@ -90,7 +90,7 @@ describe("Test decimals", () => {
         expQuoRoundUp: new Dec(-1),
         expQuoTruncate: new Dec(-1),
         expAdd: new Dec(0),
-        expSub: new Dec(-2)
+        expSub: new Dec(-2),
       },
       {
         d1: new Dec(3),
@@ -101,7 +101,7 @@ describe("Test decimals", () => {
         expQuoRoundUp: new Dec("428571428571428572", 18),
         expQuoTruncate: new Dec("428571428571428571", 18),
         expAdd: new Dec(10),
-        expSub: new Dec(-4)
+        expSub: new Dec(-4),
       },
       {
         d1: new Dec(100),
@@ -112,7 +112,7 @@ describe("Test decimals", () => {
         expQuoRoundUp: new Dec(1),
         expQuoTruncate: new Dec(1),
         expAdd: new Dec(200),
-        expSub: new Dec(0)
+        expSub: new Dec(0),
       },
       {
         d1: new Dec(3333, 4),
@@ -123,8 +123,8 @@ describe("Test decimals", () => {
         expQuoRoundUp: new Dec("10.009009009009009010"),
         expQuoTruncate: new Dec("10.009009009009009009"),
         expAdd: new Dec(3666, 4),
-        expSub: new Dec(3, 1)
-      }
+        expSub: new Dec(3, 1),
+      },
     ];
 
     for (const test of tests) {
@@ -189,36 +189,36 @@ describe("Test decimals", () => {
     }[] = [
       {
         d1: new Dec("0.25"),
-        exp: new Int("0")
+        exp: new Int("0"),
       },
       {
         d1: new Dec("0"),
-        exp: new Int("0")
+        exp: new Int("0"),
       },
       {
         d1: new Dec("1"),
-        exp: new Int("1")
+        exp: new Int("1"),
       },
       {
         d1: new Dec("0.75"),
-        exp: new Int("1")
+        exp: new Int("1"),
       },
       {
         d1: new Dec("0.5"),
-        exp: new Int("0")
+        exp: new Int("0"),
       },
       {
         d1: new Dec("7.5"),
-        exp: new Int("8")
+        exp: new Int("8"),
       },
       {
         d1: new Dec("0.545"),
-        exp: new Int("1")
+        exp: new Int("1"),
       },
       {
         d1: new Dec("1.545"),
-        exp: new Int("2")
-      }
+        exp: new Int("2"),
+      },
     ];
 
     for (const test of tests) {
@@ -237,36 +237,36 @@ describe("Test decimals", () => {
     }[] = [
       {
         d1: new Dec("0"),
-        exp: new Int("0")
+        exp: new Int("0"),
       },
       {
         d1: new Dec("0.25"),
-        exp: new Int("0")
+        exp: new Int("0"),
       },
       {
         d1: new Dec("0.75"),
-        exp: new Int("0")
+        exp: new Int("0"),
       },
       {
         d1: new Dec("1"),
-        exp: new Int("1")
+        exp: new Int("1"),
       },
       {
         d1: new Dec("7.5"),
-        exp: new Int("7")
+        exp: new Int("7"),
       },
       {
         d1: new Dec("7.6"),
-        exp: new Int("7")
+        exp: new Int("7"),
       },
       {
         d1: new Dec("8.5"),
-        exp: new Int("8")
+        exp: new Int("8"),
       },
       {
         d1: new Dec("100.000000001"),
-        exp: new Int("100")
-      }
+        exp: new Int("100"),
+      },
     ];
 
     for (const test of tests) {
@@ -287,63 +287,63 @@ describe("Test decimals", () => {
       {
         d1: new Dec("0"),
         precision: 0,
-        exp: "0"
+        exp: "0",
       },
       {
         d1: new Dec("1.25"),
         precision: 0,
-        exp: "1"
+        exp: "1",
       },
       {
         d1: new Dec("0.75"),
         precision: 1,
-        exp: "0.7"
+        exp: "0.7",
       },
       {
         d1: new Dec("1"),
         precision: 5,
-        exp: "1.00000"
+        exp: "1.00000",
       },
       {
         d1: new Dec("7.5"),
         precision: 3,
-        exp: "7.500"
+        exp: "7.500",
       },
       {
         d1: new Dec("100.000000001"),
         precision: 0,
-        exp: "100"
+        exp: "100",
       },
       {
         d1: new Dec("-0.25"),
         precision: 0,
-        exp: "0"
+        exp: "0",
       },
       {
         d1: new Dec("-1.25"),
         precision: 0,
-        exp: "-1"
+        exp: "-1",
       },
       {
         d1: new Dec("-0.75"),
         precision: 1,
-        exp: "-0.7"
+        exp: "-0.7",
       },
       {
         d1: new Dec("-1"),
         precision: 5,
-        exp: "-1.00000"
+        exp: "-1.00000",
       },
       {
         d1: new Dec("-7.5"),
         precision: 3,
-        exp: "-7.500"
+        exp: "-7.500",
       },
       {
         d1: new Dec("-100.000000001"),
         precision: 0,
-        exp: "-100"
-      }
+        exp: "-100",
+      },
     ];
 
     for (const test of tests) {

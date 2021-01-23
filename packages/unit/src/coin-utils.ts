@@ -132,7 +132,7 @@ export class CoinUtils {
     const fractionStr = fraction.toString(decimals).replace("0.", "");
 
     const integerStr = locale
-      ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      ? // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         BigInt(integer.toString()).toLocaleString("en-US")
       : integer.toString();

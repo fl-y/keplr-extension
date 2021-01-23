@@ -9,7 +9,7 @@ const BrowserKVStoreProvider: KVStoreProvider = {
   set:
     typeof browser !== "undefined"
       ? browser.storage.local.set
-      : (undefined as any)
+      : (undefined as any),
 };
 
 export class BrowserKVStore extends BaseKVStore {

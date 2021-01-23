@@ -4,7 +4,7 @@ import {
 } from "../../chain-query";
 import { BondStatus, Validators, Validator } from "./types";
 import { KVStore } from "@keplr/common";
-import { ChainGetter } from "../../../common/types";
+import { ChainGetter } from "../../../common";
 import { autorun, computed, observable, runInAction } from "mobx";
 import { ObservableQuery, QueryResponse } from "../../../common";
 import Axios, { CancelToken } from "axios";

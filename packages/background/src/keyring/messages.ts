@@ -3,13 +3,13 @@ import { ROUTE } from "./constants";
 import {
   KeyRing,
   KeyRingStatus,
-  MultiKeyStoreInfoWithSelected
+  MultiKeyStoreInfoWithSelected,
 } from "./keyring";
 import {
   BIP44HDPath,
   SelectableAccount,
   TxBuilderConfigPrimitive,
-  TxBuilderConfigPrimitiveWithChainId
+  TxBuilderConfigPrimitiveWithChainId,
 } from "./types";
 
 import { Bech32Address } from "@keplr/cosmos";
@@ -529,9 +529,7 @@ export class GetKeyRingTypeMsg extends Message<string> {
   }
 }
 
-export class GetMultiKeyStoreInfoMsg extends Message<
-  MultiKeyStoreInfoWithSelected
-> {
+export class GetMultiKeyStoreInfoMsg extends Message<MultiKeyStoreInfoWithSelected> {
   public static type() {
     return "get-multi-key-store-info";
   }

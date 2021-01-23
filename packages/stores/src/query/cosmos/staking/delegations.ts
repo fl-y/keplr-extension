@@ -4,7 +4,7 @@ import {
 } from "../../chain-query";
 import { Delegation, Delegations, DelegationsStargate } from "./types";
 import { KVStore } from "@keplr/common";
-import { ChainGetter } from "../../../common/types";
+import { ChainGetter } from "../../../common";
 import { CoinPretty, Int } from "@keplr/unit";
 import { computed } from "mobx";
 import { computedFn } from "mobx-utils";
@@ -109,7 +109,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
 
     const result = this.response.data.result;
     if (result.length > 0 && "delegation" in result[0]) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       return result.map((r) => {
         return {
@@ -121,7 +121,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     return result;
   }

@@ -29,7 +29,7 @@ export class PrivKeySecp256k1 {
     ).toString();
 
     const signature = key.sign(Buffer.from(hash, "hex"), {
-      canonical: true
+      canonical: true,
     });
 
     return new Uint8Array(
