@@ -11,7 +11,7 @@ import {
   SignInteractionStore,
   LedgerInitStore,
 } from "@keplr/stores";
-import { BrowserKVStore } from "../../../common/kvstore";
+import { BrowserKVStore } from "@keplr/common";
 import {
   Router,
   ExtensionEnv,
@@ -30,8 +30,8 @@ export class RootStore {
   public readonly ledgerInitStore: LedgerInitStore;
 
   public readonly queriesStore: QueriesStore;
-  public readonly accountStoreV2: AccountStoreV2;
-  public readonly priceStoreV2: CoinGeckoPriceStore;
+  public readonly accountStore: AccountStoreV2;
+  public readonly priceStore: CoinGeckoPriceStore;
 
   constructor() {
     const router = new Router(ExtensionEnv.produceEnv);
@@ -62,24 +62,27 @@ export class RootStore {
     );
 
     this.queriesStore = new QueriesStore(
-      new BrowserKVStore("queries"),
+      new BrowserKVStore("store_queries"),
       this.chainStore
     );
 
-    this.accountStoreV2 = new AccountStoreV2(
-      new BrowserKVStore("account"),
+    this.accountStore = new AccountStoreV2(
+      new BrowserKVStore("store_account"),
       this.chainStore,
       this.queriesStore
     );
 
-    this.priceStoreV2 = new CoinGeckoPriceStore(new BrowserKVStore("prices"), {
-      usd: {
-        symbol: "$",
-      },
-      krw: {
-        symbol: "₩",
-      },
-    });
+    this.priceStore = new CoinGeckoPriceStore(
+      new BrowserKVStore("store_prices"),
+      {
+        usd: {
+          symbol: "$",
+        },
+        krw: {
+          symbol: "₩",
+        },
+      }
+    );
 
     router.listen(APP_PORT);
   }
