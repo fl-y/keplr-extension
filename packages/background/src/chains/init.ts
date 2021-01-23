@@ -1,9 +1,6 @@
 import { Router } from "@keplr/router";
 import {
   GetChainInfosMsg,
-  ReqeustAccessMsg,
-  GetAccessOriginMsg,
-  RemoveAccessOriginMsg,
   SuggestChainInfoMsg,
   RemoveSuggestedChainInfoMsg,
   TryUpdateChainMsg,
@@ -16,9 +13,6 @@ export function init(router: Router, keeper: ChainsService): void {
   router.registerMessage(GetChainInfosMsg);
   router.registerMessage(SuggestChainInfoMsg);
   router.registerMessage(RemoveSuggestedChainInfoMsg);
-  router.registerMessage(ReqeustAccessMsg);
-  router.registerMessage(GetAccessOriginMsg);
-  router.registerMessage(RemoveAccessOriginMsg);
   router.registerMessage(TryUpdateChainMsg);
 
   router.addHandler(ROUTE, getHandler(keeper));

@@ -1,5 +1,5 @@
 import { Message } from "@keplr/router";
-import { AccessOrigin, ChainInfoWithEmbed } from "./types";
+import { ChainInfoWithEmbed } from "./types";
 import { ChainInfo } from "@keplr/types";
 import { ROUTE } from "./constants";
 
@@ -72,106 +72,6 @@ export class RemoveSuggestedChainInfoMsg extends Message<ChainInfoWithEmbed[]> {
 
   type(): string {
     return RemoveSuggestedChainInfoMsg.type();
-  }
-}
-
-export class ReqeustAccessMsg extends Message<void> {
-  public static type() {
-    return "request-access";
-  }
-
-  constructor(
-    public readonly chainId: string,
-    public readonly appOrigin: string
-  ) {
-    super();
-  }
-
-  validateBasic(): void {
-    if (!this.chainId) {
-      throw new Error("chain id is empty");
-    }
-
-    if (!this.appOrigin) {
-      throw new Error("Empty origin");
-    }
-
-    const url = new URL(this.appOrigin);
-    if (!url.origin || url.origin === "null") {
-      throw new Error("Invalid app origin");
-    }
-  }
-
-  approveExternal(): boolean {
-    return true;
-  }
-
-  route(): string {
-    return ROUTE;
-  }
-
-  type(): string {
-    return ReqeustAccessMsg.type();
-  }
-}
-
-export class GetAccessOriginMsg extends Message<AccessOrigin> {
-  public static type() {
-    return "get-access-origin";
-  }
-
-  constructor(public readonly chainId: string) {
-    super();
-  }
-
-  validateBasic(): void {
-    if (!this.chainId) {
-      throw new Error("Empty chain id");
-    }
-  }
-
-  route(): string {
-    return ROUTE;
-  }
-
-  type(): string {
-    return GetAccessOriginMsg.type();
-  }
-}
-
-export class RemoveAccessOriginMsg extends Message<void> {
-  public static type() {
-    return "remove-access-origin";
-  }
-
-  constructor(
-    public readonly chainId: string,
-    public readonly appOrigin: string
-  ) {
-    super();
-  }
-
-  validateBasic(): void {
-    if (!this.chainId) {
-      throw new Error("Empty chain id");
-    }
-
-    if (!this.appOrigin) {
-      throw new Error("Empty origin");
-    }
-
-    const url = new URL(this.appOrigin);
-    if (!url.origin || url.origin === "null") {
-      throw new Error("Invalid app origin");
-    }
-  }
-
-  route(): string {
-    return ROUTE;
-  }
-
-  type(): string {
-    return RemoveAccessOriginMsg.type();
   }
 }
 

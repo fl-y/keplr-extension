@@ -1,11 +1,8 @@
 import { Env, Handler, InternalHandler, Message } from "@keplr/router";
 import { ChainsService } from "./service";
 import {
-  GetAccessOriginMsg,
   GetChainInfosMsg,
-  RemoveAccessOriginMsg,
   RemoveSuggestedChainInfoMsg,
-  ReqeustAccessMsg,
   SuggestChainInfoMsg,
   TryUpdateChainMsg,
 } from "./messages";
@@ -27,18 +24,6 @@ export const getHandler: (service: ChainsService) => Handler = (service) => {
         return handleRemoveSuggestedChainInfoMsg(service)(
           env,
           msg as RemoveSuggestedChainInfoMsg
-        );
-      case ReqeustAccessMsg:
-        return handleRequestAccessMsg(service)(env, msg as ReqeustAccessMsg);
-      case GetAccessOriginMsg:
-        return handleGetAccessOriginsMsg(service)(
-          env,
-          msg as GetAccessOriginMsg
-        );
-      case RemoveAccessOriginMsg:
-        return handleRemoveAccessOriginMsg(service)(
-          env,
-          msg as RemoveAccessOriginMsg
         );
       case TryUpdateChainMsg:
         return handleTryUpdateChainMsg(service)(env, msg as TryUpdateChainMsg);
@@ -97,30 +82,6 @@ const handleRemoveSuggestedChainInfoMsg: (
   return async (_, msg) => {
     await service.removeChainInfo(msg.chainId);
     return await service.getChainInfos();
-  };
-};
-
-const handleRequestAccessMsg: (
-  service: ChainsService
-) => InternalHandler<ReqeustAccessMsg> = (service) => {
-  return async (env, msg) => {
-    await service.requestAccess(env, msg.chainId, [msg.appOrigin]);
-  };
-};
-
-const handleGetAccessOriginsMsg: (
-  service: ChainsService
-) => InternalHandler<GetAccessOriginMsg> = (service) => {
-  return async (_, msg) => {
-    return await service.getAccessOriginWithoutEmbed(msg.chainId);
-  };
-};
-
-const handleRemoveAccessOriginMsg: (
-  service: ChainsService
-) => InternalHandler<RemoveAccessOriginMsg> = (service) => {
-  return async (_, msg) => {
-    await service.removeAccessOrigin(msg.chainId, msg.appOrigin);
   };
 };
 
