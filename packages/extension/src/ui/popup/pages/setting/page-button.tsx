@@ -4,16 +4,17 @@ import classnames from "classnames";
 
 import stylePageButton from "./page-button.module.scss";
 
-export const PageButton: FunctionComponent<{
-  title: string;
-  paragraph?: string;
-  subParagraph?: string;
-  icons?: React.ReactElement[];
-} & React.HTMLAttributes<HTMLDivElement>> = props => {
+export const PageButton: FunctionComponent<
+  {
+    title: string;
+    paragraph?: string;
+    subParagraph?: string;
+    icons?: React.ReactElement[];
+  } & React.HTMLAttributes<HTMLDivElement>
+> = (props) => {
   const { title, paragraph, subParagraph, icons } = props;
 
   const attributes = { ...props };
-  delete attributes.title;
   delete attributes.paragraph;
   delete attributes.subParagraph;
   delete attributes.icons;
@@ -21,7 +22,7 @@ export const PageButton: FunctionComponent<{
   return (
     <div
       className={classnames(stylePageButton.container, {
-        [stylePageButton.withSubParagraph]: subParagraph != null
+        [stylePageButton.withSubParagraph]: subParagraph != null,
       })}
       {...attributes}
     >
