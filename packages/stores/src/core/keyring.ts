@@ -117,6 +117,8 @@ export class KeyRingStore {
       this.multiKeyStoreInfo = [];
       this.selectablesMap = new Map();
     });
+
+    this.restore();
   }
 
   @actionAsync
@@ -241,7 +243,7 @@ export class KeyRingStore {
   }
 
   @actionAsync
-  async restore() {
+  protected async restore() {
     const msg = new RestoreKeyRingMsg();
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
     this.status = result.status;

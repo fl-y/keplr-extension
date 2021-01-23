@@ -42,7 +42,10 @@ export class RootStore {
       new InExtensionMessageRequester()
     );
 
-    this.chainStore = new ChainStore(this, EmbedChainInfos);
+    this.chainStore = new ChainStore(
+      EmbedChainInfos,
+      new InExtensionMessageRequester()
+    );
 
     this.keyRingStore = new KeyRingStore(
       this.chainStore,
@@ -79,9 +82,6 @@ export class RootStore {
     });
 
     router.listen(APP_PORT);
-
-    this.chainStore.init();
-    this.keyRingStore.restore();
   }
 }
 

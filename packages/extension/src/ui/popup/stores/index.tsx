@@ -16,7 +16,7 @@ export const StoreConsumer: FunctionComponent<{
 }> = ({ children }) => {
   return (
     <storeContext.Consumer>
-      {rootStore => {
+      {(rootStore) => {
         if (!rootStore) {
           throw new Error("You have forgot to use StoreProvider");
         }

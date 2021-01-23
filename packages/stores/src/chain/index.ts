@@ -1,6 +1,7 @@
-import { observable, runInAction } from "mobx";
+import { action, observable, runInAction } from "mobx";
 import { ChainInfo } from "@keplr/types";
-import { ChainGetter } from "../common/types";
+import { ChainGetter } from "../common";
+import { ChainIdHelper } from "@keplr/cosmos";
 
 export class ChainStore<C extends ChainInfo = ChainInfo>
   implements ChainGetter {
@@ -18,12 +19,37 @@ export class ChainStore<C extends ChainInfo = ChainInfo>
   }
 
   getChain(chainId: string): C {
-    const find = this.chainInfos.find((info) => info.chainId === chainId);
+    const chainIdentifier = ChainIdHelper.parse(chainId);
+
+    const find = this.chainInfos.find((info) => {
+      return (
+        ChainIdHelper.parse(info.chainId).identifier ===
+        chainIdentifier.identifier
+      );
+    });
 
     if (!find) {
       throw new Error(`Unknown chain info: ${chainId}`);
     }
 
     return find;
+  }
+
+  hasChain(chainId: string): boolean {
+    const chainIdentifier = ChainIdHelper.parse(chainId);
+
+    const find = this.chainInfos.find((info) => {
+      return (
+        ChainIdHelper.parse(info.chainId).identifier ===
+        chainIdentifier.identifier
+      );
+    });
+
+    return find != null;
+  }
+
+  @action
+  protected setChainInfos(chainInfos: C[]) {
+    this._chainInfos = chainInfos;
   }
 }
