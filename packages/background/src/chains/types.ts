@@ -8,11 +8,6 @@ import {
 
 import Joi, { ObjectSchema } from "joi";
 
-export interface AccessOrigin {
-  chainId: string;
-  origins: string[];
-}
-
 export type ChainInfoWithEmbed = ChainInfo & {
   embeded: boolean;
 };

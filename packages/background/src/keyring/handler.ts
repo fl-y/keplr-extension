@@ -116,7 +116,11 @@ const handleEnableKeyRingMsg: (
   service: KeyRingService
 ) => InternalHandler<EnableKeyRingMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     // Will throw an error if chain is unknown.
     await service.chainsService.getChainInfo(msg.chainId);
@@ -242,7 +246,11 @@ const handleGetKeyMsg: (
   service: KeyRingService
 ) => InternalHandler<GetKeyMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     const key = await service.getKey(msg.chainId);
 
@@ -265,7 +273,7 @@ const handleRequestTxBuilderConfigMsg: (
   return async (env, msg) => {
     // `config` in msg can't be null because `validateBasic` ensures that `config` is not null.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await service.checkAccessOrigin(
+    await service.permissionService.checkOrGrantBasicAccessPermission(
       env,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       msg.config!.chainId,
@@ -289,7 +297,11 @@ const handleRequestSignMsg: (
   service: KeyRingService
 ) => InternalHandler<RequestSignMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     await service.checkBech32Address(msg.chainId, msg.bech32Address);
 

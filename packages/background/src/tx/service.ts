@@ -1,6 +1,6 @@
 import Axios, { AxiosInstance } from "axios";
 import { ChainsService } from "../chains";
-import { Env } from "@keplr/router";
+import { PermissionService } from "../permission";
 
 const Buffer = require("buffer/").Buffer;
 
@@ -18,7 +18,10 @@ interface ABCIMessageLog {
 }
 
 export class BackgroundTxService {
-  constructor(private chainsService: ChainsService) {}
+  constructor(
+    protected readonly chainsService: ChainsService,
+    public readonly permissionService: PermissionService
+  ) {}
 
   async sendTx(
     chainId: string,
@@ -255,9 +258,5 @@ export class BackgroundTxService {
       title: "Tx failed",
       message,
     });
-  }
-
-  async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    await this.chainsService.checkAccessOrigin(env, chainId, origin);
   }
 }

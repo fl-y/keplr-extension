@@ -20,6 +20,8 @@ import { LedgerService } from "../ledger";
 import { BIP44, ChainInfo } from "@keplr/types";
 import { Env } from "@keplr/router";
 import { InteractionService } from "../interaction";
+import { PermissionService } from "../permission";
+
 import {
   EnableKeyRingMsg,
   RequestSignMsg,
@@ -36,6 +38,7 @@ export class KeyRingService {
     kvStore: KVStore,
     protected readonly interactionService: InteractionService,
     public readonly chainsService: ChainsService,
+    public readonly permissionService: PermissionService,
     ledgerService: LedgerService
   ) {
     this.keyRing = new KeyRing(embedChainInfos, kvStore, ledgerService);
@@ -78,10 +81,6 @@ export class KeyRingService {
 
   get keyRingStatus(): KeyRingStatus {
     return this.keyRing.status;
-  }
-
-  async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    await this.chainsService.checkAccessOrigin(env, chainId, origin);
   }
 
   async checkBech32Address(chainId: string, bech32Address: string) {

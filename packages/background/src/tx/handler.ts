@@ -33,7 +33,11 @@ const handleSendTxMsg: (
   service: BackgroundTxService
 ) => InternalHandler<SendTxMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     return await service.sendTx(msg.chainId, msg.tx, msg.mode);
   };
@@ -43,7 +47,11 @@ const handleRequestBackgroundTxMsg: (
   service: BackgroundTxService
 ) => InternalHandler<RequestBackgroundTxMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await service.requestTx(msg.chainId, msg.txBytes, msg.mode!, msg.isRestAPI);
     return {};
@@ -54,7 +62,11 @@ const handleRequestBackgroundTxWithResultMsg: (
   service: BackgroundTxService
 ) => InternalHandler<RequestBackgroundTxWithResultMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
     return await service.requestTxWithResult(
       msg.chainId,
       msg.txBytes,

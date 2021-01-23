@@ -17,16 +17,18 @@ import { KVStore } from "@keplr/common";
 import { KeyRingStatus } from "../keyring";
 import { ChainUpdaterService } from "../updater";
 import { InteractionService } from "../interaction";
+import { PermissionService } from "../permission";
 
 const Buffer = require("buffer/").Buffer;
 
 export class TokensService {
-  private chainsService!: ChainsService;
-  private keyRingService!: KeyRingService;
+  protected chainsService!: ChainsService;
+  protected keyRingService!: KeyRingService;
 
   constructor(
-    private readonly kvStore: KVStore,
-    private readonly interactionService: InteractionService
+    protected readonly kvStore: KVStore,
+    protected readonly interactionService: InteractionService,
+    public readonly permissionService: PermissionService
   ) {}
 
   init(chainsKeeper: ChainsService, keyRingKeeper: KeyRingService) {
@@ -232,10 +234,6 @@ export class TokensService {
     }
 
     throw new Error("There is no matched secret20");
-  }
-
-  async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    await this.chainsService.checkAccessOrigin(env, chainId, origin);
   }
 
   static async validateCurrency(

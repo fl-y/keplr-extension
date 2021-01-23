@@ -1,6 +1,7 @@
 import { EnigmaUtils } from "secretjs";
 import { KeyRingService } from "../keyring";
 import { ChainsService } from "../chains";
+import { PermissionService } from "../permission";
 import { Crypto } from "../keyring/crypto";
 import { KVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
@@ -11,9 +12,10 @@ const Buffer = require("buffer/").Buffer;
 
 export class SecretWasmService {
   constructor(
-    private readonly kvStore: KVStore,
-    private readonly chainsService: ChainsService,
-    private readonly keyRingService: KeyRingService
+    protected readonly kvStore: KVStore,
+    protected readonly chainsService: ChainsService,
+    protected readonly keyRingService: KeyRingService,
+    public readonly permissionService: PermissionService
   ) {}
 
   async getPubkey(env: Env, chainId: string): Promise<Uint8Array> {
@@ -118,9 +120,5 @@ export class SecretWasmService {
     await this.kvStore.set(storeKey, Buffer.from(seed).toString("hex"));
 
     return seed;
-  }
-
-  async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    await this.chainsService.checkAccessOrigin(env, chainId, origin);
   }
 }

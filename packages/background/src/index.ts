@@ -23,13 +23,11 @@ export * from "./interaction";
 
 import { KVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
-import { AccessOrigin } from "./chains";
 
 export function init(
   router: Router,
   storeCreator: (prefix: string) => KVStore,
-  embedChainInfos: ChainInfo[],
-  embedAccessOrigins: AccessOrigin[]
+  embedChainInfos: ChainInfo[]
 ) {
   const interactionService = new Interaction.InteractionService();
   Interaction.init(router, interactionService);
@@ -49,7 +47,8 @@ export function init(
 
   const tokensService = new Tokens.TokensService(
     storeCreator("tokens"),
-    interactionService
+    interactionService,
+    permissionService
   );
   Tokens.init(router, tokensService);
 
@@ -58,8 +57,7 @@ export function init(
     chainUpdaterService,
     tokensService,
     interactionService,
-    embedChainInfos,
-    embedAccessOrigins
+    embedChainInfos
   );
   Chains.init(router, chainsService);
 
@@ -74,6 +72,7 @@ export function init(
     storeCreator("keyring"),
     interactionService,
     chainsService,
+    permissionService,
     ledgerService
   );
   KeyRing.init(router, keyRingService);
@@ -83,12 +82,14 @@ export function init(
   const secretWasmService = new SecretWasm.SecretWasmService(
     storeCreator("secretwasm"),
     chainsService,
-    keyRingService
+    keyRingService,
+    permissionService
   );
   SecretWasm.init(router, secretWasmService);
 
   const backgroundTxService = new BackgroundTx.BackgroundTxService(
-    chainsService
+    chainsService,
+    permissionService
   );
   BackgroundTx.init(router, backgroundTxService);
 }

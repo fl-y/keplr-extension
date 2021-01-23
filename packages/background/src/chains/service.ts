@@ -1,11 +1,10 @@
-import { AccessOrigin, ChainInfoSchema, ChainInfoWithEmbed } from "./types";
+import { ChainInfoSchema, ChainInfoWithEmbed } from "./types";
 import { ChainInfo } from "@keplr/types";
 import { KVStore } from "@keplr/common";
 import { ChainUpdaterService } from "../updater";
 import { TokensService } from "../tokens";
 import { InteractionService } from "../interaction";
 import { Env } from "@keplr/router";
-import { ReqeustAccessMsg } from "./messages";
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
@@ -15,8 +14,7 @@ export class ChainsService {
     private readonly chainUpdaterKeeper: ChainUpdaterService,
     private readonly tokensKeeper: TokensService,
     private readonly interactionKeeper: InteractionService,
-    private readonly embedChainInfos: ChainInfo[],
-    private readonly embedAccessOrigins: AccessOrigin[]
+    private readonly embedChainInfos: ChainInfo[]
   ) {
     // TODO: Handle the case that the embeded chains and dynamically added chain has overlaps.
   }
@@ -176,170 +174,13 @@ export class ChainsService {
     await this.tokensKeeper.clearTokens(chainId);
 
     // Clear the access origin.
-    await this.clearAccessOrigins(chainId);
-  }
-
-  async requestAccess(
-    env: Env,
-    chainId: string,
-    origins: string[]
-  ): Promise<void> {
-    // If origin is from extension, just ignore it.
-    if (env.isInternalMsg) {
-      return;
-    }
-
-    if (origins.length === 0) {
-      throw new Error("Empty origin");
-    }
-
-    // Will throw an error if chain is unknown.
-    await this.getChainInfo(chainId);
-
-    const accessOrigin = await this.getAccessOrigin(chainId);
-    if (
-      origins.every((origin) => {
-        return accessOrigin.origins.includes(origin);
-      })
-    ) {
-      return;
-    }
-
-    await this.interactionKeeper.waitApprove(
-      env,
-      "/access",
-      ReqeustAccessMsg.type(),
-      {
-        chainId,
-        origins,
-      }
-    );
-
-    for (const origin of origins) {
-      await this.addAccessOrigin(chainId, origin);
-    }
-  }
-
-  async checkAccessOrigin(env: Env, chainId: string, origin: string) {
-    // If origin is from extension, just approve it.
-    if (env.isInternalMsg) {
-      return;
-    }
-
-    const accessOrigin = await this.getAccessOrigin(chainId);
-    if (accessOrigin.origins.indexOf(origin) <= -1) {
-      throw new Error("This origin is not approved");
-    }
-  }
-
-  async addAccessOrigin(chainId: string, origin: string): Promise<void> {
-    let accessOrigin = await this.kvStore.get<AccessOrigin>(
-      ChainsService.getAccessOriginKey(
-        ChainUpdaterService.getChainVersion(chainId).identifier
-      )
-    );
-    if (!accessOrigin) {
-      accessOrigin = {
-        chainId,
-        origins: [],
-      };
-    }
-
-    accessOrigin.origins.push(origin);
-
-    await this.kvStore.set<AccessOrigin>(
-      ChainsService.getAccessOriginKey(
-        ChainUpdaterService.getChainVersion(chainId).identifier
-      ),
-      accessOrigin
-    );
-  }
-
-  async removeAccessOrigin(chainId: string, origin: string): Promise<void> {
-    const accessOrigin = await this.kvStore.get<AccessOrigin>(
-      ChainsService.getAccessOriginKey(
-        ChainUpdaterService.getChainVersion(chainId).identifier
-      )
-    );
-    if (!accessOrigin) {
-      throw new Error("There is no matched origin");
-    }
-
-    const i = accessOrigin.origins.indexOf(origin);
-    if (i < 0) {
-      throw new Error("There is no matched origin");
-    }
-
-    accessOrigin.origins = accessOrigin.origins
-      .slice(0, i)
-      .concat(accessOrigin.origins.slice(i + 1));
-
-    await this.kvStore.set<AccessOrigin>(
-      ChainsService.getAccessOriginKey(
-        ChainUpdaterService.getChainVersion(chainId).identifier
-      ),
-      accessOrigin
-    );
-  }
-
-  async clearAccessOrigins(chainId: string): Promise<void> {
-    await this.kvStore.set<AccessOrigin>(
-      ChainsService.getAccessOriginKey(
-        ChainUpdaterService.getChainVersion(chainId).identifier
-      ),
-      null
-    );
-  }
-
-  async getAccessOrigin(chainId: string): Promise<AccessOrigin> {
-    let nativeAccessOrigins: string[] = [];
-    for (const access of this.embedAccessOrigins) {
-      if (
-        ChainUpdaterService.getChainVersion(access.chainId).identifier ===
-        ChainUpdaterService.getChainVersion(chainId).identifier
-      ) {
-        nativeAccessOrigins = access.origins.slice();
-        break;
-      }
-    }
-
-    const accessOrigin = await this.kvStore.get<AccessOrigin>(
-      ChainsService.getAccessOriginKey(
-        ChainUpdaterService.getChainVersion(chainId).identifier
-      )
-    );
-    return {
-      chainId,
-      origins: nativeAccessOrigins.concat(accessOrigin?.origins ?? []),
-    };
-  }
-
-  async getAccessOriginWithoutEmbed(chainId: string): Promise<AccessOrigin> {
-    const version = ChainUpdaterService.getChainVersion(chainId);
-
-    const accessOrigin = await this.kvStore.get<AccessOrigin>(
-      ChainsService.getAccessOriginKey(version.identifier)
-    );
-    if (accessOrigin) {
-      return {
-        chainId: accessOrigin.chainId,
-        origins: accessOrigin.origins,
-      };
-    } else {
-      return {
-        chainId,
-        origins: [],
-      };
-    }
+    // TODO
+    // await this.clearAccessOrigins(chainId);
   }
 
   async tryUpdateChain(chainId: string): Promise<string> {
     const chainInfo = await this.getChainInfo(chainId);
 
     return await this.chainUpdaterKeeper.tryUpdateChainId(chainInfo);
-  }
-
-  private static getAccessOriginKey(identifier: string): string {
-    return `access-origin-${identifier}`;
   }
 }

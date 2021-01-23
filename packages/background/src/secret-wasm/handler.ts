@@ -25,7 +25,11 @@ const handleGetPubkeyMsg: (
   service: SecretWasmService
 ) => InternalHandler<GetPubkeyMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     return Buffer.from(await service.getPubkey(env, msg.chainId)).toString(
       "hex"
@@ -37,7 +41,11 @@ const handleReqeustEncryptMsg: (
   service: SecretWasmService
 ) => InternalHandler<ReqeustEncryptMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     // TODO: Should ask for user whether approve or reject to encrypt.
     return Buffer.from(
@@ -50,7 +58,11 @@ const handleRequestDecryptMsg: (
   service: SecretWasmService
 ) => InternalHandler<RequestDecryptMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     // XXX: Is there need to ask for user whether approve or reject to decrypt?
     return Buffer.from(

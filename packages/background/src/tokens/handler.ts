@@ -28,7 +28,11 @@ const handleSuggestTokenMsg: (
   service: TokensService
 ) => InternalHandler<SuggestTokenMsg> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     await service.suggestToken(env, msg.chainId, msg.contractAddress);
   };
@@ -46,7 +50,11 @@ const handleGetSecret20ViewingKey: (
   service: TokensService
 ) => InternalHandler<GetSecret20ViewingKey> = (service) => {
   return async (env, msg) => {
-    await service.checkAccessOrigin(env, msg.chainId, msg.origin);
+    await service.permissionService.checkOrGrantBasicAccessPermission(
+      env,
+      msg.chainId,
+      msg.origin
+    );
 
     return await service.getSecret20ViewingKey(
       msg.chainId,
