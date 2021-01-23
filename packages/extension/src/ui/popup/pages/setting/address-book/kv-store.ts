@@ -1,6 +1,6 @@
-import { ChainInfo } from "../../../../../background/chains";
+import { ChainInfo } from "@keplr/types";
 import { AddressBookData } from "./types";
-import { KVStore } from "../../../../../common/kvstore";
+import { KVStore } from "@keplr/common";
 
 export class AddressBookKVStore {
   constructor(private kvStore: KVStore) {}

@@ -8,10 +8,10 @@ import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
 import { BackgroundTxService } from "./service";
 
-export function init(router: Router, keeper: BackgroundTxService): void {
+export function init(router: Router, service: BackgroundTxService): void {
   router.registerMessage(SendTxMsg);
   router.registerMessage(RequestBackgroundTxMsg);
   router.registerMessage(RequestBackgroundTxWithResultMsg);
 
-  router.addHandler(ROUTE, getHandler(keeper));
+  router.addHandler(ROUTE, getHandler(service));
 }

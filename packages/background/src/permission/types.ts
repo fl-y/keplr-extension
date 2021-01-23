@@ -8,6 +8,10 @@ export function getBasicAccessPermissionType(chainId: string) {
   return `basic-access/${identifier}`;
 }
 
+export function splitBasicAccessPermissionType(type: string): string {
+  return type.replace("basic-access/", "");
+}
+
 export interface PermissionData {
   type: string;
   origins: string[];

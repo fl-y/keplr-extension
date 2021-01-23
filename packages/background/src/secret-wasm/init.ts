@@ -4,10 +4,10 @@ import { SecretWasmService } from "./service";
 import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
 
-export function init(router: Router, keeper: SecretWasmService): void {
+export function init(router: Router, service: SecretWasmService): void {
   router.registerMessage(GetPubkeyMsg);
   router.registerMessage(ReqeustEncryptMsg);
   router.registerMessage(RequestDecryptMsg);
 
-  router.addHandler(ROUTE, getHandler(keeper));
+  router.addHandler(ROUTE, getHandler(service));
 }

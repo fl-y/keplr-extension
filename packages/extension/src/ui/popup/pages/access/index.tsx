@@ -3,6 +3,8 @@ import React, { FunctionComponent, useEffect, useMemo } from "react";
 import { useInteractionInfo } from "@keplr/hooks";
 import { Button } from "reactstrap";
 
+import { ChainIdHelper } from "@keplr/cosmos";
+
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 
@@ -14,8 +16,8 @@ export const AccessPage: FunctionComponent = observer(() => {
   const { chainStore, permissionStore } = useStore();
 
   const waitingPermission =
-    permissionStore.waitingDatas.length > 0
-      ? permissionStore.waitingDatas[0]
+    permissionStore.waitingBasicAccessPermissions.length > 0
+      ? permissionStore.waitingBasicAccessPermissions[0]
       : undefined;
 
   const ineractionInfo = useInteractionInfo(() => {
@@ -32,7 +34,7 @@ export const AccessPage: FunctionComponent = observer(() => {
 
   useEffect(() => {
     if (waitingPermission) {
-      chainStore.selectChain(waitingPermission.data.chainId);
+      chainStore.selectChain(waitingPermission.data.chainIdentifier);
     }
   }, [chainStore, waitingPermission]);
 
@@ -64,7 +66,7 @@ export const AccessPage: FunctionComponent = observer(() => {
             id="access.paragraph"
             values={{
               host,
-              chainId: waitingPermission?.data.chainId,
+              chainId: waitingPermission?.data.chainIdentifier,
               // eslint-disable-next-line react/display-name
               b: (...chunks: any) => <b>{chunks}</b>,
             }}
@@ -129,6 +131,11 @@ export const AccessPage: FunctionComponent = observer(() => {
                 }
               }
             }}
+            disabled={
+              !waitingPermission ||
+              ChainIdHelper.parse(chainStore.current.chainId).identifier !==
+                waitingPermission.data.chainIdentifier
+            }
             data-loading={permissionStore.isLoading}
           >
             <FormattedMessage id="access.button.approve" />

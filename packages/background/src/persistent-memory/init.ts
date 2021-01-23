@@ -4,9 +4,9 @@ import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
 import { PersistentMemoryService } from "./service";
 
-export function init(router: Router, keeper: PersistentMemoryService) {
+export function init(router: Router, service: PersistentMemoryService) {
   router.registerMessage(SetPersistentMemoryMsg);
   router.registerMessage(GetPersistentMemoryMsg);
 
-  router.addHandler(ROUTE, getHandler(keeper));
+  router.addHandler(ROUTE, getHandler(service));
 }

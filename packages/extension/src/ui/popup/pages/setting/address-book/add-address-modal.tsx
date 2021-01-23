@@ -4,12 +4,12 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { HeaderLayout } from "../../../layouts/header-layout";
+import { HeaderLayout } from "../../../layouts";
 import { AddressInput, Input, MemoInput } from "../../../../components/form";
 import { Button } from "reactstrap";
 import { AddressBookData } from "./types";
 import { AddressBookKVStore } from "./kv-store";
-import { ChainInfo } from "../../../../../background/chains";
+import { ChainInfo } from "@keplr/types";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useTxState, withTxStateProvider } from "../../../../contexts/tx";
 

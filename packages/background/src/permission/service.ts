@@ -92,6 +92,23 @@ export class PermissionService {
     return !(!innerMap || !innerMap[origin]);
   }
 
+  getPermissionOrigins(type: string): string[] {
+    const origins = [];
+
+    const innerMap = this.permissionMap[type];
+    if (!innerMap) {
+      return [];
+    }
+
+    for (const origin of Object.keys(innerMap)) {
+      if (innerMap[origin]) {
+        origins.push(origin);
+      }
+    }
+
+    return origins;
+  }
+
   protected async addPermission(type: string, origins: string[]) {
     let innerMap = this.permissionMap[type];
     if (!innerMap) {
@@ -99,7 +116,7 @@ export class PermissionService {
     }
 
     for (const origin of origins) {
-      innerMap[origin] = undefined;
+      innerMap[origin] = true;
     }
 
     await this.save();
@@ -112,7 +129,7 @@ export class PermissionService {
     }
 
     for (const origin of origins) {
-      innerMap[origin] = true;
+      delete innerMap[origin];
     }
 
     await this.save();

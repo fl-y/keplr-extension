@@ -1,25 +1,11 @@
-import React, {
-  FunctionComponent,
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { FunctionComponent, useMemo, useState } from "react";
 import { HeaderLayout } from "../../../layouts";
 
 import style from "../style.module.scss";
 import { useHistory } from "react-router";
 import { observer } from "mobx-react";
 import { useStore } from "../../../stores";
-import { AccessOrigin } from "../../../../../background/chains";
 import { PageButton } from "../page-button";
-import {
-  GetAccessOriginMsg,
-  RemoveAccessOriginMsg,
-} from "../../../../../background/chains/messages";
-import { sendMessage } from "../../../../../common/message/send";
-import { BACKGROUND_PORT } from "../../../../../common/message/constant";
 import {
   ButtonDropdown,
   DropdownItem,
@@ -35,62 +21,15 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
   const history = useHistory();
   const intl = useIntl();
 
-  const { chainStore } = useStore();
-
-  const [accessOrigin, setAccessOrigin] = useState<AccessOrigin | undefined>();
-  const [refreshAccessOrigin, setRefreshAccessOrigin] = useState(false);
-  const forceRefreshAccessOrigin = useCallback(() => {
-    setRefreshAccessOrigin(!refreshAccessOrigin);
-  }, [refreshAccessOrigin]);
-
-  useEffect(() => {
-    setAccessOrigin(undefined);
-    (async () => {
-      const msg = new GetAccessOriginMsg(chainStore.chainInfo.chainId);
-      const result = await sendMessage(BACKGROUND_PORT, msg);
-      setAccessOrigin(result);
-    })();
-  }, [chainStore.chainInfo.chainId, refreshAccessOrigin]);
+  const { chainStore, permissionStore } = useStore();
+  const basicAccessInfo = permissionStore.getBasicAccessInfo(
+    chainStore.current.chainId
+  );
 
   const [dropdownOpen, setOpen] = useState(false);
   const toggle = () => setOpen(!dropdownOpen);
 
   const confirm = useConfirm();
-
-  const removeAccessOriginCallback = useCallback(
-    (e: MouseEvent) => {
-      const chainId = e.currentTarget.getAttribute("data-chain-id");
-      const origin = e.currentTarget.getAttribute("data-origin");
-
-      if (!chainId || !origin) {
-        throw new Error("Empty chain id or origin");
-      }
-
-      (async () => {
-        if (
-          await confirm.confirm({
-            img: (
-              <img
-                src={require("../../../public/assets/img/broken-link.svg")}
-                style={{ height: "80px" }}
-              />
-            ),
-            title: intl.formatMessage({
-              id: "setting.connections.confirm.delete-connection.title",
-            }),
-            paragraph: intl.formatMessage({
-              id: "setting.connections.confirm.delete-connection.paragraph",
-            }),
-          })
-        ) {
-          const msg = new RemoveAccessOriginMsg(chainId, origin);
-          await sendMessage(BACKGROUND_PORT, msg);
-          forceRefreshAccessOrigin();
-        }
-      })();
-    },
-    [confirm, forceRefreshAccessOrigin, intl]
-  );
 
   const xIcon = useMemo(
     () => [<i key="remove" className="fas fa-times" />],
@@ -104,9 +43,9 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
       alternativeTitle={intl.formatMessage({
         id: "setting.connections",
       })}
-      onBackButton={useCallback(() => {
+      onBackButton={() => {
         history.goBack();
-      }, [history])}
+      }}
     >
       <div className={style.container}>
         <ButtonDropdown
@@ -115,16 +54,18 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
           className={styleConnections.dropdown}
         >
           <DropdownToggle caret style={{ boxShadow: "none" }}>
-            {chainStore.chainInfo.chainName}
+            {chainStore.current.chainName}
           </DropdownToggle>
           <DropdownMenu>
-            {chainStore.chainList.map((chainInfo) => {
+            {chainStore.chainInfos.map((chainInfo) => {
               return (
                 <DropdownItem
                   key={chainInfo.chainId}
-                  onClick={useCallback(() => {
-                    chainStore.setChain(chainInfo.chainId);
-                  }, [chainInfo.chainId])}
+                  onClick={(e) => {
+                    e.preventDefault();
+
+                    chainStore.selectChain(chainInfo.chainId);
+                  }}
                 >
                   {chainInfo.chainName}
                 </DropdownItem>
@@ -132,20 +73,39 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
             })}
           </DropdownMenu>
         </ButtonDropdown>
-        {accessOrigin
-          ? accessOrigin.origins.map((origin) => {
-              return (
-                <PageButton
-                  title={origin}
-                  key={origin}
-                  data-chain-id={accessOrigin?.chainId}
-                  data-origin={origin}
-                  onClick={removeAccessOriginCallback}
-                  icons={xIcon}
-                />
-              );
-            })
-          : null}
+        {basicAccessInfo.origins.map((origin) => {
+          return (
+            <PageButton
+              title={origin}
+              key={origin}
+              onClick={async (e) => {
+                e.preventDefault();
+
+                if (
+                  await confirm.confirm({
+                    img: (
+                      <img
+                        alt="unlink"
+                        src={require("../../../public/assets/img/broken-link.svg")}
+                        style={{ height: "80px" }}
+                      />
+                    ),
+                    title: intl.formatMessage({
+                      id: "setting.connections.confirm.delete-connection.title",
+                    }),
+                    paragraph: intl.formatMessage({
+                      id:
+                        "setting.connections.confirm.delete-connection.paragraph",
+                    }),
+                  })
+                ) {
+                  await basicAccessInfo.removeOrigin(origin);
+                }
+              }}
+              icons={xIcon}
+            />
+          );
+        })}
       </div>
     </HeaderLayout>
   );

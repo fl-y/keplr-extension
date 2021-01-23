@@ -1,23 +1,110 @@
 import { InteractionStore } from "./interaction";
-import { ReqeustAccessMsg } from "@keplr/background";
-import { observable, runInAction } from "mobx";
+import {
+  getBasicAccessPermissionType,
+  GetPermissionOriginsMsg,
+  INTERACTION_TYPE_PERMISSION,
+  PermissionData,
+  RemovePermissionOrigin,
+  splitBasicAccessPermissionType,
+} from "@keplr/background";
+import { computed, observable, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
+import { HasMapStore } from "../../common";
+import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 
-export class PermissionStore {
+export class BasicAccessPermissionInnerStore {
+  @observable.ref
+  protected _origins!: string[];
+
+  constructor(
+    protected readonly chainId: string,
+    protected readonly requester: MessageRequester
+  ) {
+    runInAction(() => {
+      this._origins = [];
+    });
+
+    this.refreshOrigins();
+  }
+
+  get origins(): string[] {
+    return this._origins;
+  }
+
+  @actionAsync
+  async removeOrigin(origin: string) {
+    await task(
+      this.requester.sendMessage(
+        BACKGROUND_PORT,
+        new RemovePermissionOrigin(
+          getBasicAccessPermissionType(this.chainId),
+          origin
+        )
+      )
+    );
+    await task(this.refreshOrigins());
+  }
+
+  @actionAsync
+  protected async refreshOrigins() {
+    await task(
+      this.requester.sendMessage(
+        BACKGROUND_PORT,
+        new GetPermissionOriginsMsg(getBasicAccessPermissionType(this.chainId))
+      )
+    );
+  }
+}
+
+export class PermissionStore extends HasMapStore<any> {
   @observable
   protected _isLoading!: boolean;
 
-  constructor(protected readonly interactionStore: InteractionStore) {
+  constructor(
+    protected readonly interactionStore: InteractionStore,
+    protected readonly requester: MessageRequester
+  ) {
+    super((chainId: string) => {
+      return new BasicAccessPermissionInnerStore(chainId, this.requester);
+    });
+
     runInAction(() => {
       this._isLoading = false;
     });
   }
 
-  get waitingDatas() {
-    return this.interactionStore.getDatas<{
-      chainId: string;
+  getBasicAccessInfo(chainId: string): BasicAccessPermissionInnerStore {
+    return this.get(chainId);
+  }
+
+  @computed
+  get waitingBasicAccessPermissions(): {
+    id: string;
+    data: {
+      chainIdentifier: string;
       origins: string[];
-    }>(ReqeustAccessMsg.type());
+    };
+  }[] {
+    const datas = this.waitingDatas;
+
+    const result = [];
+    for (const data of datas) {
+      result.push({
+        id: data.id,
+        data: {
+          chainIdentifier: splitBasicAccessPermissionType(data.data.type),
+          origins: data.data.origins,
+        },
+      });
+    }
+
+    return result;
+  }
+
+  get waitingDatas() {
+    return this.interactionStore.getDatas<PermissionData>(
+      INTERACTION_TYPE_PERMISSION
+    );
   }
 
   @actionAsync
@@ -25,7 +112,7 @@ export class PermissionStore {
     this._isLoading = true;
     try {
       await task(
-        this.interactionStore.approve(ReqeustAccessMsg.type(), id, {})
+        this.interactionStore.approve(INTERACTION_TYPE_PERMISSION, id, {})
       );
     } finally {
       this._isLoading = false;
@@ -36,7 +123,7 @@ export class PermissionStore {
   async reject(id: string) {
     this._isLoading = true;
     try {
-      await task(this.interactionStore.reject(ReqeustAccessMsg.type(), id));
+      await task(this.interactionStore.reject(INTERACTION_TYPE_PERMISSION, id));
     } finally {
       this._isLoading = false;
     }

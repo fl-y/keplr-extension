@@ -5,6 +5,7 @@ import { ChainUpdaterService } from "../updater";
 import { TokensService } from "../tokens";
 import { InteractionService } from "../interaction";
 import { Env } from "@keplr/router";
+import { SuggestChainInfoMsg } from "./messages";
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
@@ -107,8 +108,8 @@ export class ChainsService {
 
     await this.interactionKeeper.waitApprove(
       env,
-      "/suggest-chain/${chainInfo.chainId}",
-      "suggest-chain",
+      `/suggest-chain/${chainInfo.chainId}`,
+      SuggestChainInfoMsg.type(),
       {
         ...chainInfo,
         origin,

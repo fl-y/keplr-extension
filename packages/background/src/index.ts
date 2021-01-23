@@ -20,6 +20,7 @@ export * from "./tx";
 export * from "./updater";
 export * from "./tokens";
 export * from "./interaction";
+export * from "./permission";
 
 import { KVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";

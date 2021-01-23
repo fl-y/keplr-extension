@@ -26,7 +26,7 @@ import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
 import { KeyRingService } from "./service";
 
-export function init(router: Router, keeper: KeyRingService): void {
+export function init(router: Router, service: KeyRingService): void {
   router.registerMessage(RestoreKeyRingMsg);
   router.registerMessage(EnableKeyRingMsg);
   router.registerMessage(DeleteKeyRingMsg);
@@ -49,5 +49,5 @@ export function init(router: Router, keeper: KeyRingService): void {
   router.registerMessage(GetIsKeyStoreCoinTypeSetMsg);
   router.registerMessage(SetKeyStoreCoinTypeMsg);
 
-  router.addHandler(ROUTE, getHandler(keeper));
+  router.addHandler(ROUTE, getHandler(service));
 }

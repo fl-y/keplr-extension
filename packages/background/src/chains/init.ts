@@ -9,11 +9,11 @@ import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
 import { ChainsService } from "./service";
 
-export function init(router: Router, keeper: ChainsService): void {
+export function init(router: Router, service: ChainsService): void {
   router.registerMessage(GetChainInfosMsg);
   router.registerMessage(SuggestChainInfoMsg);
   router.registerMessage(RemoveSuggestedChainInfoMsg);
   router.registerMessage(TryUpdateChainMsg);
 
-  router.addHandler(ROUTE, getHandler(keeper));
+  router.addHandler(ROUTE, getHandler(service));
 }
