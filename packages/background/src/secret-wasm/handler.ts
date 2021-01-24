@@ -2,7 +2,7 @@ import { Env, Handler, InternalHandler, Message } from "@keplr/router";
 import { GetPubkeyMsg, ReqeustEncryptMsg, RequestDecryptMsg } from "./messages";
 import { SecretWasmService } from "./service";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export const getHandler: (service: SecretWasmService) => Handler = (
   service: SecretWasmService

@@ -1,6 +1,7 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const CosmosApp: any = require("ledger-cosmos-js").default;
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import TransportWebHID from "@ledgerhq/hw-transport-webhid";
 

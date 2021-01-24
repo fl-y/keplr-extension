@@ -7,7 +7,7 @@ import { ChainUpdaterService } from "../updater/service";
 import { ChainInfo } from "@keplr/types";
 import { Env } from "@keplr/router";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export enum KeyRingStatus {
   NOTLOADED,
@@ -332,7 +332,7 @@ export class KeyRing {
     // We should support the legacy coin type, so we determined that the coin type ties with the keystore.
     // To decrease the barrier of existing users, set the alternative coin type by force if the keystore version is prior than 1.2.
     if (this.keyStore) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       if (this.keyStore.version === "1" || this.keyStore.version === "1.1") {
         hasLegacyKeyStore = true;
@@ -340,7 +340,7 @@ export class KeyRing {
       }
     }
     for (const keyStore of this.multiKeyStore) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       if (keyStore.version === "1" || keyStore.version === "1.1") {
         hasLegacyKeyStore = true;

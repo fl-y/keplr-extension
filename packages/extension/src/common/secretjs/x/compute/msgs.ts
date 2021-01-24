@@ -5,7 +5,7 @@ import { AccAddress } from "@chainapsis/cosmosjs/common/address";
 import { Coin } from "@chainapsis/cosmosjs/common/coin";
 import { AxiosInstance } from "axios";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 @DefineStruct()
 export class MsgExecuteContract extends Msg {

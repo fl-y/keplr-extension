@@ -3,7 +3,7 @@ import AES, { Counter } from "aes-js";
 import { sha256 } from "sha.js";
 import { BIP44HDPath, CoinTypeForChain } from "./types";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 interface ScryptParams {
   dklen: number;
@@ -73,7 +73,10 @@ export class Crypto {
     const ciphertext = Buffer.from(aesCtr.encrypt(buf));
     // Mac is sha256(last 16 bytes of derived key + ciphertext)
     const mac = Crypto.sha256(
-      Buffer.concat([derivedKey.slice(derivedKey.length / 2), ciphertext])
+      Buffer.concat([
+        Buffer.from(derivedKey.slice(derivedKey.length / 2)),
+        ciphertext,
+      ])
     );
     return {
       version: "1.2",
@@ -106,7 +109,7 @@ export class Crypto {
 
     const mac = Crypto.sha256(
       Buffer.concat([
-        derivedKey.slice(derivedKey.length / 2),
+        Buffer.from(derivedKey.slice(derivedKey.length / 2)),
         Buffer.from(keyStore.crypto.ciphertext, "hex"),
       ])
     );
@@ -138,7 +141,7 @@ export class Crypto {
             reject(error);
             return;
           } else if (key) {
-            resolve(Buffer.from(key));
+            resolve(Buffer.from(key as any));
           }
         }
       );

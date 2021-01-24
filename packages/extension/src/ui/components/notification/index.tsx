@@ -8,41 +8,41 @@ import { NotificationContainer } from "./container";
 import { useNotificationStore } from "./store";
 import { observer } from "mobx-react";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export { NotificationStoreProvider } from "./store";
 
 const topLeftVariants: Variants = {
   visible: {
     x: ["-100%", "0%"],
-    opacity: 1
+    opacity: 1,
   },
   hidden: {
     x: ["0%", "-100%"],
-    opacity: 0
-  }
+    opacity: 0,
+  },
 };
 
 const topCenterVariants: Variants = {
   visible: {
     y: ["-100%", "0%"],
-    opacity: 1
+    opacity: 1,
   },
   hidden: {
     y: ["0%", "-100%"],
-    opacity: 0
-  }
+    opacity: 0,
+  },
 };
 
 const topRightVariants: Variants = {
   visible: {
     x: ["100%", "0%"],
-    opacity: 1
+    opacity: 1,
   },
   hidden: {
     x: ["0%", "100%"],
-    opacity: 0
-  }
+    opacity: 0,
+  },
 };
 
 export interface NotificationProperty extends NotificationElementProps {
@@ -70,7 +70,7 @@ export const useNotification = () => {
   return store;
 };
 
-export const NotificationProvider: FunctionComponent = observer(props => {
+export const NotificationProvider: FunctionComponent = observer((props) => {
   const { children } = props;
 
   const notificationStore = useNotificationStore();
@@ -105,7 +105,7 @@ export const NotificationProvider: FunctionComponent = observer(props => {
     <NotificationContext.Provider
       value={{
         push,
-        remove
+        remove,
       }}
     >
       {children}

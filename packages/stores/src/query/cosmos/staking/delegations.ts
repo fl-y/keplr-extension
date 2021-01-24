@@ -109,7 +109,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
 
     const result = this.response.data.result;
     if (result.length > 0 && "delegation" in result[0]) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       return result.map((r) => {
         return {
@@ -121,7 +121,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return result;
   }

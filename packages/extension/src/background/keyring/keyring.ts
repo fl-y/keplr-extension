@@ -12,7 +12,7 @@ import { ChainUpdaterKeeper } from "../updater/keeper";
 import { ChainInfo } from "../chains";
 import { Env } from "../../common/message";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export enum KeyRingStatus {
   NOTLOADED,

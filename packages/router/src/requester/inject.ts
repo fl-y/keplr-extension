@@ -51,7 +51,7 @@ export class InjectedMessageRequester implements MessageRequester {
     msgType: string
   ): Promise<any> {
     // Set message's origin.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     msg["origin"] = window.location.origin;
 

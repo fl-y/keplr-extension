@@ -4,14 +4,14 @@ import { Context, IContext } from "@chainapsis/cosmosjs/core/context";
 import { TendermintRPC } from "@chainapsis/cosmosjs/rpc/tendermint";
 import {
   ResultBroadcastTx,
-  ResultBroadcastTxCommit
+  ResultBroadcastTxCommit,
 } from "@chainapsis/cosmosjs/rpc/tx";
 import { ChainsKeeper } from "../chains/keeper";
 import { sendMessage } from "../../common/message/send";
 import { APP_PORT } from "../../common/message/constant";
 import { TxCommittedMsg } from "./foreground";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 interface CosmosSdkError {
   codespace: string;
@@ -38,15 +38,15 @@ export class BackgroundTxKeeper {
     const info = await this.chainsKeeper.getChainInfo(chainId);
     const rpcInstance = Axios.create({
       ...{
-        baseURL: info.rpc
+        baseURL: info.rpc,
       },
-      ...info.rpcConfig
+      ...info.rpcConfig,
     });
     const restInstance = Axios.create({
       ...{
-        baseURL: info.rest
+        baseURL: info.rest,
       },
-      ...info.restConfig
+      ...info.restConfig,
     });
 
     // Do not await.
@@ -71,15 +71,15 @@ export class BackgroundTxKeeper {
     const info = await this.chainsKeeper.getChainInfo(chainId);
     const rpcInstance = Axios.create({
       ...{
-        baseURL: info.rpc
+        baseURL: info.rpc,
       },
-      ...info.rpcConfig
+      ...info.rpcConfig,
     });
     const restInstance = Axios.create({
       ...{
-        baseURL: info.rest
+        baseURL: info.rest,
       },
-      ...info.restConfig
+      ...info.restConfig,
     });
 
     return await BackgroundTxKeeper.sendTransaction(
@@ -102,7 +102,7 @@ export class BackgroundTxKeeper {
   ): Promise<ResultBroadcastTx | ResultBroadcastTxCommit> {
     const rpc = new TendermintRPC(
       new Context({
-        rpcInstance
+        rpcInstance,
       } as IContext)
     );
 
@@ -112,7 +112,7 @@ export class BackgroundTxKeeper {
       type: "basic",
       iconUrl: browser.runtime.getURL("assets/temp-icon.svg"),
       title: "Tx is pending...",
-      message: "Wait a second"
+      message: "Wait a second",
     });
 
     try {
@@ -128,7 +128,7 @@ export class BackgroundTxKeeper {
           ResultBroadcastTx | ResultBroadcastTxCommit
         >("/txs", {
           tx: json,
-          mode: mode === "commit" ? "block" : mode
+          mode: mode === "commit" ? "block" : mode,
         });
 
         if (restResult.status !== 200 && restResult.status !== 202) {
@@ -182,7 +182,7 @@ export class BackgroundTxKeeper {
         iconUrl: browser.runtime.getURL("assets/temp-icon.svg"),
         title: "Tx succeeds",
         // TODO: Let users know the tx id?
-        message: "Congratulations!"
+        message: "Congratulations!",
       });
     } catch (e) {
       BackgroundTxKeeper.processTxErrorNotification(e);
@@ -234,7 +234,7 @@ export class BackgroundTxKeeper {
       type: "basic",
       iconUrl: browser.runtime.getURL("assets/temp-icon.svg"),
       title: "Tx failed",
-      message
+      message,
     });
   }
 

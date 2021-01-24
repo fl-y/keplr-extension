@@ -7,7 +7,7 @@ import { BIP44HDPath } from "../keyring";
 import { KVStore } from "@keplr/common";
 import { InteractionService } from "../interaction";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export class LedgerService {
   private previousInitAborter: ((e: Error) => void) | undefined;

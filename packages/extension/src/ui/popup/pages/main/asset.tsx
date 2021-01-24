@@ -15,7 +15,7 @@ const LazyDoughnut = React.lazy(async () => {
     /* webpackChunkName: "reactChartJS" */ "react-chartjs-2"
   );
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const chartJS = module.Chart as any;
 

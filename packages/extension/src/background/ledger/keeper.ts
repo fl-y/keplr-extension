@@ -9,14 +9,14 @@ import {
   LedgerInitAbortedMsg,
   LedgerInitFailedMsg,
   LedgerInitResumedMsg,
-  LedgerSignCompletedMsg
+  LedgerSignCompletedMsg,
 } from "./foreground";
 import { AsyncWaitGroup } from "../../common/async-wait-group";
 import { BIP44HDPath } from "../keyring/types";
 import { KVStore } from "../../common/kvstore";
 import { Env } from "../../common/message";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export class LedgerKeeper {
   private previousInitAborter: ((e: Error) => void) | undefined;
@@ -26,7 +26,7 @@ export class LedgerKeeper {
   constructor(private readonly kvStore: KVStore) {}
 
   async getPublicKey(env: Env, bip44HDPath: BIP44HDPath): Promise<Uint8Array> {
-    return await this.useLedger(env, async ledger => {
+    return await this.useLedger(env, async (ledger) => {
       try {
         // Cosmos App on Ledger doesn't support the coin type other than 118.
         return await ledger.getPublicKey([
@@ -34,7 +34,7 @@ export class LedgerKeeper {
           118,
           bip44HDPath.account,
           bip44HDPath.change,
-          bip44HDPath.addressIndex
+          bip44HDPath.addressIndex,
         ]);
       } finally {
         sendMessage(APP_PORT, new LedgerGetPublicKeyCompletedMsg());
@@ -48,14 +48,14 @@ export class LedgerKeeper {
     expectedPubKey: Uint8Array,
     message: Uint8Array
   ): Promise<Uint8Array> {
-    return await this.useLedger(env, async ledger => {
+    return await this.useLedger(env, async (ledger) => {
       try {
         const pubKey = await ledger.getPublicKey([
           44,
           118,
           bip44HDPath.account,
           bip44HDPath.change,
-          bip44HDPath.addressIndex
+          bip44HDPath.addressIndex,
         ]);
         if (
           Buffer.from(expectedPubKey).toString("hex") !==
@@ -70,7 +70,7 @@ export class LedgerKeeper {
             118,
             bip44HDPath.account,
             bip44HDPath.change,
-            bip44HDPath.addressIndex
+            bip44HDPath.addressIndex,
           ],
           message
         );
@@ -121,7 +121,7 @@ export class LedgerKeeper {
           if (_reject) {
             _reject(e);
           }
-        }
+        },
       };
     })();
 
@@ -146,7 +146,7 @@ export class LedgerKeeper {
             throw new Error("Ledger init timeout");
           })(),
           aborter.wait(),
-          this.testLedgerGrantUIOpened()
+          this.testLedgerGrantUIOpened(),
         ]);
       } finally {
         if (this.initWG.isLocked) {
@@ -160,7 +160,7 @@ export class LedgerKeeper {
     await sendMessage(APP_PORT, new LedgerInitFailedMsg());
     await env.requestInteraction("popup.html#/ledger-grant", undefined, {
       forceOpenWindow: true,
-      channel: "ledger"
+      channel: "ledger",
     });
   }
 

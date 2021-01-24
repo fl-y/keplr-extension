@@ -1,7 +1,7 @@
 import { Message } from "@keplr/router";
 import { ROUTE } from "./constants";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 // Return hex encoded result
 export class GetPubkeyMsg extends Message<string> {

@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useContext,
   useMemo,
-  useState
+  useState,
 } from "react";
 
 import { AccAddress } from "@chainapsis/cosmosjs/common/address";
@@ -21,7 +21,7 @@ import { sendMessage } from "../../../common/message/send";
 import { BACKGROUND_PORT } from "../../../common/message/constant";
 import { ReqeustEncryptMsg } from "../../../background/secret-wasm";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 type TxStateErrorType = "recipient" | "amount" | "memo" | "fees" | "gas";
 
@@ -121,8 +121,8 @@ export const TxStateProvider: FunctionComponent = ({ children }) => {
               {
                 transfer: {
                   recipient: recipient.toBech32(),
-                  amount: amount.amount.toString()
-                }
+                  amount: amount.amount.toString(),
+                },
               },
               []
             );
@@ -133,8 +133,8 @@ export const TxStateProvider: FunctionComponent = ({ children }) => {
               {
                 transfer: {
                   recipient: recipient.toBech32(),
-                  amount: amount.amount.toString()
-                }
+                  amount: amount.amount.toString(),
+                },
               },
               "",
               []
@@ -264,7 +264,7 @@ export const TxStateProvider: FunctionComponent = ({ children }) => {
           setBalances,
           setError: setContextErrors,
           getError,
-          isValid
+          isValid,
         }),
         [
           rawAddress,
@@ -280,7 +280,7 @@ export const TxStateProvider: FunctionComponent = ({ children }) => {
           setFees,
           setContextErrors,
           getError,
-          isValid
+          isValid,
         ]
       )}
     >
@@ -298,9 +298,9 @@ export function useTxState() {
 // HoC for wrapping component with TxStateProvider
 export const withTxStateProvider: <T>(
   Component: ComponentType<T>
-) => FunctionComponent<T> = Component => {
+) => FunctionComponent<T> = (Component) => {
   // eslint-disable-next-line react/display-name
-  return props => (
+  return (props) => (
     <TxStateProvider>
       <Component {...props} />
     </TxStateProvider>

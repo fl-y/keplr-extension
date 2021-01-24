@@ -8,13 +8,13 @@ import {
   FormText,
   InputGroup,
   Input as ReactStrapInput,
-  Label
+  Label,
 } from "reactstrap";
 import { InputType } from "reactstrap/lib/Input";
 
 import styleInput from "./input.module.scss";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export interface InputProps {
   type: Exclude<InputType, "textarea">;

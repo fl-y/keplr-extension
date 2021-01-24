@@ -2,7 +2,7 @@ import Axios, { AxiosInstance } from "axios";
 import { ChainsService } from "../chains";
 import { PermissionService } from "../permission";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 interface CosmosSdkError {
   codespace: string;

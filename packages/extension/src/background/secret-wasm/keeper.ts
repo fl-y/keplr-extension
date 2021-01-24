@@ -7,7 +7,7 @@ import { ChainInfo } from "../chains";
 import { AccAddress } from "@chainapsis/cosmosjs/common/address";
 import { Env } from "../../common/message";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export class SecretWasmKeeper {
   constructor(

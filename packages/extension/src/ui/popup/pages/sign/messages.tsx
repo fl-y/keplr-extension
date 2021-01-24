@@ -11,7 +11,7 @@ import { RequestDecryptMsg } from "../../../../background/secret-wasm";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export interface MessageObj {
   type: string;

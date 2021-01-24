@@ -19,7 +19,7 @@ import { ChainUpdaterService } from "../updater";
 import { InteractionService } from "../interaction";
 import { PermissionService } from "../permission";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export class TokensService {
   protected chainsService!: ChainsService;

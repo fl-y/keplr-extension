@@ -1,13 +1,13 @@
 import {
   AppCurrency,
   CW20Currency,
-  Secret20Currency
+  Secret20Currency,
 } from "../../common/currency";
 import {
   ChainInfo,
   CurrencySchema,
   CW20CurrencyShema,
-  Secret20CurrencyShema
+  Secret20CurrencyShema,
 } from "../chains";
 import { AccAddress } from "@chainapsis/cosmosjs/common/address";
 import { ChainsKeeper } from "../chains/keeper";
@@ -19,7 +19,7 @@ import { AsyncApprover } from "../../common/async-approver";
 
 import queryString from "query-string";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export class TokensKeeper {
   private chainsKeeper!: ChainsKeeper;
@@ -37,7 +37,7 @@ export class TokensKeeper {
       defaultTimeout:
         suggestTokenApproverTimeout != null
           ? suggestTokenApproverTimeout
-          : 3 * 60 * 1000
+          : 3 * 60 * 1000,
     });
   }
 
@@ -54,7 +54,7 @@ export class TokensKeeper {
     const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
 
     const find = chainInfo.currencies.find(
-      currency =>
+      (currency) =>
         "contractAddress" in currency &&
         currency.contractAddress === contractAddress
     );
@@ -72,7 +72,7 @@ export class TokensKeeper {
     const params = {
       chainId,
       contractAddress,
-      external: true
+      external: true,
     };
 
     this.windowOpener(
@@ -125,7 +125,7 @@ export class TokensKeeper {
         await this.saveTokensToChainAndAccount(chainId, currencies);
       } else {
         const index = currencies.findIndex(
-          cur => cur.coinMinimalDenom === currency.coinMinimalDenom
+          (cur) => cur.coinMinimalDenom === currency.coinMinimalDenom
         );
         if (index >= 0) {
           currencies[index] = currency;

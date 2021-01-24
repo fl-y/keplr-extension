@@ -17,7 +17,7 @@ import { BIP44, KeyHex } from "@keplr/types";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bip39 = require("bip39");
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export class RestoreKeyRingMsg extends Message<{
   status: KeyRingStatus;

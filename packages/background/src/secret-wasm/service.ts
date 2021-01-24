@@ -8,7 +8,7 @@ import { ChainInfo } from "@keplr/types";
 import { Bech32Address } from "@keplr/cosmos";
 import { Env } from "@keplr/router";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export class SecretWasmService {
   constructor(

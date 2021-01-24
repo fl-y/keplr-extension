@@ -2,7 +2,7 @@ import { Env, Handler, InternalHandler, Message } from "../../common/message";
 import { GetPubkeyMsg, ReqeustEncryptMsg, RequestDecryptMsg } from "./messages";
 import { SecretWasmKeeper } from "./keeper";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export const getHandler: (keeper: SecretWasmKeeper) => Handler = (
   keeper: SecretWasmKeeper
@@ -23,7 +23,7 @@ export const getHandler: (keeper: SecretWasmKeeper) => Handler = (
 
 const handleGetPubkeyMsg: (
   keeper: SecretWasmKeeper
-) => InternalHandler<GetPubkeyMsg> = keeper => {
+) => InternalHandler<GetPubkeyMsg> = (keeper) => {
   return async (env, msg) => {
     await keeper.checkAccessOrigin(
       env.extensionBaseURL,
@@ -39,7 +39,7 @@ const handleGetPubkeyMsg: (
 
 const handleReqeustEncryptMsg: (
   keeper: SecretWasmKeeper
-) => InternalHandler<ReqeustEncryptMsg> = keeper => {
+) => InternalHandler<ReqeustEncryptMsg> = (keeper) => {
   return async (env, msg) => {
     await keeper.checkAccessOrigin(
       env.extensionBaseURL,
@@ -56,7 +56,7 @@ const handleReqeustEncryptMsg: (
 
 const handleRequestDecryptMsg: (
   keeper: SecretWasmKeeper
-) => InternalHandler<RequestDecryptMsg> = keeper => {
+) => InternalHandler<RequestDecryptMsg> = (keeper) => {
   return async (env, msg) => {
     await keeper.checkAccessOrigin(
       env.extensionBaseURL,

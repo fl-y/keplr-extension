@@ -15,7 +15,7 @@ const AppCurrencyShemaTest = Joi.array().items(
   CW20CurrencyShema
 );
 
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 
 describe("Test chain info schema", () => {
   it("test currency schema", async () => {

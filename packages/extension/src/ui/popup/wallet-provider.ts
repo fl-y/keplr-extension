@@ -3,19 +3,19 @@ import { Context } from "@chainapsis/cosmosjs/core/context";
 import {
   // GetKeyMsg,
   RequestSignMsg,
-  RequestTxBuilderConfigMsg
+  RequestTxBuilderConfigMsg,
 } from "../../background/keyring";
 import { sendMessage } from "../../common/message";
 import { BACKGROUND_PORT } from "../../common/message/constant";
 import { TxBuilderConfig } from "@chainapsis/cosmosjs/core/txBuilder";
 import {
   txBuilderConfigFromPrimitive,
-  txBuilderConfigToPrimitive
+  txBuilderConfigToPrimitive,
 } from "../../background/keyring/utils";
 
 import delay from "delay";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export interface FeeApprover {
   onRequestTxBuilderConfig: (index: string) => void;
@@ -80,7 +80,7 @@ export class PopupWalletProvider implements WalletProvider {
     const requestTxBuilderConfig = new RequestTxBuilderConfigMsg(
       {
         chainId: context.get("chainId"),
-        ...txBuilderConfigToPrimitive(config)
+        ...txBuilderConfigToPrimitive(config),
       },
       id,
       false,
@@ -97,7 +97,7 @@ export class PopupWalletProvider implements WalletProvider {
               this.feeApprover.onRequestTxBuilderConfig(id);
             }
           })(),
-          sendMessage(BACKGROUND_PORT, requestTxBuilderConfig)
+          sendMessage(BACKGROUND_PORT, requestTxBuilderConfig),
         ])
       )[1].config
     );
@@ -135,7 +135,7 @@ export class PopupWalletProvider implements WalletProvider {
                 this.signApprover.onRequestSignature(id);
               }
             })(),
-            sendMessage(BACKGROUND_PORT, requestSignMsg)
+            sendMessage(BACKGROUND_PORT, requestSignMsg),
           ])
         )[1].signatureHex,
         "hex"

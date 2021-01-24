@@ -6,10 +6,10 @@ import {
   FormFeedback,
   FormGroup,
   Input as ReactStrapInput,
-  Label
+  Label,
 } from "reactstrap";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export interface TextareaProps {
   label?: string;

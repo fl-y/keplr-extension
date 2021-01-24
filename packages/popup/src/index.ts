@@ -19,7 +19,7 @@ export async function openPopupWindow(
     width: PopupSize.width,
     height: PopupSize.height,
     url: url,
-    type: "popup" as "popup",
+    type: "popup" as const,
   };
 
   if (lastWindowIds[channel] !== undefined) {

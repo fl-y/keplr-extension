@@ -25,7 +25,7 @@ import {
 import { KeyRingService } from "./service";
 import { Bech32Address } from "@keplr/cosmos";
 
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export const getHandler: (service: KeyRingService) => Handler = (
   service: KeyRingService

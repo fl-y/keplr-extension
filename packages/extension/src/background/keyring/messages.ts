@@ -3,14 +3,14 @@ import { ROUTE } from "./constants";
 import {
   KeyRing,
   KeyRingStatus,
-  MultiKeyStoreInfoWithSelected
+  MultiKeyStoreInfoWithSelected,
 } from "./keyring";
 import { KeyHex } from "./keeper";
 import {
   BIP44HDPath,
   SelectableAccount,
   TxBuilderConfigPrimitive,
-  TxBuilderConfigPrimitiveWithChainId
+  TxBuilderConfigPrimitiveWithChainId,
 } from "./types";
 import { AsyncApprover } from "../../common/async-approver";
 
@@ -19,7 +19,7 @@ import { BIP44 } from "@chainapsis/cosmosjs/core/bip44";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bip39 = require("bip39");
-const Buffer = require("buffer/").Buffer;
+import { Buffer } from "buffer/";
 
 export class EnableKeyRingMsg extends Message<{
   status: KeyRingStatus;
@@ -703,9 +703,7 @@ export class GetKeyRingTypeMsg extends Message<string> {
   }
 }
 
-export class GetMultiKeyStoreInfoMsg extends Message<
-  MultiKeyStoreInfoWithSelected
-> {
+export class GetMultiKeyStoreInfoMsg extends Message<MultiKeyStoreInfoWithSelected> {
   public static type() {
     return "get-multi-key-store-info";
   }
