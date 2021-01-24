@@ -69,11 +69,7 @@ export class RootStore {
       this.chainStore
     );
 
-    this.accountStore = new AccountStore(
-      new BrowserKVStore("store_account"),
-      this.chainStore,
-      this.queriesStore
-    );
+    this.accountStore = new AccountStore(this.chainStore, this.queriesStore);
 
     this.priceStore = new CoinGeckoPriceStore(
       new BrowserKVStore("store_prices"),

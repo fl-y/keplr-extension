@@ -1,6 +1,6 @@
 import { HasMapStore } from "../common";
-import { DenomHelper, KVStore } from "@keplr/common";
-import { ChainGetter } from "../common/types";
+import { DenomHelper } from "@keplr/common";
+import { ChainGetter } from "../common";
 import { computed, observable, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
 import { AppCurrency, Keplr } from "@keplr/types";
@@ -58,7 +58,6 @@ export class AccountStoreInner {
   });
 
   constructor(
-    protected readonly kvStore: KVStore,
     protected readonly chainGetter: ChainGetter,
     protected readonly chainId: string,
     protected readonly queries: Queries,
@@ -743,14 +742,12 @@ export class AccountStoreInner {
 
 export class AccountStore extends HasMapStore<AccountStoreInner> {
   constructor(
-    protected readonly kvStore: KVStore,
     protected readonly chainGetter: ChainGetter,
     protected readonly queriesStore: QueriesStore,
     accountPrefetchingChainIds: string[] = []
   ) {
     super((chainId: string) => {
       return new AccountStoreInner(
-        this.kvStore,
         this.chainGetter,
         chainId,
         this.queriesStore.get(chainId)
