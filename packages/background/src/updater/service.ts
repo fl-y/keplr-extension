@@ -1,3 +1,6 @@
+import { inject, singleton } from "tsyringe";
+import { TYPES } from "../types";
+
 import { ChainInfo } from "@keplr/types";
 import Axios from "axios";
 import { KVStore } from "@keplr/common";
@@ -7,8 +10,11 @@ import { AppCurrency } from "@keplr/types";
 // The chainID must be in the form: `{identifier}-{version}`
 const VersionFormatRegExp = /(.+)-([\d]+)/;
 
+@singleton()
 export class ChainUpdaterService {
-  constructor(private readonly kvStore: KVStore) {}
+  constructor(
+    @inject(TYPES.UpdaterStore) protected readonly kvStore: KVStore
+  ) {}
 
   async putUpdatedPropertyToChainInfo(
     chainInfo: ChainInfo

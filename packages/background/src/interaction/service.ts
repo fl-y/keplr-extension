@@ -1,7 +1,10 @@
+import { singleton } from "tsyringe";
+
 import { InteractionWaitingData } from "./types";
 import { Env, FnRequestInteractionOptions } from "@keplr/router";
 import { PushInteractionDataMsg } from "./foreground";
 
+@singleton()
 export class InteractionService {
   protected waitingMap: Map<string, InteractionWaitingData> = new Map();
   protected resolverMap: Map<

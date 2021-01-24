@@ -1,3 +1,6 @@
+import { delay as diDelay, inject, singleton } from "tsyringe";
+import { TYPES } from "../types";
+
 import { Ledger } from "./ledger";
 
 import delay from "delay";
@@ -9,11 +12,14 @@ import { InteractionService } from "../interaction";
 
 import { Buffer } from "buffer/";
 
+@singleton()
 export class LedgerService {
   private previousInitAborter: ((e: Error) => void) | undefined;
 
   constructor(
+    @inject(TYPES.LedgerStore)
     protected readonly kvStore: KVStore,
+    @inject(diDelay(() => InteractionService))
     protected readonly interactionService: InteractionService
   ) {}
 

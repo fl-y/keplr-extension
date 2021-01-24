@@ -1,3 +1,8 @@
+import "reflect-metadata";
+
+import { container } from "tsyringe";
+import { TYPES } from "./types";
+
 import { Router } from "@keplr/router";
 
 import * as PersistentMemory from "./persistent-memory/internal";
@@ -6,7 +11,7 @@ import * as Ledger from "./ledger/internal";
 import * as KeyRing from "./keyring/internal";
 import * as SecretWasm from "./secret-wasm/internal";
 import * as BackgroundTx from "./tx/internal";
-import * as Updater from "./updater/internal";
+// import * as Updater from "./updater/internal";
 import * as Tokens from "./tokens/internal";
 import * as Interaction from "./interaction/internal";
 import * as Permission from "./permission/internal";
@@ -30,67 +35,62 @@ export function init(
   storeCreator: (prefix: string) => KVStore,
   embedChainInfos: ChainInfo[]
 ) {
-  const interactionService = new Interaction.InteractionService();
+  container.register(TYPES.ChainsEmbedChainInfos, {
+    useValue: embedChainInfos,
+  });
+
+  container.register(TYPES.ChainsStore, { useValue: storeCreator("chains") });
+  container.register(TYPES.InteractionStore, {
+    useValue: storeCreator("interaction"),
+  });
+  container.register(TYPES.KeyRingStore, { useValue: storeCreator("keyring") });
+  container.register(TYPES.LedgerStore, { useValue: storeCreator("ledger") });
+  container.register(TYPES.PermissionStore, {
+    useValue: storeCreator("permission"),
+  });
+  container.register(TYPES.PersistentMemoryStore, {
+    useValue: storeCreator("persistent-memory"),
+  });
+  container.register(TYPES.SecretWasmStore, {
+    useValue: storeCreator("secretwasm"),
+  });
+  container.register(TYPES.TokensStore, { useValue: storeCreator("tokens") });
+  container.register(TYPES.TxStore, {
+    useValue: storeCreator("background-tx"),
+  });
+  container.register(TYPES.UpdaterStore, { useValue: storeCreator("updator") });
+
+  const interactionService = container.resolve(Interaction.InteractionService);
   Interaction.init(router, interactionService);
 
-  const persistentMemory = new PersistentMemory.PersistentMemoryService();
+  const persistentMemory = container.resolve(
+    PersistentMemory.PersistentMemoryService
+  );
   PersistentMemory.init(router, persistentMemory);
 
-  const permissionService = new Permission.PermissionService(
-    storeCreator("permission"),
-    interactionService
-  );
+  const permissionService = container.resolve(Permission.PermissionService);
   Permission.init(router, permissionService);
 
-  const chainUpdaterService = new Updater.ChainUpdaterService(
-    storeCreator("updater")
-  );
+  // Don't need
+  // const chainUpdaterService = container.resolve(Updater.ChainUpdaterService);
 
-  const tokensService = new Tokens.TokensService(
-    storeCreator("tokens"),
-    interactionService,
-    permissionService
-  );
+  const tokensService = container.resolve(Tokens.TokensService);
   Tokens.init(router, tokensService);
 
-  const chainsService = new Chains.ChainsService(
-    storeCreator("chains"),
-    chainUpdaterService,
-    tokensService,
-    interactionService,
-    embedChainInfos
-  );
+  const chainsService = container.resolve(Chains.ChainsService);
   Chains.init(router, chainsService);
 
-  const ledgerService = new Ledger.LedgerService(
-    storeCreator("ledger"),
-    interactionService
-  );
+  const ledgerService = container.resolve(Ledger.LedgerService);
   Ledger.init(router, ledgerService);
 
-  const keyRingService = new KeyRing.KeyRingService(
-    embedChainInfos,
-    storeCreator("keyring"),
-    interactionService,
-    chainsService,
-    permissionService,
-    ledgerService
-  );
+  const keyRingService = container.resolve(KeyRing.KeyRingService);
   KeyRing.init(router, keyRingService);
 
-  tokensService.init(chainsService, keyRingService);
-
-  const secretWasmService = new SecretWasm.SecretWasmService(
-    storeCreator("secretwasm"),
-    chainsService,
-    keyRingService,
-    permissionService
-  );
+  const secretWasmService = container.resolve(SecretWasm.SecretWasmService);
   SecretWasm.init(router, secretWasmService);
 
-  const backgroundTxService = new BackgroundTx.BackgroundTxService(
-    chainsService,
-    permissionService
+  const backgroundTxService = container.resolve(
+    BackgroundTx.BackgroundTxService
   );
   BackgroundTx.init(router, backgroundTxService);
 }

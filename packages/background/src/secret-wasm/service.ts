@@ -1,3 +1,6 @@
+import { delay, inject, singleton } from "tsyringe";
+import { TYPES } from "../types";
+
 import { EnigmaUtils } from "secretjs";
 import { KeyRingService } from "../keyring";
 import { ChainsService } from "../chains";
@@ -10,11 +13,16 @@ import { Env } from "@keplr/router";
 
 import { Buffer } from "buffer/";
 
+@singleton()
 export class SecretWasmService {
   constructor(
+    @inject(TYPES.SecretWasmStore)
     protected readonly kvStore: KVStore,
+    @inject(delay(() => ChainsService))
     protected readonly chainsService: ChainsService,
+    @inject(delay(() => KeyRingService))
     protected readonly keyRingService: KeyRingService,
+    @inject(delay(() => PermissionService))
     public readonly permissionService: PermissionService
   ) {}
 

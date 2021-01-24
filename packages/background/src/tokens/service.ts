@@ -1,3 +1,6 @@
+import { delay, inject, singleton } from "tsyringe";
+import { TYPES } from "../types";
+
 import { Env } from "@keplr/router";
 import {
   ChainInfo,
@@ -21,20 +24,20 @@ import { PermissionService } from "../permission";
 
 import { Buffer } from "buffer/";
 
+@singleton()
 export class TokensService {
-  protected chainsService!: ChainsService;
-  protected keyRingService!: KeyRingService;
-
   constructor(
+    @inject(TYPES.TokensStore)
     protected readonly kvStore: KVStore,
+    @inject(delay(() => InteractionService))
     protected readonly interactionService: InteractionService,
-    public readonly permissionService: PermissionService
+    @inject(delay(() => PermissionService))
+    public readonly permissionService: PermissionService,
+    @inject(delay(() => ChainsService))
+    protected readonly chainsService: ChainsService,
+    @inject(delay(() => KeyRingService))
+    protected readonly keyRingService: KeyRingService
   ) {}
-
-  init(chainsKeeper: ChainsService, keyRingKeeper: KeyRingService) {
-    this.chainsService = chainsKeeper;
-    this.keyRingService = keyRingKeeper;
-  }
 
   async suggestToken(env: Env, chainId: string, contractAddress: string) {
     const chainInfo = await this.chainsService.getChainInfo(chainId);

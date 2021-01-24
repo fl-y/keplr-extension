@@ -1,3 +1,6 @@
+import { delay, inject, singleton } from "tsyringe";
+import { TYPES } from "../types";
+
 import {
   Key,
   KeyRing,
@@ -30,15 +33,22 @@ import {
 
 import { Buffer } from "buffer/";
 
+@singleton()
 export class KeyRingService {
   private readonly keyRing: KeyRing;
 
   constructor(
-    embedChainInfos: ChainInfo[],
+    @inject(TYPES.KeyRingStore)
     kvStore: KVStore,
+    @inject(TYPES.ChainsEmbedChainInfos)
+    embedChainInfos: ChainInfo[],
+    @inject(delay(() => InteractionService))
     protected readonly interactionService: InteractionService,
+    @inject(delay(() => ChainsService))
     public readonly chainsService: ChainsService,
+    @inject(delay(() => PermissionService))
     public readonly permissionService: PermissionService,
+    @inject(LedgerService)
     ledgerService: LedgerService
   ) {
     this.keyRing = new KeyRing(embedChainInfos, kvStore, ledgerService);

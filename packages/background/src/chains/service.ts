@@ -1,3 +1,6 @@
+import { delay, inject, singleton } from "tsyringe";
+import { TYPES } from "../types";
+
 import { ChainInfoSchema, ChainInfoWithEmbed } from "./types";
 import { ChainInfo } from "@keplr/types";
 import { KVStore } from "@keplr/common";
@@ -9,13 +12,19 @@ import { SuggestChainInfoMsg } from "./messages";
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
+@singleton()
 export class ChainsService {
   constructor(
-    private readonly kvStore: KVStore,
-    private readonly chainUpdaterKeeper: ChainUpdaterService,
-    private readonly tokensKeeper: TokensService,
-    private readonly interactionKeeper: InteractionService,
-    private readonly embedChainInfos: ChainInfo[]
+    @inject(TYPES.ChainsStore)
+    protected readonly kvStore: KVStore,
+    @inject(TYPES.ChainsEmbedChainInfos)
+    protected readonly embedChainInfos: ChainInfo[],
+    @inject(delay(() => ChainUpdaterService))
+    protected readonly chainUpdaterKeeper: ChainUpdaterService,
+    @inject(delay(() => TokensService))
+    protected readonly tokensKeeper: TokensService,
+    @inject(delay(() => InteractionService))
+    protected readonly interactionKeeper: InteractionService
   ) {
     // TODO: Handle the case that the embeded chains and dynamically added chain has overlaps.
   }

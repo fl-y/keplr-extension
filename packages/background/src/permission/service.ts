@@ -1,3 +1,6 @@
+import { delay, inject, singleton } from "tsyringe";
+import { TYPES } from "../types";
+
 import { InteractionService } from "../interaction";
 import { Env } from "@keplr/router";
 import {
@@ -7,6 +10,7 @@ import {
 } from "./types";
 import { KVStore } from "@keplr/common";
 
+@singleton()
 export class PermissionService {
   protected permissionMap: {
     [type: string]:
@@ -17,7 +21,9 @@ export class PermissionService {
   } = {};
 
   constructor(
+    @inject(TYPES.PermissionStore)
     protected readonly kvStore: KVStore,
+    @inject(delay(() => InteractionService))
     protected readonly interactionService: InteractionService
   ) {
     this.restore();

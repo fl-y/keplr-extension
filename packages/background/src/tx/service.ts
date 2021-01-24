@@ -1,3 +1,5 @@
+import { delay, inject, singleton } from "tsyringe";
+
 import Axios, { AxiosInstance } from "axios";
 import { ChainsService } from "../chains";
 import { PermissionService } from "../permission";
@@ -17,9 +19,12 @@ interface ABCIMessageLog {
   // Events StringEvents
 }
 
+@singleton()
 export class BackgroundTxService {
   constructor(
+    @inject(delay(() => ChainsService))
     protected readonly chainsService: ChainsService,
+    @inject(delay(() => PermissionService))
     public readonly permissionService: PermissionService
   ) {}
 
