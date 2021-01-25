@@ -54,16 +54,17 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
     // Set true if all fees have the coingecko id.
     const [hasCoinGeckoId, setHasCoinGeckoId] = useState(false);
 
+    const current = chainStore.current;
     useEffect(() => {
       let price = new Dec(0);
       // Set true if all fees have the coingecko id.
       let hasCoinGeckoId = true;
 
       for (const coin of fee) {
-        const currency = chainStore.allCurrencies.find((currency) => {
+        const currency = current.feeCurrencies.find((currency) => {
           return currency.coinMinimalDenom === coin.denom;
         });
-        if (currency) {
+        if (currency && currency.coinGeckoId) {
           if (!currency.coinGeckoId) {
             hasCoinGeckoId = false;
           }
@@ -72,7 +73,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
             fiatCurrency.currency
           );
           const parsed = CoinUtils.parseDecAndDenomFromCoin(
-            chainStore.allCurrencies,
+            current.feeCurrencies,
             coin
           );
           if (value) {
@@ -85,7 +86,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
 
       setHasCoinGeckoId(hasCoinGeckoId);
       setFeeFiat(price);
-    }, [chainStore.allCurrencies, fee, fiatCurrency.currency]);
+    }, [current, fee, fiatCurrency.currency, priceStore]);
 
     return (
       <div className={styleDetailsTab.container}>
@@ -103,7 +104,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
           {msgs.map((msg, i) => {
             const msgContent = renderMessage(
               msg,
-              chainStore.allCurrencies,
+              chainStore.current.feeCurrencies,
               intl
             );
             return (
@@ -127,7 +128,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
               {fee
                 .map((fee) => {
                   const parsed = CoinUtils.parseDecAndDenomFromCoin(
-                    chainStore.allCurrencies,
+                    chainStore.current.feeCurrencies,
                     fee
                   );
                   return `${DecUtils.trim(parsed.amount)} ${parsed.denom}`;

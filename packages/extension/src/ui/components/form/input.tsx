@@ -17,7 +17,7 @@ import styleInput from "./input.module.scss";
 import { Buffer } from "buffer/";
 
 export interface InputProps {
-  type: Exclude<InputType, "textarea">;
+  type?: Exclude<InputType, "textarea">;
   label?: string;
   text?: string | React.ReactElement;
   error?: string;
