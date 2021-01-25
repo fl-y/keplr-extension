@@ -19,6 +19,7 @@ import {
   MultiKeyStoreInfoWithSelected,
   RestoreKeyRingMsg,
   SetKeyStoreCoinTypeMsg,
+  ShowKeyRingMsg,
   UnlockKeyRingMsg,
 } from "@keplr/background";
 
@@ -249,6 +250,11 @@ export class KeyRingStore {
     this.status = result.status;
     this.keyRingType = result.type;
     this.multiKeyStoreInfo = result.multiKeyStoreInfo;
+  }
+
+  async showKeyRing(index: number, password: string): Promise<string> {
+    const msg = new ShowKeyRingMsg(index, password);
+    return await this.requester.sendMessage(BACKGROUND_PORT, msg);
   }
 
   @actionAsync

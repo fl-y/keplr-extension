@@ -1,17 +1,15 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { Bech32Address } from "@keplr/cosmos";
-import { truncHashPortion } from "../../../../common/hash";
+import { Hash } from "@keplr/crypto";
 import { CoinUtils, Coin } from "@keplr/unit";
 import { IntlShape, FormattedMessage, useIntl } from "react-intl";
 import { Currency } from "../../../../common/currency";
 import { Button, Badge } from "reactstrap";
-import { sendMessage } from "../../../../common/message/send";
-import { BACKGROUND_PORT } from "../../../../common/message/constant";
-import { RequestDecryptMsg } from "@keplr/background";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 
 import { Buffer } from "buffer/";
+import { AccountStore } from "@keplr/stores";
 
 export interface MessageObj {
   type: string;
@@ -425,11 +423,11 @@ export function renderMessage(
             address: Bech32Address.shortenAddress(msg.value.address, 20),
             link: cyberlinks
               .map((link) => {
-                return `${truncHashPortion(
+                return `${Hash.truncHashPortion(
                   link.from,
                   7,
                   7
-                )} → ${truncHashPortion(link.to, 7, 7)}`;
+                )} → ${Hash.truncHashPortion(link.to, 7, 7)}`;
               })
               .join(", "),
           }}
@@ -471,18 +469,15 @@ export const WasmExecutionMsgView: FunctionComponent<{
           const nonce = cipherText.slice(0, 32);
           cipherText = cipherText.slice(64);
 
-          let plainText = Buffer.from(
-            await sendMessage(
-              BACKGROUND_PORT,
-              new RequestDecryptMsg(
-                chainStore.current.chainId,
-                cipherText.toString("hex"),
-                nonce.toString("hex")
-              )
-            ),
-            "hex"
-          );
+          const keplr = await AccountStore.getKeplr();
+          if (!keplr) {
+            throw new Error("Can't get the keplr API");
+          }
 
+          const enigmaUtils = keplr.getEnigmaUtils(chainStore.current.chainId);
+          let plainText = Buffer.from(
+            await enigmaUtils.decrypt(cipherText, nonce)
+          );
           // Remove the contract code hash.
           plainText = plainText.slice(64);
 

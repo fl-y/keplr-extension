@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { observer } from "mobx-react";
-import { HeaderLayout } from "../../../layouts/header-layout";
+import { HeaderLayout } from "../../../layouts";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useHistory } from "react-router";
 import style from "../style.module.scss";
@@ -78,133 +78,106 @@ export const AddressBookPage: FunctionComponent<{
     async (data: AddressBookData) => {
       closeAddAddressModal();
       if (addAddressModalIndex < 0) {
-        await addressBookKVStore.addAddressBook(chainStore.chainInfo, data);
+        await addressBookKVStore.addAddressBook(current, data);
       } else {
         await addressBookKVStore.editAddressBookAt(
-          chainStore.chainInfo,
+          current,
           addAddressModalIndex,
           data
         );
       }
-      await refreshAddressBook(chainStore.chainInfo);
+      await refreshAddressBook(current);
     },
     [
       addAddressModalIndex,
       addressBookKVStore,
-      chainStore.chainInfo,
+      current,
       closeAddAddressModal,
       refreshAddressBook,
     ]
   );
 
-  const removeAddressBook = useCallback(
-    async (index: number) => {
-      if (
-        await confirm.confirm({
-          img: (
-            <img
-              src={require("../../../public/assets/img/trash.svg")}
-              style={{ height: "80px" }}
-            />
-          ),
-          title: intl.formatMessage({
-            id: "setting.address-book.confirm.delete-address.title",
-          }),
-          paragraph: intl.formatMessage({
-            id: "setting.address-book.confirm.delete-address.paragraph",
-          }),
-        })
-      ) {
-        closeAddAddressModal();
-        await addressBookKVStore.removeAddressBook(chainStore.chainInfo, index);
-        await refreshAddressBook(chainStore.chainInfo);
+  const removeAddressBook = async (index: number) => {
+    if (
+      await confirm.confirm({
+        img: (
+          <img
+            src={require("../../../public/assets/img/trash.svg")}
+            style={{ height: "80px" }}
+          />
+        ),
+        title: intl.formatMessage({
+          id: "setting.address-book.confirm.delete-address.title",
+        }),
+        paragraph: intl.formatMessage({
+          id: "setting.address-book.confirm.delete-address.paragraph",
+        }),
+      })
+    ) {
+      closeAddAddressModal();
+      await addressBookKVStore.removeAddressBook(current, index);
+      await refreshAddressBook(current);
+    }
+  };
+
+  const editAddressBookClick = async (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const indexStr = e.currentTarget.getAttribute("data-index");
+    if (indexStr) {
+      const index = parseInt(indexStr);
+
+      if (index != null && !Number.isNaN(index) && index >= 0) {
+        openAddAddressModal();
+        setAddAddressModalIndex(index);
       }
-    },
-    [
-      addressBookKVStore,
-      chainStore.chainInfo,
-      closeAddAddressModal,
-      confirm,
-      intl,
-      refreshAddressBook,
-    ]
-  );
+    }
+  };
 
-  const editAddressBookClick = useCallback(
-    async (e: MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const indexStr = e.currentTarget.getAttribute("data-index");
-      if (indexStr) {
-        const index = parseInt(indexStr);
+  const removeAddressBookClick = async (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const indexStr = e.currentTarget.getAttribute("data-index");
+    if (indexStr) {
+      const index = parseInt(indexStr);
 
-        if (index != null && !Number.isNaN(index) && index >= 0) {
-          openAddAddressModal();
-          setAddAddressModalIndex(index);
-        }
+      if (index != null && !Number.isNaN(index) && index >= 0) {
+        await removeAddressBook(index);
       }
-    },
-    [openAddAddressModal]
-  );
+    }
+  };
 
-  const removeAddressBookClick = useCallback(
-    async (e: MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const indexStr = e.currentTarget.getAttribute("data-index");
-      if (indexStr) {
-        const index = parseInt(indexStr);
+  const selectAddressBookClick = async (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const indexStr = e.currentTarget.getAttribute("data-index");
+    if (onSelect && indexStr) {
+      const index = parseInt(indexStr);
 
-        if (index != null && !Number.isNaN(index) && index >= 0) {
-          await removeAddressBook(index);
-        }
+      if (index != null && !Number.isNaN(index) && index >= 0) {
+        onSelect(await addressBookKVStore.getAddressBookAt(current, index));
       }
-    },
-    [removeAddressBook]
-  );
+    }
+  };
 
-  const selectAddressBookClick = useCallback(
-    async (e: MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const indexStr = e.currentTarget.getAttribute("data-index");
-      if (onSelect && indexStr) {
-        const index = parseInt(indexStr);
-
-        if (index != null && !Number.isNaN(index) && index >= 0) {
-          onSelect(
-            await addressBookKVStore.getAddressBookAt(
-              chainStore.chainInfo,
-              index
-            )
-          );
-        }
-      }
-    },
-    [addressBookKVStore, chainStore.chainInfo, onSelect]
-  );
-
-  const addressBookIcons = useCallback(
-    (index: number) => {
-      return [
-        <i
-          key="edit"
-          className="fas fa-pen"
-          data-index={index}
-          style={{ cursor: "pointer" }}
-          onClick={editAddressBookClick}
-        />,
-        <i
-          key="remove"
-          className="fas fa-trash"
-          data-index={index}
-          style={{ cursor: "pointer" }}
-          onClick={removeAddressBookClick}
-        />,
-      ];
-    },
-    [editAddressBookClick, removeAddressBookClick]
-  );
+  const addressBookIcons = (index: number) => {
+    return [
+      <i
+        key="edit"
+        className="fas fa-pen"
+        data-index={index}
+        style={{ cursor: "pointer" }}
+        onClick={editAddressBookClick}
+      />,
+      <i
+        key="remove"
+        className="fas fa-trash"
+        data-index={index}
+        style={{ cursor: "pointer" }}
+        onClick={removeAddressBookClick}
+      />,
+    ];
+  };
 
   const defaultOnBackButton = useCallback(() => {
     history.goBack();
@@ -230,7 +203,7 @@ export const AddressBookPage: FunctionComponent<{
           <AddAddressModal
             closeModal={closeAddAddressModal}
             addAddressBook={addAddressBook}
-            chainInfo={chainStore.chainInfo}
+            chainInfo={chainStore.current}
             addressBookKVStore={addressBookKVStore}
             index={addAddressModalIndex}
           />
@@ -241,16 +214,16 @@ export const AddressBookPage: FunctionComponent<{
           {hideChainDropdown ? null : (
             <ButtonDropdown isOpen={dropdownOpen} toggle={toggle}>
               <DropdownToggle caret style={{ boxShadow: "none" }}>
-                {chainStore.chainInfo.chainName}
+                {chainStore.current.chainName}
               </DropdownToggle>
               <DropdownMenu>
-                {chainStore.chainList.map((chainInfo) => {
+                {chainStore.chainInfos.map((chainInfo) => {
                   return (
                     <DropdownItem
                       key={chainInfo.chainId}
-                      onClick={useCallback(() => {
-                        chainStore.setChain(chainInfo.chainId);
-                      }, [chainInfo.chainId])}
+                      onClick={() => {
+                        chainStore.selectChain(chainInfo.chainId);
+                      }}
                     >
                       {chainInfo.chainName}
                     </DropdownItem>
@@ -284,7 +257,7 @@ export const AddressBookPage: FunctionComponent<{
                 title={data.name}
                 paragraph={
                   data.address.indexOf(
-                    chainStore.chainInfo.bech32Config.bech32PrefixAccAddr
+                    chainStore.current.bech32Config.bech32PrefixAccAddr
                   ) === 0
                     ? Bech32Address.shortenAddress(data.address, 34)
                     : data.address

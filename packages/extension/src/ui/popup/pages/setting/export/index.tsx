@@ -11,25 +11,26 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { Input } from "../../../../components/form";
 import { Button, Form } from "reactstrap";
 import useForm from "react-hook-form";
-import { ShowKeyRingMsg } from "@keplr/background";
-import { sendMessage } from "../../../../../common/message/send";
-import { BACKGROUND_PORT } from "../../../../../common/message/constant";
 import { WarningView } from "./warning-view";
 
 import classnames from "classnames";
 import queryString from "query-string";
 
 import style from "./style.module.scss";
+import { observer } from "mobx-react";
+import { useStore } from "../../../stores";
 
 interface FormData {
   password: string;
 }
 
-export const ExportPage: FunctionComponent = () => {
+export const ExportPage: FunctionComponent = observer(() => {
   const history = useHistory();
   const location = useLocation();
   const match = useRouteMatch<{ index: string; type?: string }>();
   const intl = useIntl();
+
+  const { keyRingStore } = useStore();
 
   const query = queryString.parse(location.search);
 
@@ -78,11 +79,12 @@ export const ExportPage: FunctionComponent = () => {
               onSubmit={handleSubmit(async (data) => {
                 setLoading(true);
                 try {
-                  const msg = new ShowKeyRingMsg(
-                    parseInt(match.params.index),
-                    data.password
+                  setKeyRing(
+                    await keyRingStore.showKeyRing(
+                      parseInt(match.params.index),
+                      data.password
+                    )
                   );
-                  setKeyRing(await sendMessage(BACKGROUND_PORT, msg));
                 } catch (e) {
                   console.log("Fail to decrypt: " + e.message);
                   setError(
@@ -124,4 +126,4 @@ export const ExportPage: FunctionComponent = () => {
       </div>
     </HeaderLayout>
   );
-};
+});

@@ -71,7 +71,7 @@ export const ChainSuggestedPage: FunctionComponent = observer(() => {
 
               if (
                 interactionInfo.interaction &&
-                interactionInfo.interactionInternal
+                !interactionInfo.interactionInternal
               ) {
                 window.close();
               } else {
@@ -93,7 +93,7 @@ export const ChainSuggestedPage: FunctionComponent = observer(() => {
 
               if (
                 interactionInfo.interaction &&
-                interactionInfo.interactionInternal
+                !interactionInfo.interactionInternal
               ) {
                 window.close();
               } else {

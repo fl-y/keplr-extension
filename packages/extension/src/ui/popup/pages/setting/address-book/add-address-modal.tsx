@@ -1,9 +1,4 @@
-import React, {
-  FunctionComponent,
-  useCallback,
-  useState,
-  useEffect,
-} from "react";
+import React, { FunctionComponent, useState, useEffect } from "react";
 import { HeaderLayout } from "../../../layouts";
 import { AddressInput, Input, MemoInput } from "../../../../components/form";
 import { Button } from "reactstrap";
@@ -11,7 +6,9 @@ import { AddressBookData } from "./types";
 import { AddressBookKVStore } from "./kv-store";
 import { ChainInfo } from "@keplr/types";
 import { FormattedMessage, useIntl } from "react-intl";
-import { useTxState, withTxStateProvider } from "../../../../contexts/tx";
+import { observer } from "mobx-react";
+import { useTxConfig } from "@keplr/hooks";
+import { useStore } from "../../../stores";
 
 /**
  *
@@ -28,13 +25,14 @@ export const AddAddressModal: FunctionComponent<{
   chainInfo: ChainInfo;
   index: number;
   addressBookKVStore: AddressBookKVStore;
-}> = withTxStateProvider(
+}> = observer(
   ({ closeModal, addAddressBook, chainInfo, index, addressBookKVStore }) => {
     const intl = useIntl();
 
     const [name, setName] = useState("");
 
-    const txState = useTxState();
+    const { chainStore } = useStore();
+    const txConfig = useTxConfig(chainStore);
 
     // Make sure to load the editables only once.
     const [editingLoaded, setEditingLoaded] = useState(false);
@@ -45,13 +43,13 @@ export const AddAddressModal: FunctionComponent<{
           addressBookKVStore.getAddressBook(chainInfo).then((datas) => {
             const data = datas[index];
             setName(data.name);
-            txState.setRawAddress(data.address);
-            txState.setMemo(data.memo);
+            txConfig.setRecipient(data.address);
+            txConfig.setMemo(data.memo);
           });
           setEditingLoaded(true);
         }
       }
-    }, [addressBookKVStore, chainInfo, editingLoaded, index, txState]);
+    }, [addressBookKVStore, chainInfo, editingLoaded, index, txConfig]);
 
     return (
       <HeaderLayout
@@ -76,14 +74,13 @@ export const AddAddressModal: FunctionComponent<{
             label={intl.formatMessage({ id: "setting.address-book.name" })}
             autoComplete="off"
             value={name}
-            onChange={useCallback((e) => {
+            onChange={(e) => {
               setName(e.target.value);
-            }, [])}
+            }}
           />
           <AddressInput
+            txConfig={txConfig}
             label={intl.formatMessage({ id: "setting.address-book.address" })}
-            bech32Prefix={chainInfo.bech32Config.bech32PrefixAccAddr}
-            coinType={chainInfo.coinType}
             errorTexts={{
               invalidBech32Address: intl.formatMessage({
                 id: "setting.address-book.address.error.invalid",
@@ -104,35 +101,27 @@ export const AddAddressModal: FunctionComponent<{
             disableAddressBook={true}
           />
           <MemoInput
+            txConfig={txConfig}
             label={intl.formatMessage({ id: "setting.address-book.memo" })}
           />
           <div style={{ flex: 1 }} />
           <Button
             type="submit"
             color="primary"
-            disabled={!name || !txState.isValid("recipient", "memo")}
-            onClick={useCallback(
-              (e) => {
-                if (!txState.recipient) {
-                  throw new Error("Invalid address");
-                }
+            disabled={!name || !txConfig.isValid("recipient", "memo")}
+            onClick={(e) => {
+              if (!txConfig.recipient) {
+                throw new Error("Invalid address");
+              }
 
-                addAddressBook({
-                  name,
-                  address: txState.rawAddress,
-                  memo: txState.memo,
-                });
-
-                e.preventDefault();
-              },
-              [
-                addAddressBook,
+              addAddressBook({
                 name,
-                txState.memo,
-                txState.rawAddress,
-                txState.recipient,
-              ]
-            )}
+                address: txConfig.recipient,
+                memo: txConfig.memo,
+              });
+
+              e.preventDefault();
+            }}
           >
             <FormattedMessage id={"setting.address-book.button.save"} />
           </Button>
