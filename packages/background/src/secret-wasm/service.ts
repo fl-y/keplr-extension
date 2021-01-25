@@ -98,7 +98,7 @@ export class SecretWasmService {
       key.address
     ).toBech32(chainInfo.bech32Config.bech32PrefixAccAddr)}`;
 
-    const cached = await this.kvStore.get(storeKey);
+    const cached = await this.kvStore.get<string>(storeKey);
     if (cached) {
       return Buffer.from(cached, "hex");
     }

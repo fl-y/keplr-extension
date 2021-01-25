@@ -3,12 +3,15 @@ import { TokensService } from "./service";
 import {
   AddTokenMsg,
   GetSecret20ViewingKey,
+  GetTokensMsg,
   SuggestTokenMsg,
 } from "./messages";
 
 export const getHandler: (service: TokensService) => Handler = (service) => {
   return (env: Env, msg: Message<unknown>) => {
     switch (msg.constructor) {
+      case GetTokensMsg:
+        return handleGetTokensMsg(service)(env, msg as GetTokensMsg);
       case SuggestTokenMsg:
         return handleSuggestTokenMsg(service)(env, msg as SuggestTokenMsg);
       case AddTokenMsg:
@@ -21,6 +24,14 @@ export const getHandler: (service: TokensService) => Handler = (service) => {
       default:
         throw new Error("Unknown msg type");
     }
+  };
+};
+
+const handleGetTokensMsg: (
+  service: TokensService
+) => InternalHandler<GetTokensMsg> = (service) => {
+  return async (_, msg) => {
+    return await service.getTokens(msg.chainId);
   };
 };
 

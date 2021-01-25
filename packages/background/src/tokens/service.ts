@@ -117,20 +117,11 @@ export class TokensService {
     }
   }
 
-  public async getTokens(
-    chainId: string,
-    defaultCurrencies: AppCurrency[]
-  ): Promise<AppCurrency[]> {
+  public async getTokens(chainId: string): Promise<AppCurrency[]> {
     const version = ChainUpdaterService.getChainVersion(chainId);
 
     let chainCurrencies =
       (await this.kvStore.get<AppCurrency[]>(version.identifier)) ?? [];
-
-    if (chainCurrencies.length === 0) {
-      // If the token hasn't been inited, just set the default currencies as
-      await this.saveTokensToChain(chainId, defaultCurrencies);
-      chainCurrencies = defaultCurrencies;
-    }
 
     let keyCurrencies: AppCurrency[] = [];
     if (this.keyRingService.keyRingStatus === KeyRingStatus.UNLOCKED) {

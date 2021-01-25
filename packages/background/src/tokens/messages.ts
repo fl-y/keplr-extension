@@ -2,6 +2,34 @@ import { Message } from "@keplr/router";
 import { ROUTE } from "./constants";
 import { AppCurrency } from "@keplr/types";
 
+export class GetTokensMsg extends Message<AppCurrency[]> {
+  public static type() {
+    return "get-tokens";
+  }
+
+  constructor(public readonly chainId: string) {
+    super();
+  }
+
+  approveExternal(): boolean {
+    return true;
+  }
+
+  validateBasic(): void {
+    if (!this.chainId) {
+      throw new Error("Chain id is empty");
+    }
+  }
+
+  route(): string {
+    return ROUTE;
+  }
+
+  type(): string {
+    return GetTokensMsg.type();
+  }
+}
+
 export class SuggestTokenMsg extends Message<void> {
   public static type() {
     return "suggest-token";

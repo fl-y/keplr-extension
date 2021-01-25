@@ -1,21 +1,37 @@
-import { action, observable, runInAction } from "mobx";
+import { action, computed, observable, runInAction } from "mobx";
 import { ChainInfo } from "@keplr/types";
 import { ChainGetter } from "../common";
 import { ChainIdHelper } from "@keplr/cosmos";
+import { DeepReadonly } from "utility-types";
+
+export type ChainInfoOverrider<C extends ChainInfo = ChainInfo> = (
+  chainInfo: DeepReadonly<C>
+) => C;
 
 export class ChainStore<C extends ChainInfo = ChainInfo>
   implements ChainGetter {
   @observable.ref
   protected _chainInfos!: C[];
 
+  @observable.shallow
+  protected _chainInfoOverriders!: ChainInfoOverrider<C>[];
+
   constructor(embedChainInfos: C[]) {
     runInAction(() => {
       this._chainInfos = embedChainInfos;
+      this._chainInfoOverriders = [];
     });
   }
 
+  @computed
   get chainInfos(): C[] {
-    return this._chainInfos;
+    return this._chainInfos.map((chainInfo) => {
+      for (const chainInfoOverrider of this._chainInfoOverriders) {
+        chainInfo = chainInfoOverrider(chainInfo as DeepReadonly<C>);
+      }
+
+      return chainInfo;
+    });
   }
 
   getChain(chainId: string): C {
@@ -46,6 +62,11 @@ export class ChainStore<C extends ChainInfo = ChainInfo>
     });
 
     return find != null;
+  }
+
+  @action
+  registerChainInfoOverrider(chainInfoOverrider: ChainInfoOverrider<C>) {
+    this._chainInfoOverriders.push(chainInfoOverrider);
   }
 
   @action

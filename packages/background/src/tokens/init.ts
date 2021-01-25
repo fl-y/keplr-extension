@@ -1,5 +1,6 @@
 import { Router } from "@keplr/router";
 import {
+  GetTokensMsg,
   AddTokenMsg,
   GetSecret20ViewingKey,
   SuggestTokenMsg,
@@ -9,6 +10,7 @@ import { getHandler } from "./handler";
 import { TokensService } from "./service";
 
 export function init(router: Router, service: TokensService): void {
+  router.registerMessage(GetTokensMsg);
   router.registerMessage(SuggestTokenMsg);
   router.registerMessage(AddTokenMsg);
   router.registerMessage(GetSecret20ViewingKey);

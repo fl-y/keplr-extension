@@ -5,12 +5,9 @@ import { ChainInfoSchema, ChainInfoWithEmbed } from "./types";
 import { ChainInfo } from "@keplr/types";
 import { KVStore } from "@keplr/common";
 import { ChainUpdaterService } from "../updater";
-import { TokensService } from "../tokens";
 import { InteractionService } from "../interaction";
 import { Env } from "@keplr/router";
 import { SuggestChainInfoMsg } from "./messages";
-
-type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 @singleton()
 export class ChainsService {
@@ -21,8 +18,6 @@ export class ChainsService {
     protected readonly embedChainInfos: ChainInfo[],
     @inject(delay(() => ChainUpdaterService))
     protected readonly chainUpdaterKeeper: ChainUpdaterService,
-    @inject(delay(() => TokensService))
-    protected readonly tokensKeeper: TokensService,
     @inject(delay(() => InteractionService))
     protected readonly interactionKeeper: InteractionService
   ) {
@@ -53,13 +48,8 @@ export class ChainsService {
       // Set the updated property of the chain.
       result = await Promise.all(
         result.map(async (chainInfo) => {
-          const updated: Writeable<ChainInfo> = await this.chainUpdaterKeeper.putUpdatedPropertyToChainInfo(
+          const updated: ChainInfo = await this.chainUpdaterKeeper.putUpdatedPropertyToChainInfo(
             chainInfo
-          );
-
-          updated.currencies = await this.tokensKeeper.getTokens(
-            updated.chainId,
-            updated.currencies
           );
 
           return {
@@ -181,9 +171,8 @@ export class ChainsService {
 
     // Clear the updated chain info.
     await this.chainUpdaterKeeper.clearUpdatedProperty(chainId);
-    await this.tokensKeeper.clearTokens(chainId);
 
-    // Clear the access origin.
+    // Clear the access origin and registered tokens.
     // TODO
     // await this.clearAccessOrigins(chainId);
   }

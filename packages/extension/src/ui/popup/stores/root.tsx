@@ -10,6 +10,7 @@ import {
   TxConfigStore,
   SignInteractionStore,
   LedgerInitStore,
+  TokensStore,
 } from "@keplr/stores";
 import { BrowserKVStore } from "@keplr/common";
 import {
@@ -18,6 +19,7 @@ import {
   InExtensionMessageRequester,
   APP_PORT,
 } from "@keplr/router";
+import { ChainInfoWithEmbed } from "@keplr/background";
 
 export class RootStore {
   public readonly chainStore: ChainStore;
@@ -32,6 +34,7 @@ export class RootStore {
   public readonly queriesStore: QueriesStore;
   public readonly accountStore: AccountStore;
   public readonly priceStore: CoinGeckoPriceStore;
+  public readonly tokensStore: TokensStore<ChainInfoWithEmbed>;
 
   constructor() {
     const router = new Router(ExtensionEnv.produceEnv);
@@ -81,6 +84,11 @@ export class RootStore {
           symbol: "₩",
         },
       }
+    );
+
+    this.tokensStore = new TokensStore(
+      this.chainStore,
+      new InExtensionMessageRequester()
     );
 
     router.listen(APP_PORT);
