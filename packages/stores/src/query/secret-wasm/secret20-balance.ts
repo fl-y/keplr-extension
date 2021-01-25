@@ -10,7 +10,7 @@ import { BalanceRegistry, ObservableQueryBalanceInner } from "../balances";
 import { ObservableSecretContractChainQuery } from "./contract-query";
 
 export class ObservableQuerySecret20Balance extends ObservableSecretContractChainQuery<{
-  balance: string;
+  balance: { amount: string };
 }> {
   constructor(
     kvStore: KVStore,
@@ -161,7 +161,7 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
 
     return new CoinPretty(
       currency.coinDenom,
-      new Int(this.querySecret20Balance.response.data.balance)
+      new Int(this.querySecret20Balance.response.data.balance.amount)
     )
       .precision(currency.coinDecimals)
       .maxDecimals(currency.coinDecimals);
