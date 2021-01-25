@@ -1,7 +1,7 @@
 import { HasMapStore } from "../common";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 import { actionAsync, task } from "mobx-utils";
-import { AddTokenMsg, GetTokensMsg } from "@keplr/background";
+import { AddTokenMsg, GetTokensMsg, RemoveTokenMsg } from "@keplr/background";
 import { observable, runInAction } from "mobx";
 import { AppCurrency, ChainInfo } from "@keplr/types";
 import { DeepReadonly } from "utility-types";
@@ -35,6 +35,13 @@ export class TokensStoreInner {
   @actionAsync
   async addToken(currency: AppCurrency) {
     const msg = new AddTokenMsg(this.chainId, currency);
+    await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    await task(this.refreshTokens());
+  }
+
+  @actionAsync
+  async removeToken(currency: AppCurrency) {
+    const msg = new RemoveTokenMsg(this.chainId, currency);
     await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
     await task(this.refreshTokens());
   }

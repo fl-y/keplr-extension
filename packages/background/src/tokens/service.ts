@@ -117,10 +117,45 @@ export class TokensService {
     }
   }
 
+  async removeToken(chainId: string, currency: AppCurrency) {
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
+
+    currency = await TokensService.validateCurrency(chainInfo, currency);
+
+    const chainCurrencies = chainInfo.currencies;
+
+    const isTokenForAccount =
+      "type" in currency && currency.type === "secret20";
+    let isFoundCurrency = false;
+
+    for (const chainCurrency of chainCurrencies) {
+      if (currency.coinMinimalDenom === chainCurrency.coinMinimalDenom) {
+        isFoundCurrency = true;
+        break;
+      }
+    }
+
+    if (!isFoundCurrency) {
+      return;
+    }
+
+    if (!isTokenForAccount) {
+      const currencies = (await this.getTokensFromChain(chainId)).filter(
+        (cur) => cur.coinMinimalDenom !== currency.coinMinimalDenom
+      );
+      await this.saveTokensToChain(chainId, currencies);
+    } else {
+      const currencies = (
+        await this.getTokensFromChainAndAccount(chainId)
+      ).filter((cur) => cur.coinMinimalDenom !== currency.coinMinimalDenom);
+      await this.saveTokensToChainAndAccount(chainId, currencies);
+    }
+  }
+
   public async getTokens(chainId: string): Promise<AppCurrency[]> {
     const version = ChainUpdaterService.getChainVersion(chainId);
 
-    let chainCurrencies =
+    const chainCurrencies =
       (await this.kvStore.get<AppCurrency[]>(version.identifier)) ?? [];
 
     let keyCurrencies: AppCurrency[] = [];

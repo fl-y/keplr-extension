@@ -4,6 +4,7 @@ import {
   AddTokenMsg,
   GetSecret20ViewingKey,
   GetTokensMsg,
+  RemoveTokenMsg,
   SuggestTokenMsg,
 } from "./messages";
 
@@ -16,6 +17,8 @@ export const getHandler: (service: TokensService) => Handler = (service) => {
         return handleSuggestTokenMsg(service)(env, msg as SuggestTokenMsg);
       case AddTokenMsg:
         return handleAddTokenMsg(service)(env, msg as AddTokenMsg);
+      case RemoveTokenMsg:
+        return handleRemoveTokenMsg(service)(env, msg as RemoveTokenMsg);
       case GetSecret20ViewingKey:
         return handleGetSecret20ViewingKey(service)(
           env,
@@ -54,6 +57,14 @@ const handleAddTokenMsg: (
 ) => InternalHandler<AddTokenMsg> = (service) => {
   return async (_, msg) => {
     await service.addToken(msg.chainId, msg.currency);
+  };
+};
+
+const handleRemoveTokenMsg: (
+  service: TokensService
+) => InternalHandler<RemoveTokenMsg> = (service) => {
+  return async (_, msg) => {
+    await service.removeToken(msg.chainId, msg.currency);
   };
 };
 
