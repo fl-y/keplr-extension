@@ -193,54 +193,91 @@ export class AccountStoreInner {
       return dec.truncate().toString();
     })();
 
-    const msg = (() => {
-      switch (denomHelper.type) {
-        case "native":
-          return {
-            type: "cosmos-sdk/MsgSend",
-            value: {
-              from_address: this.bech32Address,
-              to_address: recipient,
-              amount: [
-                {
-                  denom: currency.coinMinimalDenom,
-                  amount: actualAmount,
-                },
-              ],
+    switch (denomHelper.type) {
+      case "native":
+        this.sendMsgs(
+          [
+            {
+              type: "cosmos-sdk/MsgSend",
+              value: {
+                from_address: this.bech32Address,
+                to_address: recipient,
+                amount: [
+                  {
+                    denom: currency.coinMinimalDenom,
+                    amount: actualAmount,
+                  },
+                ],
+              },
             },
-          };
-        default:
-          throw new Error(`Unsupported type of currency (${denomHelper.type})`);
-      }
-    })();
+          ],
+          fee,
+          memo,
+          mode,
+          () => {
+            // After succeeding to delegate, refresh the validators and delegations, rewards.
+            const queryBalance = this.queries
+              .getQueryBalances()
+              .getQueryBech32Address(this.bech32Address)
+              .balances.find((bal) => {
+                return (
+                  bal.currency.coinMinimalDenom === currency.coinMinimalDenom
+                );
+              });
 
-    this.sendMsgs(
-      [msg],
-      fee,
-      memo,
-      mode,
-      () => {
-        // After succeeding to delegate, refresh the validators and delegations, rewards.
-        this.queries
-          .getQueryValidators()
-          .getQueryStatus(BondStatus.Bonded)
-          .fetch();
-        this.queries
-          .getQueryDelegations()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-        this.queries
-          .getQueryRewards()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
+            if (queryBalance) {
+              queryBalance.fetch();
+            }
 
-        if (onSuccess) {
-          onSuccess();
+            if (onSuccess) {
+              onSuccess();
+            }
+          },
+          onFail,
+          onFulfill
+        );
+        return;
+      case "secret20":
+        if (!("type" in currency) || currency.type !== "secret20") {
+          throw new Error("Currency is not secret20");
         }
-      },
-      onFail,
-      onFulfill
-    );
+        this.sendExecuteSecretContractMsg(
+          currency.contractAddress,
+          {
+            transfer: {
+              recipient: recipient,
+              amount: actualAmount,
+            },
+          },
+          fee,
+          memo,
+          mode,
+          () => {
+            // After succeeding to delegate, refresh the validators and delegations, rewards.
+            const queryBalance = this.queries
+              .getQueryBalances()
+              .getQueryBech32Address(this.bech32Address)
+              .balances.find((bal) => {
+                return (
+                  bal.currency.coinMinimalDenom === currency.coinMinimalDenom
+                );
+              });
+
+            if (queryBalance) {
+              queryBalance.fetch();
+            }
+
+            if (onSuccess) {
+              onSuccess();
+            }
+          },
+          onFail,
+          onFulfill
+        );
+        return;
+      default:
+        throw new Error(`Unsupported type of currency (${denomHelper.type})`);
+    }
   }
 
   /**
@@ -597,10 +634,18 @@ export class AccountStoreInner {
     onFail?: (e: Error) => void,
     onFulfill?: () => void
   ): Promise<Uint8Array> {
-    const encryptedMsg = await this.encryptSecretContractMsg(
-      contractAddress,
-      obj
-    );
+    const encryptedMsg = await (async () => {
+      runInAction(() => {
+        this._isSendingMsg = true;
+      });
+      try {
+        return await this.encryptSecretContractMsg(contractAddress, obj);
+      } finally {
+        runInAction(() => {
+          this._isSendingMsg = false;
+        });
+      }
+    })();
 
     const msg = {
       type: "wasm/MsgExecuteContract",
