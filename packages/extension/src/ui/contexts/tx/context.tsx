@@ -19,7 +19,7 @@ import { MsgExecuteContract as SecretMsgExecuteContract } from "../../../common/
 import { AxiosInstance } from "axios";
 import { sendMessage } from "../../../common/message/send";
 import { BACKGROUND_PORT } from "../../../common/message/constant";
-import { ReqeustEncryptMsg } from "../../../background/secret-wasm";
+import { ReqeustEncryptMsg } from "@keplr/background";
 
 import { Buffer } from "buffer/";
 

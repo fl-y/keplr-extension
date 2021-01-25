@@ -3,7 +3,7 @@ import { Button, Col, CustomInput, Modal, ModalBody, Row } from "reactstrap";
 import { Bech32Address } from "@keplr/cosmos";
 
 import style from "./bip44-select-modal.module.scss";
-import { SelectableAccount } from "../../../../background/keyring/types";
+import { SelectableAccount } from "@keplr/background";
 import { useStore } from "../../stores";
 import { observer } from "mobx-react";
 import { CoinUtils, Int } from "@keplr/unit";

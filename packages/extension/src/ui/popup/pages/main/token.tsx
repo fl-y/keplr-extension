@@ -4,7 +4,7 @@ import styleToken from "./token.module.scss";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import { useHistory } from "react-router";
-import { Crypto } from "../../../../background/keyring/crypto";
+import { Hash } from "@keplr/crypto";
 
 const TokenView: FunctionComponent<{
   name: string;
@@ -20,7 +20,7 @@ const TokenView: FunctionComponent<{
   ]);
 
   const backgroundColor = useMemo(() => {
-    const hash = Crypto.sha256(Buffer.from(minimalDenom));
+    const hash = Hash.sha256(Buffer.from(minimalDenom));
     if (hash.length > 0) {
       return backgroundColors[hash[0] % backgroundColors.length];
     } else {

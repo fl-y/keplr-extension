@@ -5,7 +5,7 @@ import { Alert, Button } from "reactstrap";
 import { useHistory } from "react-router";
 import { FormattedMessage } from "react-intl";
 
-import { MultiKeyStoreInfoWithSelectedElem } from "../../../../../background/keyring/keyring";
+import { MultiKeyStoreInfoWithSelectedElem } from "@keplr/background";
 
 export const WarningView: FunctionComponent<{
   index: number;

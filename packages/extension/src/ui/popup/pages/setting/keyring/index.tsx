@@ -11,7 +11,7 @@ import { Button, Popover, PopoverBody } from "reactstrap";
 import style from "./style.module.scss";
 import { useLoadingIndicator } from "../../../../components/loading-indicator";
 import { PageButton } from "../page-button";
-import { MultiKeyStoreInfoWithSelectedElem } from "../../../../../background/keyring/keyring";
+import { MultiKeyStoreInfoWithSelectedElem } from "@keplr/background";
 import { FormattedMessage, useIntl } from "react-intl";
 
 export const SetKeyRingPage: FunctionComponent = observer(() => {
@@ -38,17 +38,17 @@ export const SetKeyRingPage: FunctionComponent = observer(() => {
             style={{
               display: "flex",
               flexDirection: "column",
-              justifyContent: "center"
+              justifyContent: "center",
             }}
           >
             <Button
               color="primary"
               size="sm"
-              onClick={e => {
+              onClick={(e) => {
                 e.preventDefault();
 
                 browser.tabs.create({
-                  url: "/popup.html#/register?mode=add"
+                  url: "/popup.html#/register?mode=add",
                 });
               }}
             >
@@ -66,7 +66,7 @@ export const SetKeyRingPage: FunctionComponent = observer(() => {
             : {
                 account: 0,
                 change: 0,
-                addressIndex: 0
+                addressIndex: 0,
               };
 
           return (
@@ -76,12 +76,12 @@ export const SetKeyRingPage: FunctionComponent = observer(() => {
                 keyStore.meta?.name
                   ? keyStore.meta.name
                   : intl.formatMessage({
-                      id: "setting.keyring.unnamed-account"
+                      id: "setting.keyring.unnamed-account",
                     })
               } ${
                 keyStore.selected
                   ? intl.formatMessage({
-                      id: "setting.keyring.selected-account"
+                      id: "setting.keyring.selected-account",
                     })
                   : ""
               }`}
@@ -95,7 +95,7 @@ export const SetKeyRingPage: FunctionComponent = observer(() => {
               onClick={
                 keyStore.selected
                   ? undefined
-                  : async e => {
+                  : async (e) => {
                       e.preventDefault();
 
                       loadingIndicator.setIsLoading("keyring", true);
@@ -112,7 +112,7 @@ export const SetKeyRingPage: FunctionComponent = observer(() => {
               }
               style={keyStore.selected ? { cursor: "default" } : undefined}
               icons={[
-                <KeyRingToolsIcon key="tools" index={i} keyStore={keyStore} />
+                <KeyRingToolsIcon key="tools" index={i} keyStore={keyStore} />,
               ]}
             />
           );
@@ -127,7 +127,7 @@ const KeyRingToolsIcon: FunctionComponent<{
   keyStore: MultiKeyStoreInfoWithSelectedElem;
 }> = ({ index, keyStore }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const toggleOpen = () => setIsOpen(isOpen => !isOpen);
+  const toggleOpen = () => setIsOpen((isOpen) => !isOpen);
 
   const history = useHistory();
 
@@ -146,7 +146,7 @@ const KeyRingToolsIcon: FunctionComponent<{
         placement="bottom"
       >
         <PopoverBody
-          onClick={e => {
+          onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
 
@@ -156,7 +156,7 @@ const KeyRingToolsIcon: FunctionComponent<{
           {keyStore.type === "mnemonic" || keyStore.type === "privateKey" ? (
             <div
               style={{ cursor: "pointer" }}
-              onClick={e => {
+              onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -174,7 +174,7 @@ const KeyRingToolsIcon: FunctionComponent<{
           ) : null}
           <div
             style={{ cursor: "pointer" }}
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
 
@@ -191,9 +191,9 @@ const KeyRingToolsIcon: FunctionComponent<{
           alignItems: "center",
           height: "100%",
           padding: "0 8px",
-          cursor: "pointer"
+          cursor: "pointer",
         }}
-        onClick={e => {
+        onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
 

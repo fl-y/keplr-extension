@@ -7,7 +7,7 @@ import { Currency } from "../../../../common/currency";
 import { Button, Badge } from "reactstrap";
 import { sendMessage } from "../../../../common/message/send";
 import { BACKGROUND_PORT } from "../../../../common/message/constant";
-import { RequestDecryptMsg } from "../../../../background/secret-wasm";
+import { RequestDecryptMsg } from "@keplr/background";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 

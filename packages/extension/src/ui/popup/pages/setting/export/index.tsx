@@ -2,16 +2,16 @@ import React, {
   FunctionComponent,
   useCallback,
   useEffect,
-  useState
+  useState,
 } from "react";
-import { HeaderLayout } from "../../../layouts/header-layout";
+import { HeaderLayout } from "../../../layouts";
 
 import { useHistory, useLocation, useRouteMatch } from "react-router";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Input } from "../../../../components/form";
 import { Button, Form } from "reactstrap";
 import useForm from "react-hook-form";
-import { ShowKeyRingMsg } from "../../../../../background/keyring";
+import { ShowKeyRingMsg } from "@keplr/background";
 import { sendMessage } from "../../../../../common/message/send";
 import { BACKGROUND_PORT } from "../../../../../common/message/constant";
 import { WarningView } from "./warning-view";
@@ -40,8 +40,8 @@ export const ExportPage: FunctionComponent = () => {
 
   const { register, handleSubmit, setError, errors } = useForm<FormData>({
     defaultValues: {
-      password: ""
-    }
+      password: "",
+    },
   });
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export const ExportPage: FunctionComponent = () => {
       canChangeChainInfo={false}
       alternativeTitle={intl.formatMessage({
         id:
-          type === "mnemonic" ? "setting.export" : "setting.export.private-key"
+          type === "mnemonic" ? "setting.export" : "setting.export.private-key",
       })}
       onBackButton={useCallback(() => {
         history.goBack();
@@ -66,7 +66,7 @@ export const ExportPage: FunctionComponent = () => {
         {keyRing ? (
           <div
             className={classnames(style.mnemonic, {
-              [style.altHex]: type !== "mnemonic"
+              [style.altHex]: type !== "mnemonic",
             })}
           >
             {keyRing}
@@ -75,7 +75,7 @@ export const ExportPage: FunctionComponent = () => {
           <React.Fragment>
             <WarningView />
             <Form
-              onSubmit={handleSubmit(async data => {
+              onSubmit={handleSubmit(async (data) => {
                 setLoading(true);
                 try {
                   const msg = new ShowKeyRingMsg(
@@ -89,7 +89,7 @@ export const ExportPage: FunctionComponent = () => {
                     "password",
                     "invalid",
                     intl.formatMessage({
-                      id: "setting.export.input.password.error.invalid"
+                      id: "setting.export.input.password.error.invalid",
                     })
                   );
                 } finally {
@@ -100,14 +100,14 @@ export const ExportPage: FunctionComponent = () => {
               <Input
                 type="password"
                 label={intl.formatMessage({
-                  id: "setting.export.input.password"
+                  id: "setting.export.input.password",
                 })}
                 name="password"
                 error={errors.password && errors.password.message}
                 ref={register({
                   required: intl.formatMessage({
-                    id: "setting.export.input.password.error.required"
-                  })
+                    id: "setting.export.input.password.error.required",
+                  }),
                 })}
               />
               <Button

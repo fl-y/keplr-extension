@@ -1,7 +1,7 @@
 import scrypt from "scrypt-js";
 import AES, { Counter } from "aes-js";
-import { sha256 } from "sha.js";
 import { BIP44HDPath, CoinTypeForChain } from "./types";
+import { Hash } from "@keplr/crypto";
 
 import { Buffer } from "buffer/";
 
@@ -72,7 +72,7 @@ export class Crypto {
     const aesCtr = new AES.ModeOfOperation.ctr(derivedKey, counter);
     const ciphertext = Buffer.from(aesCtr.encrypt(buf));
     // Mac is sha256(last 16 bytes of derived key + ciphertext)
-    const mac = Crypto.sha256(
+    const mac = Hash.sha256(
       Buffer.concat([
         Buffer.from(derivedKey.slice(derivedKey.length / 2)),
         ciphertext,
@@ -92,7 +92,7 @@ export class Crypto {
         ciphertext: ciphertext.toString("hex"),
         kdf: "scrypt",
         kdfparams: scryptParams,
-        mac: mac.toString("hex"),
+        mac: Buffer.from(mac).toString("hex"),
       },
     };
   }
@@ -107,13 +107,13 @@ export class Crypto {
     counter.setBytes(Buffer.from(keyStore.crypto.cipherparams.iv, "hex"));
     const aesCtr = new AES.ModeOfOperation.ctr(derivedKey, counter);
 
-    const mac = Crypto.sha256(
+    const mac = Hash.sha256(
       Buffer.concat([
         Buffer.from(derivedKey.slice(derivedKey.length / 2)),
         Buffer.from(keyStore.crypto.ciphertext, "hex"),
       ])
     );
-    if (!mac.equals(Buffer.from(keyStore.crypto.mac, "hex"))) {
+    if (!Buffer.from(mac).equals(Buffer.from(keyStore.crypto.mac, "hex"))) {
       throw new Error("Unmatched mac");
     }
 
@@ -146,9 +146,5 @@ export class Crypto {
         }
       );
     });
-  }
-
-  public static sha256(buf: Buffer): Buffer {
-    return Buffer.from(new sha256().update(buf).digest("hex"), "hex");
   }
 }
