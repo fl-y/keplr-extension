@@ -25,7 +25,8 @@ export const AddTokenPage: FunctionComponent = observer(() => {
   const intl = useIntl();
   const history = useHistory();
 
-  const { chainStore, queriesStore, accountStore } = useStore();
+  const { chainStore, queriesStore, accountStore, tokensStore } = useStore();
+  const tokensOf = tokensStore.getTokensOf(chainStore.current.chainId);
 
   const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 
@@ -94,7 +95,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
                 coinDecimals: tokenInfo.decimals,
               };
 
-              await chainStore.addToken(currency);
+              await tokensOf.addToken(currency);
             } else {
               const currency: Secret20Currency = {
                 type: "secret20",
@@ -105,7 +106,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
                 coinDecimals: tokenInfo.decimals,
               };
 
-              await chainStore.addToken(currency);
+              await tokensOf.addToken(currency);
             }
 
             history.push({

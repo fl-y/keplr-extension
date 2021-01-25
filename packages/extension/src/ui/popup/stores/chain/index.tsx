@@ -3,7 +3,7 @@ import { actionAsync, task } from "mobx-utils";
 
 import { ChainStore as BaseChainStore } from "@keplr/stores";
 
-import { ChainInfo, AppCurrency } from "@keplr/types";
+import { ChainInfo } from "@keplr/types";
 import {
   ChainInfoWithEmbed,
   SetPersistentMemoryMsg,
@@ -106,18 +106,6 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
       this.setChain(result.chainId);
       await this.saveLastViewChainId();
     }
-     */
-  }
-
-  @actionAsync
-  public async addToken(_currency: AppCurrency) {
-    // TODO
-    /*
-    const msg = new AddTokenMsg(this.chainInfo.chainId, currency);
-
-    await task(sendMessage(BACKGROUND_PORT, msg));
-
-    await this.refreshChainList();
      */
   }
 }
