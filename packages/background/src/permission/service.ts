@@ -9,6 +9,7 @@ import {
   PermissionData,
 } from "./types";
 import { KVStore } from "@keplr/common";
+import { ChainsService } from "../chains";
 
 @singleton()
 export class PermissionService {
@@ -24,7 +25,9 @@ export class PermissionService {
     @inject(TYPES.PermissionStore)
     protected readonly kvStore: KVStore,
     @inject(delay(() => InteractionService))
-    protected readonly interactionService: InteractionService
+    protected readonly interactionService: InteractionService,
+    @inject(delay(() => ChainsService))
+    protected readonly chainsService: ChainsService
   ) {
     this.restore();
   }
@@ -38,7 +41,7 @@ export class PermissionService {
       await this.grantBasicAccessPermission(env, chainId, [origin]);
     }
 
-    this.checkBasicAccessPermission(env, chainId, origin);
+    await this.checkBasicAccessPermission(env, chainId, origin);
   }
 
   async grantPermission(
@@ -71,6 +74,9 @@ export class PermissionService {
     chainId: string,
     origins: string[]
   ) {
+    // Make sure that the chain info is registered.
+    await this.chainsService.getChainInfo(chainId);
+
     await this.grantPermission(
       env,
       "/access",
@@ -89,7 +95,10 @@ export class PermissionService {
     }
   }
 
-  checkBasicAccessPermission(env: Env, chainId: string, origin: string) {
+  async checkBasicAccessPermission(env: Env, chainId: string, origin: string) {
+    // Make sure that the chain info is registered.
+    await this.chainsService.getChainInfo(chainId);
+
     this.checkPermission(env, getBasicAccessPermissionType(chainId), origin);
   }
 
