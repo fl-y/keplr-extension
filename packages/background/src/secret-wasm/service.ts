@@ -5,7 +5,7 @@ import { EnigmaUtils } from "secretjs";
 import { KeyRingService } from "../keyring";
 import { ChainsService } from "../chains";
 import { PermissionService } from "../permission";
-import { Crypto } from "../keyring/crypto";
+import { Hash } from "@keplr/crypto";
 import { KVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
 import { Bech32Address } from "@keplr/cosmos";
@@ -103,7 +103,7 @@ export class SecretWasmService {
       return Buffer.from(cached, "hex");
     }
 
-    const seed = Crypto.sha256(
+    const seed = Hash.sha256(
       Buffer.from(
         await this.keyRingService.sign(
           env,

@@ -33,11 +33,17 @@ export class TokensService {
     protected readonly interactionService: InteractionService,
     @inject(delay(() => PermissionService))
     public readonly permissionService: PermissionService,
-    @inject(delay(() => ChainsService))
+    @inject(ChainsService)
     protected readonly chainsService: ChainsService,
     @inject(delay(() => KeyRingService))
     protected readonly keyRingService: KeyRingService
-  ) {}
+  ) {
+    this.chainsService.addChainRemovedHandler(this.onChainRemoved);
+  }
+
+  protected readonly onChainRemoved = (chainId: string) => {
+    this.clearTokens(chainId);
+  };
 
   async suggestToken(env: Env, chainId: string, contractAddress: string) {
     const chainInfo = await this.chainsService.getChainInfo(chainId);

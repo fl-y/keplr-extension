@@ -8,9 +8,14 @@ import { ChainUpdaterService } from "../updater";
 import { InteractionService } from "../interaction";
 import { Env } from "@keplr/router";
 import { SuggestChainInfoMsg } from "./messages";
+import { ChainIdHelper } from "@keplr/cosmos";
+
+type ChainRemovedHandler = (chainId: string, identifier: string) => void;
 
 @singleton()
 export class ChainsService {
+  protected onChainRemovedHandlers: ChainRemovedHandler[] = [];
+
   constructor(
     @inject(TYPES.ChainsStore)
     protected readonly kvStore: KVStore,
@@ -172,14 +177,18 @@ export class ChainsService {
     // Clear the updated chain info.
     await this.chainUpdaterKeeper.clearUpdatedProperty(chainId);
 
-    // Clear the access origin and registered tokens.
-    // TODO
-    // await this.clearAccessOrigins(chainId);
+    for (const chainRemovedHandler of this.onChainRemovedHandlers) {
+      chainRemovedHandler(chainId, ChainIdHelper.parse(chainId).identifier);
+    }
   }
 
   async tryUpdateChain(chainId: string): Promise<string> {
     const chainInfo = await this.getChainInfo(chainId);
 
     return await this.chainUpdaterKeeper.tryUpdateChainId(chainInfo);
+  }
+
+  addChainRemovedHandler(handler: ChainRemovedHandler) {
+    this.onChainRemovedHandlers.push(handler);
   }
 }

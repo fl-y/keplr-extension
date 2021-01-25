@@ -26,11 +26,17 @@ export class PermissionService {
     protected readonly kvStore: KVStore,
     @inject(delay(() => InteractionService))
     protected readonly interactionService: InteractionService,
-    @inject(delay(() => ChainsService))
+    @inject(ChainsService)
     protected readonly chainsService: ChainsService
   ) {
     this.restore();
+
+    this.chainsService.addChainRemovedHandler(this.onChainRemoved);
   }
+
+  protected readonly onChainRemoved = (chainId: string) => {
+    this.removeAllPermissions(getBasicAccessPermissionType(chainId));
+  };
 
   async checkOrGrantBasicAccessPermission(
     env: Env,
@@ -147,6 +153,17 @@ export class PermissionService {
     for (const origin of origins) {
       delete innerMap[origin];
     }
+
+    await this.save();
+  }
+
+  async removeAllPermissions(type: string) {
+    const innerMap = this.permissionMap[type];
+    if (!innerMap) {
+      return;
+    }
+
+    delete this.permissionMap[type];
 
     await this.save();
   }
