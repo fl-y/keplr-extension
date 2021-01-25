@@ -4,7 +4,6 @@ import { FiatCurrency } from "./common/currency";
 import { BIP44 } from "@chainapsis/cosmosjs/core/bip44";
 import { defaultBech32Config } from "@chainapsis/cosmosjs/core/bech32Config";
 import { ChainInfo } from "@keplr/types";
-import { AccessOrigin } from "@keplr/background";
 
 import {
   COSMOS_REST_CONFIG,
@@ -259,39 +258,6 @@ export const EmbedChainInfos: ChainInfo[] = [
       high: 0.04 * Math.pow(10, 12),
     },
     beta: true,
-  },
-];
-
-/**
- * This declares which origins can access extension without explicit approval.
- */
-export const EmbedAccessOrigins: AccessOrigin[] = [
-  {
-    chainId: "cosmoshub-3",
-    origins:
-      process.env.NODE_ENV === "production"
-        ? ["https://wallet.keplr.app"]
-        : ["https://wallet.keplr.app"],
-  },
-  {
-    chainId: "kava-3",
-    origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : [],
-  },
-  {
-    chainId: "secret-1",
-    origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : [],
-  },
-  {
-    chainId: "euler-6",
-    origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : [],
-  },
-  {
-    chainId: "straightedge-2",
-    origins:
-      process.env.NODE_ENV === "production" ? ["https://wallet.keplr.app"] : [],
   },
 ];
 
