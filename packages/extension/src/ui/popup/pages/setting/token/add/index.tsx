@@ -1,6 +1,6 @@
-import React, { FunctionComponent, useEffect } from "react";
-import { HeaderLayout } from "../../../../layouts/header-layout";
-import { useHistory, useLocation } from "react-router";
+import React, { FunctionComponent } from "react";
+import { HeaderLayout } from "../../../../layouts";
+import { useHistory } from "react-router";
 import { useIntl, FormattedMessage } from "react-intl";
 
 import style from "./style.module.scss";
@@ -14,14 +14,6 @@ import {
   CW20Currency,
   Secret20Currency,
 } from "../../../../../../common/currency";
-import { sendMessage } from "../../../../../../common/message/send";
-import { BACKGROUND_PORT } from "../../../../../../common/message/constant";
-import queryString from "query-string";
-import { fitWindow } from "../../../../../../common/window";
-import {
-  ApproveSuggestedTokenMsg,
-  RejectSuggestedTokenMsg,
-} from "../../../../../../background/tokens/messages";
 
 interface FormData {
   contractAddress: string;
@@ -30,56 +22,23 @@ interface FormData {
 }
 
 export const AddTokenPage: FunctionComponent = observer(() => {
-  const history = useHistory();
   const intl = useIntl();
+  const history = useHistory();
 
-  const location = useLocation();
-  const query = queryString.parse(location.search);
-  const external = query.external ?? false;
+  const { chainStore, queriesStore, accountStore } = useStore();
 
-  useEffect(() => {
-    if (external) {
-      fitWindow();
-    }
-  }, [external]);
-
-  const { chainStore, queriesStore, accountStoreV2 } = useStore();
-
-  const accountInfo = accountStoreV2.getAccount(chainStore.chainInfo.chainId);
-
-  useEffect(() => {
-    if (query.chainId && typeof query.chainId === "string") {
-      chainStore.setChain(query.chainId);
-    }
-  }, [chainStore, query.chainId]);
-
-  useEffect(() => {
-    // Force reject when closing window.
-    const beforeunload = async () => {
-      if (external) {
-        const msg = new RejectSuggestedTokenMsg(chainStore.chainInfo.chainId);
-        await sendMessage(BACKGROUND_PORT, msg);
-      }
-    };
-
-    addEventListener("beforeunload", beforeunload);
-    return () => {
-      removeEventListener("beforeunload", beforeunload);
-    };
-  }, [chainStore.chainInfo.chainId, external]);
+  const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 
   const form = useForm<FormData>({
     defaultValues: {
-      contractAddress: (query.contractAddress as string) ?? "",
-      viewingKey: query.viewingKey
-        ? decodeURIComponent(query.viewingKey as string)
-        : "",
+      contractAddress: "",
+      viewingKey: "",
     },
   });
 
   const contractAddress = form.watch("contractAddress");
 
-  const queries = queriesStore.get(chainStore.chainInfo.chainId);
+  const queries = queriesStore.get(chainStore.current.chainId);
   const queryContractInfo = queries
     .getQuerySecret20ContractInfo()
     .getQueryContract(contractAddress);
@@ -87,7 +46,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
   const tokenInfo = queryContractInfo.tokenInfo;
 
   const isSecret20 =
-    (chainStore.chainInfo.features ?? []).find(
+    (chainStore.current.features ?? []).find(
       (feature) => feature === "secretwasm"
     ) != null;
 
@@ -118,13 +77,9 @@ export const AddTokenPage: FunctionComponent = observer(() => {
       alternativeTitle={intl.formatMessage({
         id: "setting.token.add",
       })}
-      onBackButton={
-        query.external
-          ? undefined
-          : () => {
-              history.goBack();
-            }
-      }
+      onBackButton={() => {
+        history.goBack();
+      }}
     >
       <Form
         className={style.container}
@@ -153,17 +108,9 @@ export const AddTokenPage: FunctionComponent = observer(() => {
               await chainStore.addToken(currency);
             }
 
-            if (external) {
-              const msg = new ApproveSuggestedTokenMsg(
-                chainStore.chainInfo.chainId
-              );
-              await sendMessage(BACKGROUND_PORT, msg);
-              window.close();
-            } else {
-              history.push({
-                pathname: "/",
-              });
-            }
+            history.push({
+              pathname: "/",
+            });
           }
         })}
       >
@@ -180,7 +127,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
               try {
                 AccAddress.fromBech32(
                   value,
-                  chainStore.chainInfo.bech32Config.bech32PrefixAccAddr
+                  chainStore.current.bech32Config.bech32PrefixAccAddr
                 );
               } catch {
                 return "Invalid address";
