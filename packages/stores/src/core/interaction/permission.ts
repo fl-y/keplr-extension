@@ -133,9 +133,7 @@ export class PermissionStore extends HasMapStore<any> {
   async rejectAll() {
     this._isLoading = true;
     try {
-      for (const data of this.waitingDatas) {
-        await this.reject(data.id);
-      }
+      await task(this.interactionStore.rejectAll(INTERACTION_TYPE_PERMISSION));
     } finally {
       this._isLoading = false;
     }

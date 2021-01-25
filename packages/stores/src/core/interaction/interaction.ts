@@ -8,7 +8,7 @@ import {
   RejectInteractionMsg,
 } from "@keplr/background";
 import { runInAction, action, observable, IObservableArray } from "mobx";
-import { actionAsync } from "mobx-utils";
+import { actionAsync, task } from "mobx-utils";
 
 export class InteractionStore implements InteractionForegroundHandler {
   @observable.shallow
@@ -48,19 +48,31 @@ export class InteractionStore implements InteractionForegroundHandler {
   @actionAsync
   async approve(type: string, id: string, result: unknown) {
     this.removeData(type, id);
-    await this.msgRequester.sendMessage(
-      BACKGROUND_PORT,
-      new ApproveInteractionMsg(id, result)
+    await task(
+      this.msgRequester.sendMessage(
+        BACKGROUND_PORT,
+        new ApproveInteractionMsg(id, result)
+      )
     );
   }
 
   @actionAsync
   async reject(type: string, id: string) {
     this.removeData(type, id);
-    await this.msgRequester.sendMessage(
-      BACKGROUND_PORT,
-      new RejectInteractionMsg(id)
+    await task(
+      this.msgRequester.sendMessage(
+        BACKGROUND_PORT,
+        new RejectInteractionMsg(id)
+      )
     );
+  }
+
+  @actionAsync
+  async rejectAll(type: string) {
+    const datas = this.getDatas(type);
+    for (const data of datas) {
+      await task(this.reject(data.type, data.id));
+    }
   }
 
   @action

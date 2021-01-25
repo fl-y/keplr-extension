@@ -107,7 +107,7 @@ export class ChainsService {
 
     await this.interactionKeeper.waitApprove(
       env,
-      `/suggest-chain/${chainInfo.chainId}`,
+      "/suggest-chain",
       SuggestChainInfoMsg.type(),
       {
         ...chainInfo,

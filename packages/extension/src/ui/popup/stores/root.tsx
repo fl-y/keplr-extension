@@ -11,6 +11,7 @@ import {
   SignInteractionStore,
   LedgerInitStore,
   TokensStore,
+  ChainSuggestStore,
 } from "@keplr/stores";
 import { BrowserKVStore } from "@keplr/common";
 import {
@@ -30,6 +31,7 @@ export class RootStore {
   public readonly txConfigStore: TxConfigStore;
   public readonly signInteractionStore: SignInteractionStore;
   public readonly ledgerInitStore: LedgerInitStore;
+  public readonly chainSuggestStore: ChainSuggestStore;
 
   public readonly queriesStore: QueriesStore;
   public readonly accountStore: AccountStore;
@@ -66,6 +68,7 @@ export class RootStore {
       this.interactionStore,
       new InExtensionMessageRequester()
     );
+    this.chainSuggestStore = new ChainSuggestStore(this.interactionStore);
 
     this.queriesStore = new QueriesStore(
       new BrowserKVStore("store_queries"),

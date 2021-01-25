@@ -185,7 +185,7 @@ ReactDOM.render(
                     />
                     <Route path="/sign" component={SignPage} />
                     <Route
-                      path="/suggest-chain/:chainId"
+                      path="/suggest-chain"
                       component={ChainSuggestedPage}
                     />
                   </LedgerInitIndicator>

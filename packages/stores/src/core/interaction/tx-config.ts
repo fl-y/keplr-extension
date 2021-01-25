@@ -87,9 +87,9 @@ export class TxConfigStore {
   async rejectAll() {
     this._isLoading = true;
     try {
-      for (const data of this.waitingDatas) {
-        await this.rejectWithId(data.id);
-      }
+      await task(
+        this.interactionStore.rejectAll(RequestTxBuilderConfigMsg.type())
+      );
     } finally {
       this._isLoading = false;
     }

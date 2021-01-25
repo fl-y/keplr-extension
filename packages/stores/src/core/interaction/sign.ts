@@ -84,9 +84,7 @@ export class SignInteractionStore {
   async rejectAll() {
     this._isLoading = true;
     try {
-      for (const data of this.waitingDatas) {
-        await this.rejectWithId(data.id);
-      }
+      await task(this.interactionStore.rejectAll(RequestSignMsg.type()));
     } finally {
       this._isLoading = false;
     }

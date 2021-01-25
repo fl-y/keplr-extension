@@ -1,89 +1,21 @@
-import React, { FunctionComponent, useEffect, useState } from "react";
-import { useParams } from "react-router";
-import {
-  ApproveSuggestedChainInfoMsg,
-  GetSuggestedChainInfoMsg,
-  RejectSuggestedChainInfoMsg,
-} from "../../../../../background/chains/messages";
-import { sendMessage } from "../../../../../common/message/send";
-import { BACKGROUND_PORT } from "../../../../../common/message/constant";
-import { BIP44 } from "@chainapsis/cosmosjs/core/bip44";
-import { SuggestedChainInfo } from "../../../../../background/chains";
+import React, { FunctionComponent } from "react";
+import { useHistory } from "react-router";
 import { Button, Alert } from "reactstrap";
 
 import style from "./style.module.scss";
 import { EmptyLayout } from "../../../layouts/empty-layout";
-import { disableScroll, fitWindow } from "../../../../../common/window";
 import { FormattedMessage } from "react-intl";
+import { useInteractionInfo } from "@keplr/hooks";
+import { observer } from "mobx-react";
+import { useStore } from "../../../stores";
 
-type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+export const ChainSuggestedPage: FunctionComponent = observer(() => {
+  const { chainSuggestStore } = useStore();
+  const history = useHistory();
 
-export const ChainSuggestedPage: FunctionComponent = () => {
-  useEffect(() => {
-    fitWindow();
-    disableScroll();
-  }, []);
-
-  const params = useParams<{
-    chainId: string;
-  }>();
-  const chainId = params.chainId;
-
-  const [chainInfo, setChainInfo] = useState<SuggestedChainInfo | undefined>();
-
-  const [requested, setRequested] = useState<boolean>(false);
-
-  const approve = async () => {
-    const msg = new ApproveSuggestedChainInfoMsg(chainId);
-    setRequested(true);
-    await sendMessage(BACKGROUND_PORT, msg);
-
-    window.close();
-  };
-
-  const reject = async () => {
-    const msg = new RejectSuggestedChainInfoMsg(chainId);
-    setRequested(true);
-    await sendMessage(BACKGROUND_PORT, msg);
-
-    window.close();
-  };
-
-  useEffect(() => {
-    // Force reject when closing window.
-    const beforeunload = async () => {
-      if (!requested) {
-        await reject();
-      }
-    };
-
-    addEventListener("beforeunload", beforeunload);
-    return () => {
-      removeEventListener("beforeunload", beforeunload);
-    };
-  }, [reject, requested]);
-
-  useEffect(() => {
-    if (chainId) {
-      (async () => {
-        try {
-          const msg = new GetSuggestedChainInfoMsg(chainId);
-
-          const chainInfo = (await sendMessage(
-            BACKGROUND_PORT,
-            msg
-          )) as Writeable<SuggestedChainInfo>;
-          chainInfo.bip44 = Object.setPrototypeOf(
-            chainInfo.bip44,
-            BIP44.prototype
-          );
-          setChainInfo(chainInfo);
-        } catch (e) {
-          setChainInfo(undefined);
-        }
-      })();
-    }
-  }, [chainId]);
+  const interactionInfo = useInteractionInfo(() => {
+    chainSuggestStore.rejectAll();
+  });
 
   return (
     <EmptyLayout style={{ height: "100%", paddingTop: "80px" }}>
@@ -100,8 +32,9 @@ export const ChainSuggestedPage: FunctionComponent = () => {
           <FormattedMessage
             id="chain.suggested.paragraph"
             values={{
-              host: chainInfo?.origin,
-              chainId: chainInfo?.chainId,
+              host: chainSuggestStore.waitingSuggestedChainInfo?.data.origin,
+              chainId:
+                chainSuggestStore.waitingSuggestedChainInfo?.data.chainId,
               // eslint-disable-next-line react/display-name
               b: (...chunks: any) => <b>{chunks}</b>,
             }}
@@ -129,11 +62,21 @@ export const ChainSuggestedPage: FunctionComponent = () => {
             className={style.button}
             color="danger"
             outline
-            disabled={!chainInfo}
+            disabled={!chainSuggestStore.waitingSuggestedChainInfo}
+            data-loading={chainSuggestStore.isLoading}
             onClick={async (e) => {
               e.preventDefault();
 
-              await reject();
+              await chainSuggestStore.reject();
+
+              if (
+                interactionInfo.interaction &&
+                interactionInfo.interactionInternal
+              ) {
+                window.close();
+              } else {
+                history.push("/");
+              }
             }}
           >
             <FormattedMessage id="chain.suggested.button.reject" />
@@ -141,11 +84,21 @@ export const ChainSuggestedPage: FunctionComponent = () => {
           <Button
             className={style.button}
             color="primary"
-            disabled={!chainInfo}
+            disabled={!chainSuggestStore.waitingSuggestedChainInfo}
+            data-loading={chainSuggestStore.isLoading}
             onClick={async (e) => {
               e.preventDefault();
 
-              await approve();
+              await chainSuggestStore.approve();
+
+              if (
+                interactionInfo.interaction &&
+                interactionInfo.interactionInternal
+              ) {
+                window.close();
+              } else {
+                history.push("/");
+              }
             }}
           >
             <FormattedMessage id="chain.suggested.button.approve" />
@@ -154,4 +107,4 @@ export const ChainSuggestedPage: FunctionComponent = () => {
       </div>
     </EmptyLayout>
   );
-};
+});
