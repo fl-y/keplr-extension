@@ -60,17 +60,17 @@ export const RegisterPage: FunctionComponent = observer(() => {
     {
       type: TypeNewMnemonic,
       intro: NewMnemonicIntro,
-      component: NewMnemonicPage,
+      page: NewMnemonicPage,
     },
     {
       type: TypeRecoverMnemonic,
       intro: RecoverMnemonicIntro,
-      component: RecoverMnemonicPage,
+      page: RecoverMnemonicPage,
     },
     {
       type: TypeImportLedger,
       intro: ImportLedgerIntro,
-      component: ImportLedgerPage,
+      page: ImportLedgerPage,
     },
   ]);
 

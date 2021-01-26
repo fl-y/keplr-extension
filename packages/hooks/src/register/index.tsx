@@ -12,7 +12,7 @@ export type RegisterOption = {
   intro: FunctionComponent<{
     registerConfig: RegisterConfig;
   }>;
-  component: FunctionComponent<{
+  page: FunctionComponent<{
     registerConfig: RegisterConfig;
   }>;
 };
@@ -49,7 +49,7 @@ export class RegisterConfig {
     });
 
     for (const option of options) {
-      this.addRegisterOption(option.type, option.intro, option.component);
+      this.addRegisterOption(option.type, option.intro, option.page);
     }
   }
 
@@ -70,12 +70,12 @@ export class RegisterConfig {
   addRegisterOption(
     type: string,
     intro: RegisterOption["intro"],
-    component: RegisterOption["component"]
+    page: RegisterOption["page"]
   ) {
     this.options.push({
       type,
       intro,
-      component,
+      page,
     });
   }
 
@@ -217,7 +217,7 @@ export class RegisterConfig {
               if (option.type === this.type) {
                 return (
                   <React.Fragment key={option.type}>
-                    <option.component registerConfig={this} />
+                    <option.page registerConfig={this} />
                   </React.Fragment>
                 );
               }
