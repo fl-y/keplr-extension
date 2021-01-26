@@ -8,24 +8,23 @@ import style from "./style.module.scss";
 
 import { Button } from "reactstrap";
 
-import { WelcomeInPage } from "./welcome";
 import { FormattedMessage } from "react-intl";
+
+import { useRegisterConfig } from "@keplr/hooks";
+import { useStore } from "../../stores";
+import { NewMnemonicIntro, NewMnemonicPage, TypeNewMnemonic } from "./mnemonic";
 import {
-  RegisterMode,
-  RegisterStatus,
-  useRegisterState,
-  withRegisterStateProvider,
-} from "../../../contexts/register";
-
+  RecoverMnemonicIntro,
+  RecoverMnemonicPage,
+  TypeRecoverMnemonic,
+} from "./mnemonic";
+import {
+  ImportLedgerIntro,
+  ImportLedgerPage,
+  TypeImportLedger,
+} from "./ledger";
+import { WelcomePage } from "./welcome";
 import { AdditionalSignInPrepend } from "../../../../config";
-
-import { NewMnemonicPage } from "./new-mnemonic";
-import { VerifyMnemonicPage } from "./verify-mnemonic";
-
-import { useLocation } from "react-router";
-import queryString from "query-string";
-import { RecoverMnemonicPage } from "./recover-mnemonic";
-import { AddLedgerPage } from "./add-ledger";
 
 export enum NunWords {
   WORDS12,
@@ -45,87 +44,58 @@ export const BackButton: FunctionComponent<{ onClick: () => void }> = ({
   );
 };
 
-export const RegisterPage: FunctionComponent = withRegisterStateProvider(
-  observer(() => {
-    const registerState = useRegisterState();
+export const RegisterPage: FunctionComponent = observer(() => {
+  useEffect(() => {
+    document.body.setAttribute("data-centered", "true");
 
-    useEffect(() => {
-      document.body.setAttribute("data-centered", "true");
+    return () => {
+      document.body.removeAttribute("data-centered");
+    };
+  }, []);
 
-      return () => {
-        document.body.removeAttribute("data-centered");
-      };
-    }, []);
+  const { keyRingStore } = useStore();
 
-    const location = useLocation();
-    const query = queryString.parse(location.search);
+  const registerConfig = useRegisterConfig(keyRingStore, [
+    ...(AdditionalSignInPrepend ?? []),
+    {
+      type: TypeNewMnemonic,
+      intro: NewMnemonicIntro,
+      component: NewMnemonicPage,
+    },
+    {
+      type: TypeRecoverMnemonic,
+      intro: RecoverMnemonicIntro,
+      component: RecoverMnemonicPage,
+    },
+    {
+      type: TypeImportLedger,
+      intro: ImportLedgerIntro,
+      component: ImportLedgerPage,
+    },
+  ]);
 
-    useEffect(() => {
-      if (query.mode === "add") {
-        registerState.setMode(RegisterMode.ADD);
-      } else {
-        registerState.setMode(RegisterMode.CREATE);
-      }
-    }, [query.mode, registerState]);
-
-    useEffect(() => {
-      // Should clear the bip44 hd path when register status becomes `init`.
-      if (
-        registerState.status === RegisterStatus.INIT &&
-        registerState.bip44HDPath.account !== 0
-      ) {
-        registerState.setBIP44HDPath({
-          account: 0,
-          change: 0,
-          addressIndex: 0,
-        });
-      }
-    }, [registerState]);
-
-    return (
-      <EmptyLayout
-        className={style.container}
-        style={{ height: "100%", backgroundColor: "white", padding: 0 }}
-      >
-        <div className={style.logoContainer}>
+  return (
+    <EmptyLayout
+      className={style.container}
+      style={{ height: "100%", backgroundColor: "white", padding: 0 }}
+    >
+      <div className={style.logoContainer}>
+        <img
+          className={style.icon}
+          src={require("../../public/assets/temp-icon.svg")}
+          alt="logo"
+        />
+        <div className={style.logoInnerContainer}>
           <img
-            className={style.icon}
-            src={require("../../public/assets/temp-icon.svg")}
+            className={style.logo}
+            src={require("../../public/assets/logo-temp.png")}
             alt="logo"
           />
-          <div className={style.logoInnerContainer}>
-            <img
-              className={style.logo}
-              src={require("../../public/assets/logo-temp.png")}
-              alt="logo"
-            />
-            <div className={style.paragraph}>Wallet for the Interchain</div>
-          </div>
+          <div className={style.paragraph}>Wallet for the Interchain</div>
         </div>
-        {registerState.status === RegisterStatus.COMPLETE ? (
-          <WelcomeInPage />
-        ) : null}
-        {AdditionalSignInPrepend ? (
-          <React.Fragment>
-            {AdditionalSignInPrepend}
-            {registerState.status === RegisterStatus.INIT ? <hr /> : null}
-          </React.Fragment>
-        ) : null}
-        <NewMnemonicPage />
-        <RecoverMnemonicPage />
-        <AddLedgerPage />
-        <VerifyMnemonicPage />
-        {registerState.status === RegisterStatus.INIT ? (
-          <div className={style.subContent}>
-            <FormattedMessage
-              id="register.intro.sub-content"
-              values={{
-                br: <br />,
-              }}
-            />
-          </div>
-        ) : null}
-      </EmptyLayout>
-    );
-  })
-);
+      </div>
+      {registerConfig.render()}
+      {registerConfig.isFinalized ? <WelcomePage /> : null}
+    </EmptyLayout>
+  );
+});

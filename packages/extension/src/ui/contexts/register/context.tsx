@@ -3,19 +3,19 @@ import React, {
   createContext,
   FunctionComponent,
   useContext,
-  useState
+  useState,
 } from "react";
 
 export enum RegisterStatus {
   INIT,
   REGISTER,
   VERIFY,
-  COMPLETE
+  COMPLETE,
 }
 
 export enum RegisterMode {
   CREATE,
-  ADD
+  ADD,
 }
 
 export interface RegisterState {
@@ -62,7 +62,7 @@ export const RegisterStateProvider: FunctionComponent = ({ children }) => {
   }>({
     account: 0,
     change: 0,
-    addressIndex: 0
+    addressIndex: 0,
   });
 
   const clear = () => {
@@ -89,7 +89,7 @@ export const RegisterStateProvider: FunctionComponent = ({ children }) => {
         setPassword,
         setMode,
         setBIP44HDPath,
-        clear
+        clear,
       }}
     >
       {children}
@@ -107,9 +107,9 @@ export function useRegisterState() {
 // HoC for wrapping component with RegisterStateProvider
 export const withRegisterStateProvider: <T>(
   Component: ComponentType<T>
-) => FunctionComponent<T> = Component => {
+) => FunctionComponent<T> = (Component) => {
   // eslint-disable-next-line react/display-name
-  return props => (
+  return (props) => (
     <RegisterStateProvider>
       <Component {...props} />
     </RegisterStateProvider>

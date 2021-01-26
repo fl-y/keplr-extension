@@ -1,4 +1,3 @@
-import { Mnemonic } from "@keplr/crypto";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 import {
   AddLedgerKeyMsg,
@@ -89,12 +88,6 @@ export class KeyRingSelectablesStore {
  This store only interact with key ring in persistent background.
  */
 export class KeyRingStore {
-  static async GenereateMnemonic(strenth: number = 128): Promise<string> {
-    return await Mnemonic.generateSeed((array) => {
-      return Promise.resolve(crypto.getRandomValues(array));
-    }, strenth);
-  }
-
   @observable
   status!: KeyRingStatus;
 

@@ -1,5 +1,3 @@
-import React from "react";
-
 import { FiatCurrency } from "./common/currency";
 import { BIP44 } from "@chainapsis/cosmosjs/core/bip44";
 import { defaultBech32Config } from "@chainapsis/cosmosjs/core/bech32Config";
@@ -31,6 +29,7 @@ import {
   ADDITIONAL_INTL_MESSAGES,
 } from "./config.var";
 import { IntlMessages } from "./ui/popup/language";
+import { RegisterOption } from "@keplr/hooks";
 
 export const CoinGeckoAPIEndPoint = "https://api.coingecko.com/api/v3";
 export const CoinGeckoGetPrice = "/simple/price";
@@ -293,7 +292,7 @@ export const LanguageToFiatCurrency: {
 };
 
 export const AdditionalSignInPrepend:
-  | React.ReactElement
+  | RegisterOption[]
   | undefined = ADDITIONAL_SIGN_IN_PREPEND;
 
 export const AdditonalIntlMessages: IntlMessages = ADDITIONAL_INTL_MESSAGES;

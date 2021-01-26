@@ -1,6 +1,6 @@
-import React from "react";
 import { AxiosRequestConfig } from "axios";
 import { IntlMessages } from "./ui/popup/language";
+import { RegisterOption } from "@keplr/hooks";
 
 export const ETHEREUM_ENDPOINT = "";
 
@@ -42,7 +42,7 @@ export const STRAIGHTEDGE_REST_CONFIG:
   | undefined = undefined;
 
 export const ADDITIONAL_SIGN_IN_PREPEND:
-  | React.ReactElement
+  | RegisterOption[]
   | undefined = undefined;
 
 export const ADDITIONAL_INTL_MESSAGES: IntlMessages = {};

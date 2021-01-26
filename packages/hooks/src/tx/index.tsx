@@ -22,8 +22,7 @@ export const DefaultGasPriceStep: {
 };
 
 export class TxConfig {
-  @observable
-  protected chainGetter!: ChainGetter;
+  protected chainGetter: ChainGetter;
 
   @observable
   protected _chainId!: string;
@@ -50,8 +49,8 @@ export class TxConfig {
   protected _gas!: number;
 
   constructor(chainGetter: ChainGetter) {
+    this.chainGetter = chainGetter;
     runInAction(() => {
-      this.chainGetter = chainGetter;
       this._chainId = "";
       this._recipient = "";
       this._amount = "";
@@ -59,11 +58,6 @@ export class TxConfig {
       this._memo = "";
       this._gas = 0;
     });
-  }
-
-  @action
-  setChainGetter(chainGetter: ChainGetter) {
-    this.chainGetter = chainGetter;
   }
 
   @action
@@ -313,7 +307,6 @@ export class TxConfig {
 export const useTxConfig = (chainGetter: ChainGetter) => {
   // TODO: Replace this with `useLocalObservable` of `mobx-react` after updating the version for mobx.
   const [txConfig] = useState(new TxConfig(chainGetter));
-  txConfig.setChainGetter(chainGetter);
 
   return txConfig;
 };
