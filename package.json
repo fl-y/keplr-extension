@@ -9,6 +9,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "dev": "lerna run dev --parallel",
+    "clean": "lerna run clean",
     "build": "lerna run build",
     "test": "lerna run test",
     "lint-test": "lerna run lint-test",
