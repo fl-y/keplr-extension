@@ -2,19 +2,19 @@ import React, {
   FunctionComponent,
   useCallback,
   useEffect,
-  useState
+  useState,
 } from "react";
 import { IntlProvider } from "react-intl";
 
-import MessagesEn from "./languages/en.json";
-import MessagesKo from "./languages/ko.json";
+import MessagesEn from "../../languages/en.json";
+import MessagesKo from "../../languages/ko.json";
 
 export type IntlMessage = Record<string, string>;
 export type IntlMessages = { [lang: string]: Record<string, string> };
 
 const messages: IntlMessages = {
   en: MessagesEn,
-  ko: MessagesKo
+  ko: MessagesKo,
 };
 
 function getMessages(
@@ -94,7 +94,7 @@ export const AppIntlProvider: FunctionComponent<{
         language: language,
         automatic: automatic,
         setLanguage: setLanguageCallback,
-        clearLanguage: clearLanguageCallback
+        clearLanguage: clearLanguageCallback,
       }}
     >
       <IntlProvider
