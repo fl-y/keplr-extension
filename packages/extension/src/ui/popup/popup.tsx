@@ -14,7 +14,7 @@ import { LockPage } from "./pages/lock";
 import { SendPage } from "./pages/send";
 import { SetKeyRingPage } from "./pages/setting/keyring";
 
-import { Banner } from "./components/banner";
+import { Banner } from "../components/banner";
 
 import {
   NotificationProvider,

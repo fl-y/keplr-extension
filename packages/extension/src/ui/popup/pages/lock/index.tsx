@@ -6,7 +6,7 @@ import { Button, Form } from "reactstrap";
 
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
-import { Banner } from "../../components/banner";
+import { Banner } from "../../../components/banner";
 import useForm from "react-hook-form";
 
 import { EmptyLayout } from "../../layouts/empty-layout";
