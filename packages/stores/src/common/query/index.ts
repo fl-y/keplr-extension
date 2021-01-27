@@ -13,6 +13,18 @@ import { KVStore } from "@keplr/common";
 import { DeepReadonly } from "utility-types";
 import { HasMapStore } from "../map";
 
+export type QueryOptions = {
+  // millisec
+  cacheMaxAge: number;
+  // millisec
+  fetchingInterval: number;
+};
+
+export const defaultOptions: QueryOptions = {
+  cacheMaxAge: Number.MAX_VALUE,
+  fetchingInterval: 0,
+};
+
 export type QueryError<E> = {
   status: number;
   statusText: string;
@@ -32,6 +44,8 @@ export type QueryResponse<T> = {
  * This recommends to use the Axios to query the response.
  */
 export abstract class ObservableQueryBase<T = unknown, E = unknown> {
+  protected options!: QueryOptions;
+
   // Just use the oberable ref because the response is immutable and not directly adjusted.
   @observable.ref
   private _response?: Readonly<QueryResponse<T>>;
@@ -48,10 +62,20 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
 
   private observedCount: number = 0;
 
+  private intervalId: number = -1;
+
   @observable.ref
   protected _instance!: AxiosInstance;
 
-  protected constructor(instance: AxiosInstance) {
+  protected constructor(
+    instance: AxiosInstance,
+    options: Partial<QueryOptions>
+  ) {
+    this.options = {
+      ...options,
+      ...defaultOptions,
+    };
+
     runInAction(() => {
       this._isFetching = false;
       this._instance = instance;
@@ -102,12 +126,29 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     return this._isStarted;
   }
 
+  private readonly intervalFetch = () => {
+    if (!this.isFetching) {
+      this.fetch();
+    }
+  };
+
   protected onStart() {
     this.fetch();
+
+    if (this.options.fetchingInterval > 0) {
+      this.intervalId = window.setInterval(
+        this.intervalFetch,
+        this.options.fetchingInterval
+      );
+    }
   }
 
   protected onStop() {
     this.cancel();
+
+    if (this.intervalId >= 0) {
+      window.clearInterval(this.intervalId);
+    }
   }
 
   protected canFetch(): boolean {
@@ -150,7 +191,9 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     if (!this._response) {
       const staledResponse = await task(this.loadStaledResponse());
       if (staledResponse) {
-        this.setResponse(staledResponse);
+        if (staledResponse.timestamp > Date.now() - this.options.cacheMaxAge) {
+          this.setResponse(staledResponse);
+        }
       }
     } else {
       // Make the existing response as staled.
@@ -167,7 +210,6 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
       this.setError(undefined);
       await task(this.saveResponse(response));
     } catch (e) {
-      console.log();
       // If canceld, do nothing.
       if (Axios.isCancel(e)) {
         return;
@@ -232,12 +274,34 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
   }
 
   /**
-   * Wait the response and return the response until it is fetched.
+   * Wait the response and return the response without considering it is staled or fresh.
    */
   waitResponse(): Promise<Readonly<QueryResponse<T>> | undefined> {
+    if (!this.isFetching) {
+      return Promise.resolve(this.response);
+    }
+
     return new Promise((resolve) => {
       const disposer = autorun(() => {
         if (!this.isFetching) {
+          resolve(this.response);
+          disposer();
+        }
+      });
+    });
+  }
+
+  /**
+   * Wait the response and return the response until it is fetched.
+   */
+  waitRefreshResponse(): Promise<Readonly<QueryResponse<T>>> {
+    if (!this.isFetching && this.response && !this.response.staled) {
+      return Promise.resolve(this.response);
+    }
+
+    return new Promise((resolve) => {
+      const disposer = autorun(() => {
+        if (!this.isFetching && this.response && !this.response.staled) {
           resolve(this.response);
           disposer();
         }
@@ -272,9 +336,10 @@ export class ObservableQuery<
   constructor(
     protected readonly kvStore: KVStore,
     instance: AxiosInstance,
-    url: string
+    url: string,
+    options: Partial<QueryOptions> = {}
   ) {
-    super(instance);
+    super(instance, options);
 
     this.setUrl(url);
   }
