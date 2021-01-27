@@ -28,7 +28,7 @@ import { AddressBookKVStore } from "./kv-store";
 import { BrowserKVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
 import { Bech32Address } from "@keplr/cosmos";
-import { useConfirm } from "../../../../components/confirm";
+import { useConfirm } from "../../../../../components/confirm";
 
 export const AddressBookPage: FunctionComponent<{
   onBackButton?: () => void;

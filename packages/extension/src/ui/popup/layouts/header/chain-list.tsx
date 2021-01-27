@@ -6,7 +6,7 @@ import { useStore } from "../../stores";
 
 import style from "./chain-list.module.scss";
 import { ChainInfoWithEmbed } from "@keplr/background";
-import { useConfirm } from "../../../components/confirm";
+import { useConfirm } from "../../../../components/confirm";
 import { useIntl } from "react-intl";
 
 const ChainElement: FunctionComponent<{

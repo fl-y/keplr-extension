@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useEffect } from "react";
 
-import { useLoadingIndicator } from "../../../components/loading-indicator";
+import { useLoadingIndicator } from "../../../../components/loading-indicator";
 import { useLocation } from "react-router";
 
 export const LedgerInitIndicator: FunctionComponent = ({ children }) => {

@@ -5,7 +5,7 @@ import { useIntl, FormattedMessage } from "react-intl";
 
 import style from "./style.module.scss";
 import { Button, Form, InputGroupAddon } from "reactstrap";
-import { Input } from "../../../../../components/form";
+import { Input } from "../../../../../../components/form";
 import { observer } from "mobx-react";
 import { useStore } from "../../../../stores";
 import useForm from "react-hook-form";

@@ -14,7 +14,7 @@ import { EmptyLayout } from "../../layouts/empty-layout";
 
 import classnames from "classnames";
 import { FormattedMessage, useIntl } from "react-intl";
-import { useNotification } from "../../../components/notification";
+import { useNotification } from "../../../../components/notification";
 import delay from "delay";
 import { useInteractionInfo } from "@keplr/hooks";
 import { observer } from "mobx-react";

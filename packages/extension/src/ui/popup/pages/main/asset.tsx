@@ -5,7 +5,7 @@ import { Dec, DecUtils } from "@keplr/unit";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import styleAsset from "./asset.module.scss";
-import { ToolTip } from "../../../components/tooltip";
+import { ToolTip } from "../../../../components/tooltip";
 import { FormattedMessage, useIntl } from "react-intl";
 import { getFiatCurrencyFromLanguage } from "../../../../common/currency";
 import { useLanguage } from "../../language";

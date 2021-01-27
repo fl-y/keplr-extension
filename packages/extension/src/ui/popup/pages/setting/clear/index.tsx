@@ -9,7 +9,7 @@ import { HeaderLayout } from "../../../layouts";
 
 import { useHistory, useRouteMatch } from "react-router";
 import { FormattedMessage, useIntl } from "react-intl";
-import { Input } from "../../../../components/form";
+import { Input } from "../../../../../components/form";
 import { Button, Form } from "reactstrap";
 import useForm from "react-hook-form";
 import { useStore } from "../../../stores";

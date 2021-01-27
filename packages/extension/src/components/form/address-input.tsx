@@ -9,7 +9,7 @@ import {
   InputGroup,
   Button,
 } from "reactstrap";
-import { AddressBookPage } from "../../popup/pages/setting/address-book";
+import { AddressBookPage } from "../../ui/popup/pages/setting/address-book";
 
 import styleAddressInput from "./address-input.module.scss";
 import classnames from "classnames";

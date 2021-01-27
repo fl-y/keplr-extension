@@ -15,7 +15,7 @@ import {
 
 import styleConnections from "./style.module.scss";
 import { useIntl } from "react-intl";
-import { useConfirm } from "../../../../components/confirm";
+import { useConfirm } from "../../../../../components/confirm";
 
 export const SettingConnectionsPage: FunctionComponent = observer(() => {
   const history = useHistory();

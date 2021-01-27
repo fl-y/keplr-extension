@@ -10,14 +10,14 @@ import React, {
 import styleTxButton from "./tx-button.module.scss";
 
 import { Button, Tooltip } from "reactstrap";
-import { Address } from "../../../components/address";
+import { Address } from "../../../../components/address";
 
 import { observer } from "mobx-react";
 
 import { useStore } from "../../stores";
 
 import Modal from "react-modal";
-import { useNotification } from "../../../components/notification";
+import { useNotification } from "../../../../components/notification";
 
 import { FormattedMessage } from "react-intl";
 import { useHistory } from "react-router";

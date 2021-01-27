@@ -14,14 +14,14 @@ import { LockPage } from "./pages/lock";
 import { SendPage } from "./pages/send";
 import { SetKeyRingPage } from "./pages/setting/keyring";
 
-import { Banner } from "../components/banner";
+import { Banner } from "../../components/banner";
 
 import {
   NotificationProvider,
   NotificationStoreProvider,
-} from "../components/notification";
-import { ConfirmProvider } from "../components/confirm";
-import { LoadingIndicatorProvider } from "../components/loading-indicator";
+} from "../../components/notification";
+import { ConfirmProvider } from "../../components/confirm";
+import { LoadingIndicatorProvider } from "../../components/loading-indicator";
 
 import { configure } from "mobx";
 import { observer } from "mobx-react";

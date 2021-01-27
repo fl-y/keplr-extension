@@ -2,7 +2,7 @@ import React, { FunctionComponent, useEffect } from "react";
 
 import { HeaderLayout } from "../../layouts";
 
-import { FeeButtons, GasInput, MemoInput } from "../../../components/form";
+import { FeeButtons, GasInput, MemoInput } from "../../../../components/form";
 import { Button } from "reactstrap";
 
 import { observer } from "mobx-react";

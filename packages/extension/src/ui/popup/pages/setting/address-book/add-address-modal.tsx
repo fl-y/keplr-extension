@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useState, useEffect } from "react";
 import { HeaderLayout } from "../../../layouts";
-import { AddressInput, Input, MemoInput } from "../../../../components/form";
+import { AddressInput, Input, MemoInput } from "../../../../../components/form";
 import { Button } from "reactstrap";
 import { AddressBookData } from "./types";
 import { AddressBookKVStore } from "./kv-store";
