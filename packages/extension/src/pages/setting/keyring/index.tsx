@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useCallback, useState } from "react";
 
-import { HeaderLayout } from "../../../layouts/header-layout";
+import { HeaderLayout } from "../../../layouts";
 
 import { observer } from "mobx-react";
 import { useStore } from "../../../stores";
@@ -48,7 +48,7 @@ export const SetKeyRingPage: FunctionComponent = observer(() => {
                 e.preventDefault();
 
                 browser.tabs.create({
-                  url: "/popup.html#/register?mode=add",
+                  url: "/popup.html#/register",
                 });
               }}
             >
