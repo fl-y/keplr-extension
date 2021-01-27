@@ -27,7 +27,7 @@ import {
   ADDITIONAL_SIGN_IN_PREPEND,
   ADDITIONAL_INTL_MESSAGES,
 } from "./config.var";
-import { IntlMessages } from "./ui/popup/language";
+import { IntlMessages } from "./language";
 import { RegisterOption } from "@keplr/hooks";
 
 export const CoinGeckoAPIEndPoint = "https://api.coingecko.com/api/v3";

@@ -11,11 +11,11 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
 
 const isEnvDevelopment = process.env.NODE_ENV !== "production";
 const isEnvAnalyzer = process.env.ANALYZER === "true";
-const commonResolve = dir => ({
+const commonResolve = (dir) => ({
   extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
   alias: {
-    assets: path.resolve(__dirname, dir)
-  }
+    assets: path.resolve(__dirname, dir),
+  },
 });
 const sassRule = {
   test: /(\.s?css)|(\.sass)$/,
@@ -29,22 +29,22 @@ const sassRule = {
           loader: "css-loader",
           options: {
             modules: {
-              localIdentName: "[local]-[hash:base64]"
+              localIdentName: "[local]-[hash:base64]",
             },
-            localsConvention: "camelCase"
-          }
+            localsConvention: "camelCase",
+          },
         },
-        "sass-loader"
-      ]
+        "sass-loader",
+      ],
     },
     {
       use: [
         "style-loader",
         { loader: "css-loader", options: { modules: false } },
-        "sass-loader"
-      ]
-    }
-  ]
+        "sass-loader",
+      ],
+    },
+  ],
 };
 const tsRule = { test: /\.tsx?$/, loader: "ts-loader" };
 const fileRule = {
@@ -55,10 +55,10 @@ const fileRule = {
       options: {
         name: "[name].[ext]",
         publicPath: "assets",
-        outputPath: "assets"
-      }
-    }
-  ]
+        outputPath: "assets",
+      },
+    },
+  ],
 };
 
 const extensionConfig = (env, args) => {
@@ -70,18 +70,18 @@ const extensionConfig = (env, args) => {
     // In development environment, webpack watch the file changes, and recompile
     watch: isEnvDevelopment,
     entry: {
-      popup: ["./src/ui/popup/popup.tsx"],
+      popup: ["./src/index.tsx"],
       background: ["./src/background/background.ts"],
       contentScripts: ["./src/content-scripts/content-scripts.ts"],
-      injectedScript: ["./src/content-scripts/inject/injected-script.ts"]
+      injectedScript: ["./src/content-scripts/inject/injected-script.ts"],
     },
     output: {
       path: path.resolve(__dirname, isEnvDevelopment ? "dist" : "prod"),
-      filename: "[name].bundle.js"
+      filename: "[name].bundle.js",
     },
-    resolve: commonResolve("src/ui/popup/public/assets"),
+    resolve: commonResolve("src/public/assets"),
     module: {
-      rules: [sassRule, tsRule, fileRule]
+      rules: [sassRule, tsRule, fileRule],
     },
     plugins: [
       // Remove all and write anyway
@@ -92,26 +92,26 @@ const extensionConfig = (env, args) => {
         [
           {
             from: "./src/manifest.json",
-            to: "./"
+            to: "./",
           },
           {
             from:
-              "../../node_modules/webextension-polyfill/dist/browser-polyfill.js"
-          }
+              "../../node_modules/webextension-polyfill/dist/browser-polyfill.js",
+          },
         ],
         { copyUnmodified: true }
       ),
       new HtmlWebpackPlugin({
-        template: "./src/popup.html",
+        template: "./src/index.html",
         filename: "popup.html",
-        excludeChunks: ["background", "contentScripts", "injectedScript"]
+        excludeChunks: ["background", "contentScripts", "injectedScript"],
       }),
       new WriteFilePlugin(),
       new webpack.EnvironmentPlugin(["NODE_ENV"]),
       new BundleAnalyzerPlugin({
-        analyzerMode: isEnvAnalyzer ? "server" : "disabled"
-      })
-    ]
+        analyzerMode: isEnvAnalyzer ? "server" : "disabled",
+      }),
+    ],
   };
 };
 
