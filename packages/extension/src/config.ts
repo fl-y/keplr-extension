@@ -1,6 +1,5 @@
 import { FiatCurrency } from "./common/currency";
-import { BIP44 } from "@chainapsis/cosmosjs/core/bip44";
-import { defaultBech32Config } from "@chainapsis/cosmosjs/core/bech32Config";
+import { Bech32Address } from "@keplr/cosmos";
 import { ChainInfo } from "@keplr/types";
 
 import {
@@ -63,8 +62,10 @@ export const EmbedChainInfos: ChainInfo[] = [
       process.env.NODE_ENV === "production"
         ? "https://wallet.keplr.app/#/cosmoshub-3/stake"
         : "http://localhost:8081/#/cosmoshub-3/stake",
-    bip44: new BIP44(44, 118, 0),
-    bech32Config: defaultBech32Config("cosmos"),
+    bip44: {
+      coinType: 118,
+    },
+    bech32Config: Bech32Address.defaultBech32Config("cosmos"),
     currencies: [
       {
         coinDenom: "ATOM",
@@ -104,9 +105,11 @@ export const EmbedChainInfos: ChainInfo[] = [
       process.env.NODE_ENV === "production"
         ? "https://wallet.keplr.app/#/kava-3/stake"
         : "http://localhost:8081/#/kava-3/stake",
-    bip44: new BIP44(44, 459, 0),
-    alternativeBIP44s: [new BIP44(44, 118, 0)],
-    bech32Config: defaultBech32Config("kava"),
+    bip44: {
+      coinType: 459,
+    },
+    alternativeBIP44s: [{ coinType: 118 }],
+    bech32Config: Bech32Address.defaultBech32Config("kava"),
     currencies: [
       {
         coinDenom: "KAVA",
@@ -146,9 +149,11 @@ export const EmbedChainInfos: ChainInfo[] = [
       process.env.NODE_ENV === "production"
         ? "https://wallet.keplr.app/#/secret-1/stake"
         : "http://localhost:8081/#/secret-1/stake",
-    bip44: new BIP44(44, 529, 0),
-    alternativeBIP44s: [new BIP44(44, 118, 0)],
-    bech32Config: defaultBech32Config("secret"),
+    bip44: {
+      coinType: 529,
+    },
+    alternativeBIP44s: [{ coinType: 118 }],
+    bech32Config: Bech32Address.defaultBech32Config("secret"),
     currencies: [
       {
         coinDenom: "SCRT",
@@ -193,8 +198,10 @@ export const EmbedChainInfos: ChainInfo[] = [
       process.env.NODE_ENV === "production"
         ? "https://wallet.keplr.app/#/euler-6/stake"
         : "http://localhost:8081/#/euler-6/stake",
-    bip44: new BIP44(44, 118, 0),
-    bech32Config: defaultBech32Config("cyber"),
+    bip44: {
+      coinType: 118,
+    },
+    bech32Config: Bech32Address.defaultBech32Config("cyber"),
     currencies: [
       {
         coinDenom: "EUL",
@@ -231,8 +238,10 @@ export const EmbedChainInfos: ChainInfo[] = [
       process.env.NODE_ENV === "production"
         ? "https://wallet.keplr.app/#/straightedge-2/stake"
         : "http://localhost:8081/#/straightedge-2/stake",
-    bip44: new BIP44(44, 118, 0),
-    bech32Config: defaultBech32Config("str"),
+    bip44: {
+      coinType: 118,
+    },
+    bech32Config: Bech32Address.defaultBech32Config("str"),
     currencies: [
       {
         coinDenom: "STR",

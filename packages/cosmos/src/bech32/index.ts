@@ -1,4 +1,5 @@
 import bech32 from "bech32";
+import { Bech32Config } from "@keplr/types";
 
 export class Bech32Address {
   static shortenAddress(bech32: string, maxCharacters: number): string {
@@ -40,6 +41,25 @@ export class Bech32Address {
         `Unexpected prefix (expected: ${prefix}, actual: ${decodedPrefix})`
       );
     }
+  }
+
+  static defaultBech32Config(
+    mainPrefix: string,
+    validatorPrefix: string = "val",
+    consensusPrefix: string = "cons",
+    publicPrefix: string = "pub",
+    operatorPrefix: string = "oper"
+  ): Bech32Config {
+    return {
+      bech32PrefixAccAddr: mainPrefix,
+      bech32PrefixAccPub: mainPrefix + publicPrefix,
+      bech32PrefixValAddr: mainPrefix + validatorPrefix + operatorPrefix,
+      bech32PrefixValPub:
+        mainPrefix + validatorPrefix + operatorPrefix + publicPrefix,
+      bech32PrefixConsAddr: mainPrefix + validatorPrefix + consensusPrefix,
+      bech32PrefixConsPub:
+        mainPrefix + validatorPrefix + consensusPrefix + publicPrefix,
+    };
   }
 
   constructor(protected readonly address: Uint8Array) {}

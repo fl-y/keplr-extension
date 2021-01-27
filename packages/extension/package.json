@@ -14,8 +14,6 @@
     "lint-fix": "eslint --fix \"src/**/*\" webpack.config.js && prettier --write \"src/**/*\" webpack.config.js"
   },
   "dependencies": {
-    "@chainapsis/cosmosjs": "git+https://github.com/chainapsis/cosmosjs-dist.git#b5211eb",
-    "@chainapsis/ts-amino": "^0.0.1-alpha.4",
     "@cosmjs/encoding": "^0.23.0",
     "@cosmjs/launchpad": "^0.23.0",
     "@ensdomains/resolver": "^0.2.4",

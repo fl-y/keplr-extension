@@ -1,14 +1,6 @@
-import { WalletProvider } from "@chainapsis/cosmosjs/core/walletProvider";
-import { OfflineSigner } from "@cosmjs/launchpad";
-import { SecretUtils } from "secretjs/types/enigmautils";
-
-import { Keplr } from "@keplr/types";
+import { Window as KeplrWindow } from "@keplr/types";
 
 declare global {
-  interface Window {
-    cosmosJSWalletProvider?: WalletProvider;
-    getOfflineSigner?: (chainId: string) => OfflineSigner;
-    keplr?: Keplr;
-    getEnigmaUtils?: (chainId: string) => SecretUtils | undefined;
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface Window extends KeplrWindow {}
 }

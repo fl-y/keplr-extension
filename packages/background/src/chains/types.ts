@@ -69,7 +69,7 @@ export const Bech32ConfigSchema = Joi.object<Bech32Config>({
 
 export const SuggestingBIP44Schema = Joi.object<{ coinType: number }>({
   coinType: Joi.number().integer().min(0).required(),
-  // Alow the any keys for compatibility of cosmosJS's BIP44.
+  // Alow the any keys for compatibility of cosmosJS's BIP44 (for legacy).
 }).unknown(true);
 
 export const ChainInfoSchema = Joi.object<ChainInfo>({

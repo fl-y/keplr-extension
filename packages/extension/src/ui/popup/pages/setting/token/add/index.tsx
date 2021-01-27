@@ -9,7 +9,7 @@ import { Input } from "../../../../../components/form";
 import { observer } from "mobx-react";
 import { useStore } from "../../../../stores";
 import useForm from "react-hook-form";
-import { AccAddress } from "@chainapsis/cosmosjs/common/address";
+import { Bech32Address } from "@keplr/cosmos";
 import {
   CW20Currency,
   Secret20Currency,
@@ -126,7 +126,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
             required: "Contract address is required",
             validate: (value: string): string | undefined => {
               try {
-                AccAddress.fromBech32(
+                Bech32Address.validate(
                   value,
                   chainStore.current.bech32Config.bech32PrefixAccAddr
                 );
