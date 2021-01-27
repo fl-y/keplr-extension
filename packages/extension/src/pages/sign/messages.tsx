@@ -8,7 +8,7 @@ import { Button, Badge } from "reactstrap";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 
-import { Buffer } from "src/pages/sign/messages";
+import { Buffer } from "buffer/";
 import { AccountStore } from "@keplr/stores";
 
 export interface MessageObj {

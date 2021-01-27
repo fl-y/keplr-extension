@@ -16,7 +16,7 @@ import { useHistory } from "react-router";
 import { observer } from "mobx-react";
 import { useInteractionInfo } from "@keplr/hooks";
 
-import { Buffer } from "src/pages/sign/index";
+import { Buffer } from "buffer/";
 
 enum Tab {
   Details,
