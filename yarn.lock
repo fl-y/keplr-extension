@@ -1246,11 +1246,6 @@
   resolved "https://registry.yarnpkg.com/@emotion/memoize/-/memoize-0.7.4.tgz#19bf0f5af19149111c40d98bb0cf82119f5d9eeb"
   integrity sha512-Ja/Vfqe3HpuzRsG1oBtWTHk2PGZ7GR+2Vz5iYGelAw8dx32K0y7PjVuxK6z1nMpZOqAFsRUPCkK1YjJ56qJlgw==
 
-"@ensdomains/resolver@^0.2.4":
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/@ensdomains/resolver/-/resolver-0.2.4.tgz#c10fe28bf5efbf49bff4666d909aed0265efbc89"
-  integrity sha512-bvaTH34PMCbv6anRa9I/0zjLJgY4EuznbEMgbV77JBCQ9KNC46rzi0avuxpOfu+xDjPEtSFGqVEOr5GlUSGudA==
-
 "@ethersproject/abi@5.0.7":
   version "5.0.7"
   resolved "https://registry.yarnpkg.com/@ethersproject/abi/-/abi-5.0.7.tgz#79e52452bd3ca2956d0e1c964207a58ad1a0ee7b"
@@ -1772,7 +1767,7 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-5.36.0.tgz#9d178b54116ae81b1fbdfa80afcd33981453be4c"
   integrity sha512-VS6aFzn3IDUmSLaX2kAPg5sQOc5m7IwvswAGvoMc3FCi9/a1dXWwtiYn5rWd1QjDJlTKSfCwmSpvUMp8FKoY2Q==
 
-"@ledgerhq/hw-transport-webhid@^5.23.0", "@ledgerhq/hw-transport-webhid@^5.36.0":
+"@ledgerhq/hw-transport-webhid@^5.36.0":
   version "5.36.0"
   resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport-webhid/-/hw-transport-webhid-5.36.0.tgz#08d6ab45bc75ab8d5ac4cc70e5217e5ee4ec0653"
   integrity sha512-SmB4eVRZ4muyXwdvGLBiFUkVaO7bF3W6KxQRX89Mph/Ezdc2yg9Yz/7PJ19NtrSB3urgltHOK4QZxX3Y+usYTQ==
@@ -1782,7 +1777,7 @@
     "@ledgerhq/hw-transport" "^5.36.0"
     "@ledgerhq/logs" "^5.36.0"
 
-"@ledgerhq/hw-transport-webusb@^5.21.0", "@ledgerhq/hw-transport-webusb@^5.36.0":
+"@ledgerhq/hw-transport-webusb@^5.36.0":
   version "5.36.0"
   resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport-webusb/-/hw-transport-webusb-5.36.0.tgz#2aeee2cb6eb38c5c6a82b5fd8aa89d5a99948332"
   integrity sha512-NfDOP0Z1wiKzbVD4jh24MX0AqoyiqNxdkIBhhiB0kSuRoXFWZ13WwPGQAlIAVAdUwXgsEww/v7QGOzEZyN42mw==
@@ -2952,7 +2947,7 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
-"@types/ledgerhq__hw-transport-webusb@^4.70.0", "@types/ledgerhq__hw-transport-webusb@^4.70.1":
+"@types/ledgerhq__hw-transport-webusb@^4.70.1":
   version "4.70.1"
   resolved "https://registry.yarnpkg.com/@types/ledgerhq__hw-transport-webusb/-/ledgerhq__hw-transport-webusb-4.70.1.tgz#ea80859607a46030f001bce462e1e7443b27ec43"
   integrity sha512-s+bt/fU5cH7etjLrNRn2LebZZqUL+YHIWciC1T6SUw2kyFpSqQQmjcM81ZrMR/tccQGfYTy3ebrJx9ZK3Mn+HA==
@@ -4360,7 +4355,7 @@ bfj@^6.1.1:
     hoopy "^0.1.4"
     tryer "^1.0.1"
 
-big-integer@^1.6.43, big-integer@^1.6.48:
+big-integer@^1.6.48:
   version "1.6.48"
   resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.48.tgz#8fd88bd1632cba4a1c8c3e3d7159f08bb95b4b9e"
   integrity sha512-j51egjPa7/i+RdiRuJbPdJ2FIUYYPhvYLjzoYbcMMm62ooO6F94fETG4MTs46zPAF9Brs04OajboA/qTGuz78w==
@@ -10345,7 +10340,7 @@ lcid@^2.0.0:
   dependencies:
     invert-kv "^2.0.0"
 
-ledger-cosmos-js@^2.1.7, ledger-cosmos-js@^2.1.8:
+ledger-cosmos-js@^2.1.8:
   version "2.1.8"
   resolved "https://registry.yarnpkg.com/ledger-cosmos-js/-/ledger-cosmos-js-2.1.8.tgz#b409ecd1e77f630e6fb212a9f602fe5c6e8f054b"
   integrity sha512-Gl7SWMq+3R9OTkF1hLlg5+1geGOmcHX9OdS+INDsGNxSiKRWlsWCvQipGoDnRIQ6CPo2i/Ze58Dw0Mt/l3UYyA==
@@ -14748,11 +14743,6 @@ scrypt-js@^2.0.4, scrypt-js@^3.0.0, scrypt-js@^3.0.1:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-2.0.4.tgz#32f8c5149f0797672e551c07e230f834b6af5f16"
   integrity sha512-4KsaGcPnuhtCZQCxFxN3GVYIhKFPTdLd8PLC552XwbMndtD0cjRFAhDuuydXQ0h08ZfPgzqe6EKHozpuH74iDw==
-
-scryptsy@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/scryptsy/-/scryptsy-2.1.0.tgz#8d1e8d0c025b58fdd25b6fa9a0dc905ee8faa790"
-  integrity sha512-1CdSqHQowJBnMAFyPEBRfqag/YP9OF394FV+4YREIJX4ljD7OxvQRDayyoyyCk+senRjSkP6VnUNQmVQqB6g7w==
 
 scss-tokenizer@^0.2.3:
   version "0.2.3"
