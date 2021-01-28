@@ -118,11 +118,11 @@ const StateRenderer: FunctionComponent = observer(() => {
 });
 
 ReactDOM.render(
-  <AppIntlProvider
-    additionalMessages={AdditonalIntlMessages}
-    languageToFiatCurrency={LanguageToFiatCurrency}
-  >
-    <StoreProvider>
+  <StoreProvider>
+    <AppIntlProvider
+      additionalMessages={AdditonalIntlMessages}
+      languageToFiatCurrency={LanguageToFiatCurrency}
+    >
       <LoadingIndicatorProvider>
         <NotificationStoreProvider>
           <NotificationProvider>
@@ -185,7 +185,7 @@ ReactDOM.render(
           </NotificationProvider>
         </NotificationStoreProvider>
       </LoadingIndicatorProvider>
-    </StoreProvider>
-  </AppIntlProvider>,
+    </AppIntlProvider>
+  </StoreProvider>,
   document.getElementById("app")
 );
