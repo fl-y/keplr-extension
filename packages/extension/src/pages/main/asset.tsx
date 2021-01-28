@@ -165,7 +165,9 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
             <FormattedMessage id="main.account.chart.total-balance" />
           </div>
           <div className={styleAsset.small}>
-            {totalPrice ? totalPrice.toString() : total.toString()}
+            {totalPrice
+              ? totalPrice.toString()
+              : total.shrink(true).maxDecimals(6).toString()}
           </div>
           <div className={styleAsset.indicatorIcon}>
             <React.Fragment>
@@ -271,7 +273,7 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
               color: "#525f7f",
             }}
           >
-            {stakable.shrink(true).toString()}
+            {stakable.shrink(true).maxDecimals(6).toString()}
           </div>
         </div>
         <div className={styleAsset.legend}>
@@ -288,7 +290,7 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
               color: "#525f7f",
             }}
           >
-            {stakedSum.shrink(true).toString()}
+            {stakedSum.shrink(true).maxDecimals(6).toString()}
           </div>
         </div>
       </div>
