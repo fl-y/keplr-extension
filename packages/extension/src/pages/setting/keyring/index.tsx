@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useCallback, useState } from "react";
+import React, { FunctionComponent, useState } from "react";
 
 import { HeaderLayout } from "../../../layouts";
 
@@ -27,9 +27,9 @@ export const SetKeyRingPage: FunctionComponent = observer(() => {
       showChainName={false}
       canChangeChainInfo={false}
       alternativeTitle={intl.formatMessage({ id: "setting.keyring" })}
-      onBackButton={useCallback(() => {
+      onBackButton={() => {
         history.goBack();
-      }, [history])}
+      }}
     >
       <div className={style.container}>
         <div className={style.innerTopContainer}>
@@ -101,7 +101,6 @@ export const SetKeyRingPage: FunctionComponent = observer(() => {
                       loadingIndicator.setIsLoading("keyring", true);
                       try {
                         await keyRingStore.changeKeyRing(i);
-                        await keyRingStore.save();
                         loadingIndicator.setIsLoading("keyring", false);
                         history.push("/");
                       } catch (e) {

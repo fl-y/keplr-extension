@@ -75,8 +75,6 @@ export const ClearPage: FunctionComponent = observer(() => {
                 data.password
               );
 
-              await keyRingStore.save();
-
               history.push("/");
             } catch (e) {
               console.log("Fail to decrypt: " + e.message);

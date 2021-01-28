@@ -251,19 +251,6 @@ export class KeyRingStore {
   }
 
   @actionAsync
-  async save() {
-    /*
-        const msg = new SaveKeyRingMsg();
-        await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-
-        const type = await task(
-          this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
-        );
-        this.setKeyRingType(type);
-        */
-  }
-
-  @actionAsync
   async deleteKeyRing(index: number, password: string) {
     const msg = new DeleteKeyRingMsg(index, password);
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
@@ -300,8 +287,6 @@ export class KeyRingStore {
         new SetKeyStoreCoinTypeMsg(chainId, coinType)
       )
     );
-
-    await task(this.save());
 
     this.multiKeyStoreInfo = await task(
       this.requester.sendMessage(BACKGROUND_PORT, new GetMultiKeyStoreInfoMsg())
