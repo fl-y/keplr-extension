@@ -139,12 +139,12 @@ export class PricePretty {
 
     const dec = this.toDec();
     const options = this.options;
-    if (options.maxDecimals > 0 && dec.gt(new Dec(0))) {
+    if (dec.gt(new Dec(0))) {
       const precision = new Dec(1).quo(
         DecUtils.getPrecisionDec(this.options.maxDecimals)
       );
       if (dec.lt(precision)) {
-        return `<${symbol}${this._options.separator}${precision.toString(
+        return `< ${symbol}${this._options.separator}${precision.toString(
           options.maxDecimals,
           options.locale
         )}`;
