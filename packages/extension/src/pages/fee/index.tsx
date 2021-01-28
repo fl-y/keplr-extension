@@ -59,15 +59,17 @@ export const FeePage: FunctionComponent = observer(() => {
         className={style.formContainer}
         onSubmit={async (e) => {
           e.preventDefault();
-          const config = txConfigStore.waitingData;
-          if (txStateIsValid && config) {
+          if (txStateIsValid && txConfigStore.waitingData) {
             const stdFee = txConfig.toStdFee();
 
-            config.gas = stdFee.gas;
-            config.fee = stdFee.amount
-              .map((fee: CoinPrimitive) => `${fee.amount}${fee.denom}`)
-              .join(",");
-            config.memo = txConfig.memo;
+            const config = {
+              ...txConfigStore.waitingData,
+              gas: stdFee.gas,
+              fee: stdFee.amount
+                .map((fee: CoinPrimitive) => `${fee.amount}${fee.denom}`)
+                .join(","),
+              memo: txConfig.memo,
+            };
 
             await txConfigStore.approve(config);
 

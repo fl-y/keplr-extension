@@ -1,8 +1,8 @@
 export interface Bech32Config {
-  bech32PrefixAccAddr: string;
-  bech32PrefixAccPub: string;
-  bech32PrefixValAddr: string;
-  bech32PrefixValPub: string;
-  bech32PrefixConsAddr: string;
-  bech32PrefixConsPub: string;
+  readonly bech32PrefixAccAddr: string;
+  readonly bech32PrefixAccPub: string;
+  readonly bech32PrefixValAddr: string;
+  readonly bech32PrefixValPub: string;
+  readonly bech32PrefixConsAddr: string;
+  readonly bech32PrefixConsPub: string;
 }

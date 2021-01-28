@@ -6,11 +6,11 @@ import { SecretUtils } from "secretjs/types/enigmautils";
 // TODO: Return the `Uint8Array` instead of hex string.
 export interface KeyHex {
   // Name of the selected key store.
-  name: string;
-  algo: string;
-  pubKeyHex: string;
-  addressHex: string;
-  bech32Address: string;
+  readonly name: string;
+  readonly algo: string;
+  readonly pubKeyHex: string;
+  readonly addressHex: string;
+  readonly bech32Address: string;
 }
 
 export interface Keplr {

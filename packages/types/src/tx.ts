@@ -1,14 +1,14 @@
 export interface TxBuilderConfigPrimitive {
-  accountNumber?: string; // bigInteger.BigNumber;
-  sequence?: string; // bigInteger.BigNumber;
-  gas: string; // bigInteger.BigNumber;
-  gasAdjustment?: number;
-  memo: string;
-  fee: string; // Coin[] | Coin;
-  gasPrice?: number;
+  readonly accountNumber?: string; // bigInteger.BigNumber;
+  readonly sequence?: string; // bigInteger.BigNumber;
+  readonly gas: string; // bigInteger.BigNumber;
+  readonly gasAdjustment?: number;
+  readonly memo: string;
+  readonly fee: string; // Coin[] | Coin;
+  readonly gasPrice?: number;
 }
 
 export interface TxBuilderConfigPrimitiveWithChainId
   extends TxBuilderConfigPrimitive {
-  chainId: string;
+  readonly chainId: string;
 }

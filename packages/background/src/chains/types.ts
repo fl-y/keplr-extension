@@ -32,9 +32,11 @@ export const CW20CurrencyShema = (CurrencySchema as ObjectSchema<CW20Currency>)
     ) {
       return value;
     } else {
-      value.coinMinimalDenom =
-        `${value.type}:${value.contractAddress}:` + value.coinMinimalDenom;
-      return value;
+      return {
+        ...value,
+        coinMinimalDenom:
+          `${value.type}:${value.contractAddress}:` + value.coinMinimalDenom,
+      };
     }
   });
 
@@ -52,9 +54,11 @@ export const Secret20CurrencyShema = (CurrencySchema as ObjectSchema<Secret20Cur
     ) {
       return value;
     } else {
-      value.coinMinimalDenom =
-        `${value.type}:${value.contractAddress}:` + value.coinMinimalDenom;
-      return value;
+      return {
+        ...value,
+        coinMinimalDenom:
+          `${value.type}:${value.contractAddress}:` + value.coinMinimalDenom,
+      };
     }
   });
 
