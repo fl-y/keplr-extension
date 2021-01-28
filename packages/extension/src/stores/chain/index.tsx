@@ -19,6 +19,9 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
   @observable
   protected selectedChainId!: string;
 
+  protected isInitializing: boolean = false;
+  protected deferChainIdSelect: string = "";
+
   constructor(
     embedChainInfos: ChainInfo[],
     protected readonly requester: MessageRequester
@@ -43,6 +46,9 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
 
   @action
   selectChain(chainId: string) {
+    if (this.isInitializing) {
+      this.deferChainIdSelect = chainId;
+    }
     this.selectedChainId = chainId;
   }
 
@@ -66,13 +72,23 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
 
   @actionAsync
   protected async init() {
+    this.isInitializing = true;
     await task(this.getChainInfosFromBackground());
 
     // Get last view chain id to persistent background
     const msg = new GetPersistentMemoryMsg();
     const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    if (result && result.lastViewChainId) {
-      this.selectChain(result.lastViewChainId);
+
+    if (!this.deferChainIdSelect) {
+      if (result && result.lastViewChainId) {
+        this.selectChain(result.lastViewChainId);
+      }
+    }
+    this.isInitializing = false;
+
+    if (this.deferChainIdSelect) {
+      this.selectChain(this.deferChainIdSelect);
+      this.deferChainIdSelect = "";
     }
   }
 
