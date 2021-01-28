@@ -7,8 +7,7 @@ import { useStore } from "../../stores";
 import styleAsset from "./asset.module.scss";
 import { ToolTip } from "../../components/tooltip";
 import { FormattedMessage, useIntl } from "react-intl";
-import { getFiatCurrencyFromLanguage } from "../../common/currency";
-import { useLanguage } from "../../language";
+import { useLanguage } from "../../languages";
 
 const LazyDoughnut = React.lazy(async () => {
   const module = await import(
@@ -114,7 +113,7 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
 
   const language = useLanguage();
 
-  const fiatCurrency = getFiatCurrencyFromLanguage(language.language);
+  const fiatCurrency = language.fiatCurrency;
 
   const current = chainStore.current;
 
@@ -142,16 +141,10 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
 
   const total = stakable.add(stakedSum);
 
-  const stakablePrice = priceStore.calculatePrice(
-    fiatCurrency.currency,
-    stakable
-  );
-  const stakedSumPrice = priceStore.calculatePrice(
-    fiatCurrency.currency,
-    stakedSum
-  );
+  const stakablePrice = priceStore.calculatePrice(fiatCurrency, stakable);
+  const stakedSumPrice = priceStore.calculatePrice(fiatCurrency, stakedSum);
 
-  const totalPrice = priceStore.calculatePrice(fiatCurrency.currency, total);
+  const totalPrice = priceStore.calculatePrice(fiatCurrency, total);
 
   // If fiat value is fetched, show the value that is multiplied with amount and fiat value.
   // If not, just show the amount of asset.

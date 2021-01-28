@@ -1,13 +1,8 @@
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { IntlProvider } from "react-intl";
 
-import MessagesEn from "./languages/en.json";
-import MessagesKo from "./languages/ko.json";
+import MessagesEn from "./en.json";
+import MessagesKo from "./ko.json";
 
 export type IntlMessage = Record<string, string>;
 export type IntlMessages = { [lang: string]: Record<string, string> };
@@ -45,6 +40,11 @@ interface Language {
   automatic: boolean;
   setLanguage: (language: string) => void;
   clearLanguage: () => void;
+
+  fiatCurrency: string;
+  isFiatCurrencyAutomatic: boolean;
+  // Set the fiat currency. If the argument is null, it will set the fiat currency automatically.
+  setFiatCurrency: (fiatCurrency: string | null) => void;
 }
 
 const LanguageContext = React.createContext<Language | null>(null);
@@ -52,15 +52,21 @@ const LanguageContext = React.createContext<Language | null>(null);
 export const useLanguage = (): Language => {
   const lang = React.useContext(LanguageContext);
   if (!lang) {
-    throw new Error("You have forgot to use intl provider");
+    throw new Error("You have forgot to use language provider");
   }
   return lang;
 };
 
+export type LanguageToFiatCurrency = { ["default"]: string } & {
+  [language: string]: string;
+};
+
 export const AppIntlProvider: FunctionComponent<{
   additionalMessages: IntlMessages;
-}> = ({ additionalMessages, children }) => {
-  const [language, setLanguage] = useState(initLanguage(additionalMessages));
+  // Set the fiat currency according to the language if the fiat currency is not set (automatic).
+  languageToFiatCurrency: LanguageToFiatCurrency;
+}> = ({ additionalMessages, languageToFiatCurrency, children }) => {
+  const [language, _setLanguage] = useState(initLanguage(additionalMessages));
   const [automatic, setAutomatic] = useState(
     localStorage.getItem("language") == null
   );
@@ -76,25 +82,56 @@ export const AppIntlProvider: FunctionComponent<{
     setMessages(getMessages(additionalMessages, language));
   }, [additionalMessages, language]);
 
-  const setLanguageCallback = useCallback((language: string) => {
+  const setLanguage = (language: string) => {
     localStorage.setItem("language", language);
-    setLanguage(language);
+    _setLanguage(language);
     setAutomatic(false);
-  }, []);
+  };
 
-  const clearLanguageCallback = useCallback(() => {
+  const clearLanguage = () => {
     localStorage.removeItem("language");
-    setLanguage(initLanguage(additionalMessages));
+    _setLanguage(initLanguage(additionalMessages));
     setAutomatic(true);
-  }, [additionalMessages]);
+  };
+
+  const [_fiatCurrency, _setFiatCurrency] = useState<string | null>(
+    localStorage.getItem("fiat-currency")
+  );
+
+  const setFiatCurrency = (fiatCurrency: string | null) => {
+    if (fiatCurrency === null) {
+      localStorage.removeItem("fiat-currency");
+    } else {
+      localStorage.setItem("fiat-currency", fiatCurrency);
+    }
+
+    _setFiatCurrency(fiatCurrency);
+  };
+
+  let fiatCurrency = _fiatCurrency;
+  if (fiatCurrency === null) {
+    const saved = localStorage.getItem("fiat-currency");
+    if (saved !== null) {
+      fiatCurrency = saved;
+    } else if (languageToFiatCurrency[language]) {
+      fiatCurrency = languageToFiatCurrency[language];
+    } else {
+      fiatCurrency = languageToFiatCurrency["default"];
+    }
+  }
+
+  const isFiatCurrencyAutomatic = _fiatCurrency === null;
 
   return (
     <LanguageContext.Provider
       value={{
         language: language,
         automatic: automatic,
-        setLanguage: setLanguageCallback,
-        clearLanguage: clearLanguageCallback,
+        setLanguage,
+        clearLanguage,
+        fiatCurrency,
+        setFiatCurrency,
+        isFiatCurrencyAutomatic,
       }}
     >
       <IntlProvider

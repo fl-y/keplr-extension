@@ -13,8 +13,7 @@ import classnames from "classnames";
 import { observer } from "mobx-react";
 import { TxConfig } from "@keplr/hooks";
 import { CoinGeckoPriceStore } from "@keplr/stores";
-import { useLanguage } from "../../language";
-import { getFiatCurrencyFromLanguage } from "../../common/currency";
+import { useLanguage } from "../../languages";
 
 export interface FeeButtonsProps {
   txConfig: TxConfig;
@@ -48,25 +47,16 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
 
     const language = useLanguage();
 
-    const fiatCurrency = getFiatCurrencyFromLanguage(language.language);
+    const fiatCurrency = language.fiatCurrency;
 
     const lowFee = txConfig.getFeeTypePretty("low");
-    const lowFeePrice = priceStore.calculatePrice(
-      fiatCurrency.currency,
-      lowFee
-    );
+    const lowFeePrice = priceStore.calculatePrice(fiatCurrency, lowFee);
 
     const averageFee = txConfig.getFeeTypePretty("average");
-    const averageFeePrice = priceStore.calculatePrice(
-      fiatCurrency.currency,
-      averageFee
-    );
+    const averageFeePrice = priceStore.calculatePrice(fiatCurrency, averageFee);
 
     const highFee = txConfig.getFeeTypePretty("high");
-    const highFeePrice = priceStore.calculatePrice(
-      fiatCurrency.currency,
-      highFee
-    );
+    const highFeePrice = priceStore.calculatePrice(fiatCurrency, highFee);
 
     return (
       <FormGroup>

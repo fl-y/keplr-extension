@@ -2,7 +2,6 @@ import React, { FunctionComponent, useEffect, useState } from "react";
 
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
-import { getFiatCurrencyFromLanguage } from "../../common/currency";
 
 import styleDetailsTab from "./details-tab.module.scss";
 import classnames from "classnames";
@@ -10,7 +9,7 @@ import classnames from "classnames";
 import { MessageObj, renderMessage } from "./messages";
 import { DecUtils, CoinUtils, Coin, Dec } from "@keplr/unit";
 import { useIntl } from "react-intl";
-import { useLanguage } from "../../language";
+import { useLanguage } from "../../languages";
 
 export const DetailsTab: FunctionComponent<{ message: string }> = observer(
   ({ message }) => {
@@ -49,7 +48,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
     }, [message]);
 
     const language = useLanguage();
-    const fiatCurrency = getFiatCurrencyFromLanguage(language.language);
+    const fiatCurrency = language.fiatCurrency;
 
     // Set true if all fees have the coingecko id.
     const [hasCoinGeckoId, setHasCoinGeckoId] = useState(false);
@@ -68,10 +67,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
           if (!currency.coinGeckoId) {
             hasCoinGeckoId = false;
           }
-          const value = priceStore.getPrice(
-            currency.coinGeckoId,
-            fiatCurrency.currency
-          );
+          const value = priceStore.getPrice(currency.coinGeckoId, fiatCurrency);
           const parsed = CoinUtils.parseDecAndDenomFromCoin(
             current.feeCurrencies,
             coin
@@ -86,7 +82,7 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
 
       setHasCoinGeckoId(hasCoinGeckoId);
       setFeeFiat(price);
-    }, [current, fee, fiatCurrency.currency, priceStore]);
+    }, [current, fee, fiatCurrency, priceStore]);
 
     return (
       <div className={styleDetailsTab.container}>
@@ -136,14 +132,15 @@ export const DetailsTab: FunctionComponent<{ message: string }> = observer(
                 .join(",")}
             </div>
             <div className={styleDetailsTab.fiat}>
-              {!feeFiat.equals(new Dec(0))
+              {/* TODO
+                !feeFiat.equals(new Dec(0))
                 ? fiatCurrency.symbol +
                   DecUtils.trim(
                     fiatCurrency.parse(parseFloat(feeFiat.toString()))
                   )
                 : hasCoinGeckoId
                 ? "?"
-                : ""}
+                : ""*/}
             </div>
           </div>
         </div>

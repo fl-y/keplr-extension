@@ -1,10 +1,10 @@
 import React, { FunctionComponent, useCallback, useMemo } from "react";
-import { HeaderLayout } from "../../layouts/header-layout";
+import { HeaderLayout } from "../../layouts";
 import { useHistory } from "react-router";
 import { PageButton } from "./page-button";
 
 import style from "./style.module.scss";
-import { useLanguage } from "../../language";
+import { useLanguage } from "../../languages";
 import { useIntl } from "react-intl";
 
 export const SettingPage: FunctionComponent = () => {

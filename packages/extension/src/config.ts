@@ -1,4 +1,3 @@
-import { FiatCurrency } from "./common/currency";
 import { Bech32Address } from "@keplr/cosmos";
 import { ChainInfo } from "@keplr/types";
 
@@ -27,7 +26,10 @@ import {
   ADDITIONAL_SIGN_IN_PREPEND,
   ADDITIONAL_INTL_MESSAGES,
 } from "./config.var";
-import { IntlMessages } from "./language";
+import {
+  IntlMessages,
+  LanguageToFiatCurrency as TypeLanguageToFiatCurrency,
+} from "./languages";
 import { RegisterOption } from "@keplr/hooks";
 
 export const CoinGeckoAPIEndPoint = "https://api.coingecko.com/api/v3";
@@ -269,35 +271,9 @@ export const EmbedChainInfos: ChainInfo[] = [
   },
 ];
 
-export const LanguageToFiatCurrency: {
-  [language: string]: FiatCurrency;
-} = {
-  default: {
-    currency: "usd",
-    symbol: "$",
-    parse: (value: number) => {
-      let fractionDigits = 2;
-      if (value < 0.01) {
-        fractionDigits = 4;
-      }
-      return value.toLocaleString("en-US", {
-        maximumFractionDigits: fractionDigits,
-      });
-    },
-  },
-  ko: {
-    currency: "krw",
-    symbol: "￦",
-    parse: (value: number) => {
-      let fractionDigits = 0;
-      if (value < 1) {
-        fractionDigits = 1;
-      }
-      return value.toLocaleString("ko-KR", {
-        maximumFractionDigits: fractionDigits,
-      });
-    },
-  },
+export const LanguageToFiatCurrency: TypeLanguageToFiatCurrency = {
+  default: "usd",
+  ko: "krw",
 };
 
 export const AdditionalSignInPrepend:

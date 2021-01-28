@@ -10,7 +10,7 @@ import { observer } from "mobx-react";
 import { useStore } from "../../../../stores";
 import useForm from "react-hook-form";
 import { Bech32Address } from "@keplr/cosmos";
-import { CW20Currency, Secret20Currency } from "../../../../common/currency";
+import { CW20Currency, Secret20Currency } from "@keplr/types";
 
 interface FormData {
   contractAddress: string;

@@ -1,5 +1,5 @@
 import { AxiosRequestConfig } from "axios";
-import { IntlMessages } from "./language";
+import { IntlMessages } from "./languages";
 import { RegisterOption } from "@keplr/hooks";
 
 export const ETHEREUM_ENDPOINT = "";

@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from "react";
 import ReactDOM from "react-dom";
 
-import { AppIntlProvider } from "./language";
+import { AppIntlProvider } from "./languages";
 
 import "./styles/global.scss";
 
@@ -44,13 +44,10 @@ import { LedgerGrantPage, LedgerInitIndicator } from "./pages/ledger";
 // import * as BackgroundTxResult from "../../background/tx/foreground";
 
 import { AdditonalIntlMessages, LanguageToFiatCurrency } from "./config";
-import { init as currencyInit } from "./common/currency";
 import { AddTokenPage } from "./pages/setting/token/add";
 
 import { Keplr } from "@keplr/provider";
 import { InExtensionMessageRequester } from "@keplr/router";
-
-currencyInit(LanguageToFiatCurrency);
 
 window.keplr = new Keplr(new InExtensionMessageRequester());
 
@@ -121,7 +118,10 @@ const StateRenderer: FunctionComponent = observer(() => {
 });
 
 ReactDOM.render(
-  <AppIntlProvider additionalMessages={AdditonalIntlMessages}>
+  <AppIntlProvider
+    additionalMessages={AdditonalIntlMessages}
+    languageToFiatCurrency={LanguageToFiatCurrency}
+  >
     <StoreProvider>
       <LoadingIndicatorProvider>
         <NotificationStoreProvider>

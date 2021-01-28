@@ -1,9 +1,9 @@
 import React, { FunctionComponent, useCallback, useMemo } from "react";
-import { HeaderLayout } from "../../../layouts/header-layout";
+import { HeaderLayout } from "../../../layouts";
 import { PageButton } from "../page-button";
 
 import style from "../style.module.scss";
-import { useLanguage } from "../../../language";
+import { useLanguage } from "../../../languages";
 import { useHistory } from "react-router";
 import { useIntl } from "react-intl";
 
