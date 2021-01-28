@@ -45,10 +45,7 @@ export class ObservableQueryUnbondingDelegationsInner extends ObservableChainQue
     const stakeCurrency = this.chainGetter.getChain(this.chainId).stakeCurrency;
 
     if (!this.response) {
-      return new CoinPretty(stakeCurrency.coinDenom, new Int(0))
-        .ready(false)
-        .precision(stakeCurrency.coinDecimals)
-        .maxDecimals(stakeCurrency.coinDecimals);
+      return new CoinPretty(stakeCurrency, new Int(0)).ready(false);
     }
 
     let totalBalance = new Int(0);
@@ -58,9 +55,7 @@ export class ObservableQueryUnbondingDelegationsInner extends ObservableChainQue
       }
     }
 
-    return new CoinPretty(stakeCurrency.coinDenom, totalBalance)
-      .precision(stakeCurrency.coinDecimals)
-      .maxDecimals(stakeCurrency.coinDecimals);
+    return new CoinPretty(stakeCurrency, totalBalance);
   }
 
   @computed
@@ -83,12 +78,7 @@ export class ObservableQueryUnbondingDelegationsInner extends ObservableChainQue
         entries.push({
           creationHeight: new Int(entry.creation_height),
           completionTime: entry.completion_time,
-          balance: new CoinPretty(
-            stakeCurrency.coinDenom,
-            new Int(entry.balance)
-          )
-            .precision(stakeCurrency.coinDecimals)
-            .maxDecimals(stakeCurrency.coinDecimals),
+          balance: new CoinPretty(stakeCurrency, new Int(entry.balance)),
         });
       }
 

@@ -48,10 +48,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
     const stakeCurrency = this.chainGetter.getChain(this.chainId).stakeCurrency;
 
     if (!this.response) {
-      return new CoinPretty(stakeCurrency.coinDenom, new Int(0))
-        .ready(false)
-        .precision(stakeCurrency.coinDecimals)
-        .maxDecimals(stakeCurrency.coinDecimals);
+      return new CoinPretty(stakeCurrency, new Int(0)).ready(false);
     }
 
     let totalBalance = new Int(0);
@@ -63,9 +60,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
       }
     }
 
-    return new CoinPretty(stakeCurrency.coinDenom, totalBalance)
-      .precision(stakeCurrency.coinDecimals)
-      .maxDecimals(stakeCurrency.coinDecimals);
+    return new CoinPretty(stakeCurrency, totalBalance);
   }
 
   @computed
@@ -92,9 +87,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
           "validator_address" in delegation
             ? delegation.validator_address
             : delegation.delegation.validator_address,
-        balance: new CoinPretty(stakeCurrency.coinDenom, new Int(balance))
-          .precision(stakeCurrency.coinDecimals)
-          .maxDecimals(stakeCurrency.coinDecimals),
+        balance: new CoinPretty(stakeCurrency, new Int(balance)),
       });
     }
 
@@ -134,30 +127,23 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
         .stakeCurrency;
 
       if (!this.response) {
-        return new CoinPretty(stakeCurrency.coinDenom, new Int(0))
-          .ready(false)
-          .precision(stakeCurrency.coinDecimals)
-          .maxDecimals(stakeCurrency.coinDecimals);
+        return new CoinPretty(stakeCurrency, new Int(0)).ready(false);
       }
 
       for (const delegation of delegations) {
         if (delegation.validator_address === validatorAddress) {
           return new CoinPretty(
-            stakeCurrency.coinDenom,
+            stakeCurrency,
             new Int(
               typeof delegation.balance === "string"
                 ? delegation.balance
                 : delegation.balance.amount
             )
-          )
-            .precision(stakeCurrency.coinDecimals)
-            .maxDecimals(stakeCurrency.coinDecimals);
+          );
         }
       }
 
-      return new CoinPretty(stakeCurrency.coinDenom, new Int(0))
-        .precision(stakeCurrency.coinDecimals)
-        .maxDecimals(stakeCurrency.coinDecimals);
+      return new CoinPretty(stakeCurrency, new Int(0));
     }
   );
 }

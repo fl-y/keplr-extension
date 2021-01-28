@@ -84,7 +84,14 @@ export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
   ): CoinPretty {
     const vsCurrencyInfo = this.supportedVsCurrencies[vsCurrrency];
     if (!vsCurrencyInfo) {
-      return new CoinPretty("?", new Int(0))
+      return new CoinPretty(
+        {
+          coinDenom: "?",
+          coinMinimalDenom: "?",
+          coinDecimals: 0,
+        },
+        new Int(0)
+      )
         .ready(false)
         .denomToPrefix(true)
         .separator("");
@@ -92,7 +99,14 @@ export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
 
     const price = this.getPrice(coinId, vsCurrrency);
     if (price === undefined) {
-      return new CoinPretty(vsCurrencyInfo.symbol, new Int(0))
+      return new CoinPretty(
+        {
+          coinDenom: vsCurrencyInfo.symbol,
+          coinMinimalDenom: vsCurrencyInfo.symbol,
+          coinDecimals: 0,
+        },
+        new Int(0)
+      )
         .ready(false)
         .denomToPrefix(true)
         .separator("");
@@ -104,7 +118,14 @@ export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
 
     const priceDec = new Dec(price.toString());
 
-    return new CoinPretty(vsCurrencyInfo.symbol, dec.mul(priceDec))
+    return new CoinPretty(
+      {
+        coinDenom: vsCurrencyInfo.symbol,
+        coinMinimalDenom: vsCurrencyInfo.symbol,
+        coinDecimals: 0,
+      },
+      dec.mul(priceDec)
+    )
       .denomToPrefix(true)
       .separator("");
   }

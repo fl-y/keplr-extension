@@ -1,6 +1,7 @@
 import { IntPretty } from "./int-pretty";
 import { Int } from "./int";
 import { Dec } from "./decimal";
+import { Currency } from "@keplr/types";
 
 export class CoinPretty {
   protected intPretty: IntPretty;
@@ -18,7 +19,7 @@ export class CoinPretty {
   };
 
   constructor(
-    protected _denom: string,
+    protected _currency: Currency,
     protected amount: Int | Dec | IntPretty
   ) {
     if (amount instanceof IntPretty) {
@@ -26,10 +27,18 @@ export class CoinPretty {
     } else {
       this.intPretty = new IntPretty(amount);
     }
+
+    this.intPretty = this.intPretty
+      .maxDecimals(_currency.coinDecimals)
+      .precision(_currency.coinDecimals);
   }
 
   get denom(): string {
-    return this._denom;
+    return this.currency.coinDenom;
+  }
+
+  get currency(): Currency {
+    return this._currency;
   }
 
   separator(str: string): CoinPretty {
@@ -131,7 +140,7 @@ export class CoinPretty {
   }
 
   clone(): CoinPretty {
-    const pretty = new CoinPretty(this.denom, this.amount);
+    const pretty = new CoinPretty(this._currency, this.amount);
     pretty.options = {
       ...this.options,
     };

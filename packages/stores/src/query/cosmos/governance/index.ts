@@ -152,7 +152,7 @@ export class ObservableQueryProposal extends ObservableChainQuery<ProposalTally>
 
     const stakeCurrency = this.chainGetter.getChain(this.chainId).stakeCurrency;
 
-    return new CoinPretty(stakeCurrency.coinDenom, tallySum);
+    return new CoinPretty(stakeCurrency, tallySum);
   }
 
   @computed

@@ -7,8 +7,7 @@ export class StoreUtils {
     currenciesMap: {
       [denom: string]: Currency;
     },
-    bals: CoinPrimitive[],
-    inferUnknownCurrency: boolean = true
+    bals: CoinPrimitive[]
   ): CoinPretty[] {
     const result: CoinPretty[] = [];
     for (const bal of bals) {
@@ -20,20 +19,7 @@ export class StoreUtils {
           amount = amount.slice(0, amount.indexOf("."));
         }
 
-        result.push(
-          new CoinPretty(currency.coinDenom, new Int(amount))
-            .precision(currency.coinDecimals)
-            .maxDecimals(currency.coinDecimals)
-        );
-      } else if (inferUnknownCurrency) {
-        let amount = bal.amount;
-        // Some querying result have the dec amount. But, it is usually negligible.
-        if (amount.includes(".")) {
-          amount = amount.slice(0, amount.indexOf("."));
-        }
-
-        // TODO: Infer the currency?
-        result.push(new CoinPretty(bal.denom, new Int(amount)));
+        result.push(new CoinPretty(currency, new Int(amount)));
       }
     }
 
@@ -48,16 +34,13 @@ export class StoreUtils {
       {
         [currency.coinMinimalDenom]: currency,
       },
-      bals,
-      false
+      bals
     );
 
     if (result.length === 1) {
       return result[0];
     }
 
-    return new CoinPretty(currency.coinDenom, new Int(0))
-      .precision(currency.coinDecimals)
-      .maxDecimals(currency.coinDecimals);
+    return new CoinPretty(currency, new Int(0)).ready(false);
   }
 }

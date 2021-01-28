@@ -92,15 +92,10 @@ export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
   get stakableReward(): CoinPretty {
     const chainInfo = this.chainGetter.getChain(this.chainId);
 
-    const result = StoreUtils.getBalanceFromCurrency(
+    return StoreUtils.getBalanceFromCurrency(
       chainInfo.stakeCurrency,
       this.response?.data.result.total ?? []
     );
-    if (!result) {
-      return new CoinPretty(chainInfo.stakeCurrency.coinDenom, new Int(0));
-    }
-
-    return result;
   }
 
   readonly getStakableRewardOf = computedFn(
@@ -111,16 +106,10 @@ export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
         return r.validator_address === validatorAddress;
       });
 
-      const result = StoreUtils.getBalanceFromCurrency(
+      return StoreUtils.getBalanceFromCurrency(
         chainInfo.stakeCurrency,
         reward?.reward ?? []
       );
-
-      if (!result) {
-        return new CoinPretty(chainInfo.stakeCurrency.coinDenom, new Int(0));
-      }
-
-      return result;
     }
   );
 

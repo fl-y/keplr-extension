@@ -9,7 +9,7 @@ import { autorun, computed, observable, runInAction } from "mobx";
 import { ObservableQuery, QueryResponse } from "../../../common";
 import Axios, { CancelToken } from "axios";
 import PQueue from "p-queue";
-import { CoinPretty, Dec, DecUtils } from "@keplr/unit";
+import { CoinPretty, Dec } from "@keplr/unit";
 import { computedFn } from "mobx-utils";
 
 interface KeybaseResult {
@@ -198,14 +198,9 @@ export class ObservableQueryValidatorsInner extends ObservableChainQuery<Validat
     const chainInfo = this.chainGetter.getChain(this.chainId);
     const stakeCurrency = chainInfo.stakeCurrency;
 
-    let power = new Dec(validator.delegator_shares);
-    power = power.quoTruncate(
-      DecUtils.getPrecisionDec(stakeCurrency.coinDecimals)
-    );
+    const power = new Dec(validator.delegator_shares).truncate();
 
-    return new CoinPretty(stakeCurrency.coinDenom, power).maxDecimals(
-      stakeCurrency.coinDecimals
-    );
+    return new CoinPretty(stakeCurrency, power);
   });
 }
 

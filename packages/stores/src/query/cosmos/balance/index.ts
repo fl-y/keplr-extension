@@ -42,10 +42,7 @@ export class ObservableQueryBalanceNative extends ObservableQueryBalanceInner {
     const currency = this.currency;
 
     if (!this.nativeBalances.response) {
-      return new CoinPretty(currency.coinDenom, new Int(0))
-        .ready(false)
-        .precision(currency.coinDecimals)
-        .maxDecimals(currency.coinDecimals);
+      return new CoinPretty(currency, new Int(0)).ready(false);
     }
 
     return StoreUtils.getBalanceFromCurrency(

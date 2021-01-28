@@ -153,18 +153,13 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
       !this.querySecret20Balance.response ||
       !this.querySecret20Balance.response.data.balance
     ) {
-      return new CoinPretty(currency.coinDenom, new Int(0))
-        .ready(false)
-        .precision(currency.coinDecimals)
-        .maxDecimals(currency.coinDecimals);
+      return new CoinPretty(currency, new Int(0)).ready(false);
     }
 
     return new CoinPretty(
-      currency.coinDenom,
+      currency,
       new Int(this.querySecret20Balance.response.data.balance.amount)
-    )
-      .precision(currency.coinDecimals)
-      .maxDecimals(currency.coinDecimals);
+    );
   }
 }
 
