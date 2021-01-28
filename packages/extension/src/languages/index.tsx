@@ -58,7 +58,7 @@ export const useLanguage = (): Language => {
 };
 
 export type LanguageToFiatCurrency = { ["default"]: string } & {
-  [language: string]: string;
+  [language: string]: string | undefined;
 };
 
 export const AppIntlProvider: FunctionComponent<{
@@ -113,10 +113,9 @@ export const AppIntlProvider: FunctionComponent<{
     const saved = localStorage.getItem("fiat-currency");
     if (saved !== null) {
       fiatCurrency = saved;
-    } else if (languageToFiatCurrency[language]) {
-      fiatCurrency = languageToFiatCurrency[language];
     } else {
-      fiatCurrency = languageToFiatCurrency["default"];
+      fiatCurrency =
+        languageToFiatCurrency[language] || languageToFiatCurrency["default"];
     }
   }
 
