@@ -1,9 +1,9 @@
 import { IntPretty } from "./int-pretty";
 import { Int } from "./int";
 import { Dec } from "./decimal";
-import { Currency } from "@keplr/types";
+import { FiatCurrency } from "@keplr/types";
 
-export class CoinPretty {
+export class PricePretty {
   protected intPretty: IntPretty;
 
   protected options: {
@@ -11,13 +11,13 @@ export class CoinPretty {
     upperCase: boolean;
     lowerCase: boolean;
   } = {
-    separator: " ",
+    separator: "",
     upperCase: false,
     lowerCase: false,
   };
 
   constructor(
-    protected _currency: Currency,
+    protected _fiatCurrency: FiatCurrency,
     protected amount: Int | Dec | IntPretty
   ) {
     if (amount instanceof IntPretty) {
@@ -27,63 +27,64 @@ export class CoinPretty {
     }
 
     this.intPretty = this.intPretty
-      .maxDecimals(_currency.coinDecimals)
-      .precision(_currency.coinDecimals);
+      .maxDecimals(_fiatCurrency.maxDecimals)
+      .shrink(true)
+      .trim(true);
   }
 
-  get denom(): string {
-    return this.currency.coinDenom;
+  get symbol(): string {
+    return this._fiatCurrency.symbol;
   }
 
-  get currency(): Currency {
-    return this._currency;
+  get fiatCurrency(): FiatCurrency {
+    return this._fiatCurrency;
   }
 
-  separator(str: string): CoinPretty {
+  separator(str: string): PricePretty {
     const pretty = this.clone();
     pretty.options.separator = str;
     return pretty;
   }
 
-  upperCase(bool: boolean): CoinPretty {
+  upperCase(bool: boolean): PricePretty {
     const pretty = this.clone();
     pretty.options.upperCase = bool;
     pretty.options.lowerCase = !bool;
     return pretty;
   }
 
-  lowerCase(bool: boolean): CoinPretty {
+  lowerCase(bool: boolean): PricePretty {
     const pretty = this.clone();
     pretty.options.lowerCase = bool;
     pretty.options.upperCase = !bool;
     return pretty;
   }
 
-  precision(prec: number): CoinPretty {
+  precision(prec: number): PricePretty {
     const pretty = this.clone();
     pretty.intPretty = pretty.intPretty.precision(prec);
     return pretty;
   }
 
-  maxDecimals(max: number): CoinPretty {
+  maxDecimals(max: number): PricePretty {
     const pretty = this.clone();
     pretty.intPretty = pretty.intPretty.maxDecimals(max);
     return pretty;
   }
 
-  trim(bool: boolean): CoinPretty {
+  trim(bool: boolean): PricePretty {
     const pretty = this.clone();
     pretty.intPretty = pretty.intPretty.trim(bool);
     return pretty;
   }
 
-  shrink(bool: boolean): CoinPretty {
+  shrink(bool: boolean): PricePretty {
     const pretty = this.clone();
     pretty.intPretty = pretty.intPretty.shrink(bool);
     return pretty;
   }
 
-  locale(locale: boolean): CoinPretty {
+  locale(locale: boolean): PricePretty {
     const pretty = this.clone();
     pretty.intPretty = pretty.intPretty.locale(locale);
     return pretty;
@@ -96,7 +97,7 @@ export class CoinPretty {
    * But, alternatively, it can return the 0 value that can be shown the users anyway, but indicates that the value is not ready.
    * @param bool
    */
-  ready(bool: boolean): CoinPretty {
+  ready(bool: boolean): PricePretty {
     const pretty = this.clone();
     pretty.intPretty = pretty.intPretty.ready(bool);
     return pretty;
@@ -106,7 +107,7 @@ export class CoinPretty {
     return this.intPretty.isReady;
   }
 
-  add(target: CoinPretty): CoinPretty {
+  add(target: PricePretty): PricePretty {
     const pretty = this.clone();
     pretty.intPretty = pretty.intPretty.add(target.intPretty);
     return pretty;
@@ -117,19 +118,19 @@ export class CoinPretty {
   }
 
   toString(): string {
-    let denom = this.denom;
+    let symbol = this.symbol;
     if (this.options.upperCase) {
-      denom = denom.toUpperCase();
+      symbol = symbol.toUpperCase();
     }
     if (this.options.lowerCase) {
-      denom = denom.toLowerCase();
+      symbol = symbol.toLowerCase();
     }
 
-    return `${this.intPretty.toString()}${this.options.separator}${denom}`;
+    return `${symbol}${this.options.separator}${this.intPretty.toString()}`;
   }
 
-  clone(): CoinPretty {
-    const pretty = new CoinPretty(this._currency, this.amount);
+  clone(): PricePretty {
+    const pretty = new PricePretty(this._fiatCurrency, this.amount);
     pretty.options = {
       ...this.options,
     };

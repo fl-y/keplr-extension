@@ -287,17 +287,19 @@ export class TxConfig {
     const feeTypePrimitive = this.getFeeTypePrimitive(feeType);
 
     if (!feeTypePrimitive.feeCurrency) {
-      return new CoinPretty("Unknown", new Int(feeTypePrimitive.amount)).ready(
-        false
-      );
+      return new CoinPretty(
+        {
+          coinMinimalDenom: "Unknown",
+          coinDenom: "Unknown",
+          coinDecimals: 0,
+        },
+        new Int(feeTypePrimitive.amount)
+      ).ready(false);
     }
 
     const feeCurrency = feeTypePrimitive.feeCurrency;
 
-    return new CoinPretty(
-      feeCurrency.coinDenom,
-      new Int(feeTypePrimitive.amount)
-    )
+    return new CoinPretty(feeCurrency, new Int(feeTypePrimitive.amount))
       .precision(feeCurrency.coinDecimals)
       .maxDecimals(feeCurrency.coinDecimals);
   });

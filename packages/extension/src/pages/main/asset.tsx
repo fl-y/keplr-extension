@@ -146,21 +146,15 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
   const total = stakable.add(stakedSum);
 
   const stakablePrice = priceStore.calculatePrice(
-    stakeCurrency.coinGeckoId || "",
     fiatCurrency.currency,
     stakable
   );
   const stakedSumPrice = priceStore.calculatePrice(
-    stakeCurrency.coinGeckoId || "",
     fiatCurrency.currency,
     stakedSum
   );
 
-  const totalPrice = priceStore.calculatePrice(
-    stakeCurrency.coinGeckoId || "",
-    fiatCurrency.currency,
-    total
-  );
+  const totalPrice = priceStore.calculatePrice(fiatCurrency.currency, total);
 
   // If fiat value is fetched, show the value that is multiplied with amount and fiat value.
   // If not, just show the amount of asset.

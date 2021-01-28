@@ -3,23 +3,21 @@ import { CoinGeckoSimplePrice } from "./types";
 import Axios from "axios";
 import { KVStore } from "@keplr/common";
 import { Dec, CoinPretty, Int } from "@keplr/unit";
+import { FiatCurrency } from "@keplr/types";
+import { PricePretty } from "@keplr/unit/build/price-pretty";
 
 export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
   protected coinIds: string[];
   protected vsCurrencies: string[];
 
   protected supportedVsCurrencies: {
-    [vsCurrency: string]: {
-      symbol: string;
-    };
+    [vsCurrency: string]: FiatCurrency;
   };
 
   constructor(
     kvStore: KVStore,
     supportedVsCurrencies: {
-      [vsCurrency: string]: {
-        symbol: string;
-      };
+      [vsCurrency: string]: FiatCurrency;
     }
   ) {
     const instance = Axios.create({
@@ -44,6 +42,16 @@ export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
     )}&vs_currencies=${this.vsCurrencies.join(",")}`;
 
     this.setUrl(url);
+  }
+
+  protected getCacheKey(): string {
+    // Because the uri of the coingecko would be changed according to the coin ids and vsCurrencies.
+    // Therefore, just using the uri as the cache key is not useful.
+    return `${this.instance.name}-${
+      this.instance.defaults.baseURL
+    }${this.instance.getUri({
+      url: "/simple/price",
+    })}`;
   }
 
   getPrice(coinId: string, vsCurrency: string): number | undefined {
@@ -78,55 +86,26 @@ export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
   }
 
   calculatePrice(
-    coinId: string,
     vsCurrrency: string,
-    dec: Dec | { toDec(): Dec }
-  ): CoinPretty {
-    const vsCurrencyInfo = this.supportedVsCurrencies[vsCurrrency];
-    if (!vsCurrencyInfo) {
-      return new CoinPretty(
-        {
-          coinDenom: "?",
-          coinMinimalDenom: "?",
-          coinDecimals: 0,
-        },
-        new Int(0)
-      )
-        .ready(false)
-        .denomToPrefix(true)
-        .separator("");
+    coin: CoinPretty
+  ): PricePretty | undefined {
+    if (!coin.currency.coinGeckoId) {
+      return undefined;
     }
 
-    const price = this.getPrice(coinId, vsCurrrency);
+    const fiatCurrency = this.supportedVsCurrencies[vsCurrrency];
+    if (!fiatCurrency) {
+      return undefined;
+    }
+
+    const price = this.getPrice(coin.currency.coinGeckoId, vsCurrrency);
     if (price === undefined) {
-      return new CoinPretty(
-        {
-          coinDenom: vsCurrencyInfo.symbol,
-          coinMinimalDenom: vsCurrencyInfo.symbol,
-          coinDecimals: 0,
-        },
-        new Int(0)
-      )
-        .ready(false)
-        .denomToPrefix(true)
-        .separator("");
+      return new PricePretty(fiatCurrency, new Int(0)).ready(false);
     }
 
-    if (!(dec instanceof Dec)) {
-      dec = dec.toDec();
-    }
-
+    const dec = coin.toDec();
     const priceDec = new Dec(price.toString());
 
-    return new CoinPretty(
-      {
-        coinDenom: vsCurrencyInfo.symbol,
-        coinMinimalDenom: vsCurrencyInfo.symbol,
-        coinDecimals: 0,
-      },
-      dec.mul(priceDec)
-    )
-      .denomToPrefix(true)
-      .separator("");
+    return new PricePretty(fiatCurrency, dec.mul(priceDec));
   }
 }

@@ -36,5 +36,5 @@ export type AppCurrency = Currency | CW20Currency | Secret20Currency;
 export interface FiatCurrency {
   currency: string;
   symbol: string;
-  parse: (value: number) => string;
+  maxDecimals: number;
 }

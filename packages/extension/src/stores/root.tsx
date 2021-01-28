@@ -81,10 +81,14 @@ export class RootStore {
       new BrowserKVStore("store_prices"),
       {
         usd: {
+          currency: "usd",
           symbol: "$",
+          maxDecimals: 2,
         },
         krw: {
+          currency: "krw",
           symbol: "₩",
+          maxDecimals: 0,
         },
       }
     );
