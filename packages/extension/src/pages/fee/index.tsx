@@ -20,7 +20,7 @@ export const FeePage: FunctionComponent = observer(() => {
 
   const intl = useIntl();
 
-  const { chainStore, txConfigStore } = useStore();
+  const { chainStore, txConfigStore, priceStore } = useStore();
   const txConfig = useTxConfig(chainStore);
   txConfig.setChain(chainStore.current.chainId);
 
@@ -93,6 +93,7 @@ export const FeePage: FunctionComponent = observer(() => {
             {isCyberNetwork ? null : (
               <FeeButtons
                 txConfig={txConfig}
+                priceStore={priceStore}
                 label={intl.formatMessage({
                   id: "fee.input.fee",
                 })}

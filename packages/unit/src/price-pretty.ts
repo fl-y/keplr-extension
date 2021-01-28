@@ -1,16 +1,20 @@
-import { IntPretty } from "./int-pretty";
+import { IntPretty, IntPrettyOptions } from "./int-pretty";
 import { Int } from "./int";
 import { Dec } from "./decimal";
 import { FiatCurrency } from "@keplr/types";
+import { DeepReadonly } from "utility-types";
+import { DecUtils } from "./dec-utils";
+
+export type PricePrettyOptions = {
+  separator: string;
+  upperCase: boolean;
+  lowerCase: boolean;
+};
 
 export class PricePretty {
   protected intPretty: IntPretty;
 
-  protected options: {
-    separator: string;
-    upperCase: boolean;
-    lowerCase: boolean;
-  } = {
+  protected _options: PricePrettyOptions = {
     separator: "",
     upperCase: false,
     lowerCase: false,
@@ -32,6 +36,13 @@ export class PricePretty {
       .trim(true);
   }
 
+  get options(): DeepReadonly<IntPrettyOptions & PricePrettyOptions> {
+    return {
+      ...this._options,
+      ...this.intPretty.options,
+    };
+  }
+
   get symbol(): string {
     return this._fiatCurrency.symbol;
   }
@@ -42,21 +53,21 @@ export class PricePretty {
 
   separator(str: string): PricePretty {
     const pretty = this.clone();
-    pretty.options.separator = str;
+    pretty._options.separator = str;
     return pretty;
   }
 
   upperCase(bool: boolean): PricePretty {
     const pretty = this.clone();
-    pretty.options.upperCase = bool;
-    pretty.options.lowerCase = !bool;
+    pretty._options.upperCase = bool;
+    pretty._options.lowerCase = !bool;
     return pretty;
   }
 
   lowerCase(bool: boolean): PricePretty {
     const pretty = this.clone();
-    pretty.options.lowerCase = bool;
-    pretty.options.upperCase = !bool;
+    pretty._options.lowerCase = bool;
+    pretty._options.upperCase = !bool;
     return pretty;
   }
 
@@ -119,20 +130,34 @@ export class PricePretty {
 
   toString(): string {
     let symbol = this.symbol;
-    if (this.options.upperCase) {
+    if (this._options.upperCase) {
       symbol = symbol.toUpperCase();
     }
-    if (this.options.lowerCase) {
+    if (this._options.lowerCase) {
       symbol = symbol.toLowerCase();
     }
 
-    return `${symbol}${this.options.separator}${this.intPretty.toString()}`;
+    const dec = this.toDec();
+    const options = this.options;
+    if (options.maxDecimals > 0 && dec.gt(new Dec(0))) {
+      const precision = new Dec(1).quo(
+        DecUtils.getPrecisionDec(this.options.maxDecimals)
+      );
+      if (dec.lt(precision)) {
+        return `<${symbol}${this._options.separator}${precision.toString(
+          options.maxDecimals,
+          options.locale
+        )}`;
+      }
+    }
+
+    return `${symbol}${this._options.separator}${this.intPretty.toString()}`;
   }
 
   clone(): PricePretty {
     const pretty = new PricePretty(this._fiatCurrency, this.amount);
-    pretty.options = {
-      ...this.options,
+    pretty._options = {
+      ...this._options,
     };
     pretty.intPretty = this.intPretty.clone();
     return pretty;

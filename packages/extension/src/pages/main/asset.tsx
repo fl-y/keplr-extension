@@ -117,9 +117,6 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
   const fiatCurrency = getFiatCurrencyFromLanguage(language.language);
 
   const current = chainStore.current;
-  const stakeCurrency = current.stakeCurrency;
-
-  const hasCoinGeckoId = stakeCurrency.coinGeckoId != null;
 
   const queries = queriesStore.get(current.chainId);
 
@@ -175,11 +172,7 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
             <FormattedMessage id="main.account.chart.total-balance" />
           </div>
           <div className={styleAsset.small}>
-            {!hasCoinGeckoId
-              ? total.toString()
-              : totalPrice
-              ? totalPrice.toString()
-              : total.toString()}
+            {totalPrice ? totalPrice.toString() : total.toString()}
           </div>
           <div className={styleAsset.indicatorIcon}>
             <React.Fragment>

@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "@keplr/types": "0.0.1-alpha.0",
-    "big-integer": "^1.6.48"
+    "big-integer": "^1.6.48",
+    "utility-types": "^3.10.0"
   },
   "devDependencies": {
     "mocha": "^8.2.1"

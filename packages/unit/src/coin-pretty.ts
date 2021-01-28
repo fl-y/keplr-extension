@@ -1,16 +1,19 @@
-import { IntPretty } from "./int-pretty";
+import { IntPretty, IntPrettyOptions } from "./int-pretty";
 import { Int } from "./int";
 import { Dec } from "./decimal";
 import { Currency } from "@keplr/types";
+import { DeepReadonly } from "utility-types";
+
+export type CoinPrettyOptions = {
+  separator: string;
+  upperCase: boolean;
+  lowerCase: boolean;
+};
 
 export class CoinPretty {
   protected intPretty: IntPretty;
 
-  protected options: {
-    separator: string;
-    upperCase: boolean;
-    lowerCase: boolean;
-  } = {
+  protected _options: CoinPrettyOptions = {
     separator: " ",
     upperCase: false,
     lowerCase: false,
@@ -31,6 +34,13 @@ export class CoinPretty {
       .precision(_currency.coinDecimals);
   }
 
+  get options(): DeepReadonly<IntPrettyOptions & CoinPrettyOptions> {
+    return {
+      ...this._options,
+      ...this.intPretty.options,
+    };
+  }
+
   get denom(): string {
     return this.currency.coinDenom;
   }
@@ -41,21 +51,21 @@ export class CoinPretty {
 
   separator(str: string): CoinPretty {
     const pretty = this.clone();
-    pretty.options.separator = str;
+    pretty._options.separator = str;
     return pretty;
   }
 
   upperCase(bool: boolean): CoinPretty {
     const pretty = this.clone();
-    pretty.options.upperCase = bool;
-    pretty.options.lowerCase = !bool;
+    pretty._options.upperCase = bool;
+    pretty._options.lowerCase = !bool;
     return pretty;
   }
 
   lowerCase(bool: boolean): CoinPretty {
     const pretty = this.clone();
-    pretty.options.lowerCase = bool;
-    pretty.options.upperCase = !bool;
+    pretty._options.lowerCase = bool;
+    pretty._options.upperCase = !bool;
     return pretty;
   }
 
@@ -118,20 +128,20 @@ export class CoinPretty {
 
   toString(): string {
     let denom = this.denom;
-    if (this.options.upperCase) {
+    if (this._options.upperCase) {
       denom = denom.toUpperCase();
     }
-    if (this.options.lowerCase) {
+    if (this._options.lowerCase) {
       denom = denom.toLowerCase();
     }
 
-    return `${this.intPretty.toString()}${this.options.separator}${denom}`;
+    return `${this.intPretty.toString()}${this._options.separator}${denom}`;
   }
 
   clone(): CoinPretty {
     const pretty = new CoinPretty(this._currency, this.amount);
-    pretty.options = {
-      ...this.options,
+    pretty._options = {
+      ...this._options,
     };
     pretty.intPretty = this.intPretty.clone();
     return pretty;

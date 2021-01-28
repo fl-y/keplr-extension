@@ -28,7 +28,7 @@ export const SendPage: FunctionComponent = observer(() => {
 
   const notification = useNotification();
 
-  const { chainStore, accountStore } = useStore();
+  const { chainStore, accountStore, priceStore } = useStore();
 
   const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 
@@ -127,6 +127,7 @@ export const SendPage: FunctionComponent = observer(() => {
             {isCyberNetwork ? null : (
               <FeeButtons
                 txConfig={txConfig}
+                priceStore={priceStore}
                 label={intl.formatMessage({ id: "send.input.fee" })}
                 feeSelectLabels={{
                   low: intl.formatMessage({ id: "fee-buttons.select.low" }),

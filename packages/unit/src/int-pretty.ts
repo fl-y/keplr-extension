@@ -2,18 +2,21 @@ import { Int } from "./int";
 import { Dec } from "./decimal";
 import { DecUtils } from "./dec-utils";
 import { CoinUtils } from "./coin-utils";
+import { DeepReadonly } from "utility-types";
+
+export type IntPrettyOptions = {
+  precision: number;
+  maxDecimals: number;
+  trim: boolean;
+  shrink: boolean;
+  ready: boolean;
+  locale: boolean;
+};
 
 export class IntPretty {
   protected int: Int;
 
-  protected options: {
-    precision: number;
-    maxDecimals: number;
-    trim: boolean;
-    shrink: boolean;
-    ready: boolean;
-    locale: boolean;
-  } = {
+  protected _options: IntPrettyOptions = {
     precision: 0,
     maxDecimals: 0,
     trim: false,
@@ -36,39 +39,43 @@ export class IntPretty {
 
       const int = num.mulTruncate(DecUtils.getPrecisionDec(precision));
       this.int = int.truncate();
-      this.options.precision = precision;
+      this._options.precision = precision;
     } else {
       this.int = num;
     }
   }
 
+  get options(): DeepReadonly<IntPrettyOptions> {
+    return this._options;
+  }
+
   precision(prec: number): IntPretty {
     const pretty = this.clone();
-    pretty.options.precision = prec;
+    pretty._options.precision = prec;
     return pretty;
   }
 
   maxDecimals(max: number): IntPretty {
     const pretty = this.clone();
-    pretty.options.maxDecimals = max;
+    pretty._options.maxDecimals = max;
     return pretty;
   }
 
   trim(bool: boolean): IntPretty {
     const pretty = this.clone();
-    pretty.options.trim = bool;
+    pretty._options.trim = bool;
     return pretty;
   }
 
   shrink(bool: boolean): IntPretty {
     const pretty = this.clone();
-    pretty.options.shrink = bool;
+    pretty._options.shrink = bool;
     return pretty;
   }
 
   locale(locale: boolean): IntPretty {
     const pretty = this.clone();
-    pretty.options.locale = locale;
+    pretty._options.locale = locale;
     return pretty;
   }
 
@@ -81,12 +88,12 @@ export class IntPretty {
    */
   ready(bool: boolean): IntPretty {
     const pretty = this.clone();
-    pretty.options.ready = bool;
+    pretty._options.ready = bool;
     return pretty;
   }
 
   get isReady(): boolean {
-    return this.options.ready;
+    return this._options.ready;
   }
 
   add(target: IntPretty): IntPretty {
@@ -98,8 +105,8 @@ export class IntPretty {
 
   toDec(): Dec {
     let dec = new Dec(this.int);
-    if (this.options.precision) {
-      dec = dec.quoTruncate(DecUtils.getPrecisionDec(this.options.precision));
+    if (this._options.precision) {
+      dec = dec.quoTruncate(DecUtils.getPrecisionDec(this._options.precision));
     }
     return dec;
   }
@@ -108,18 +115,18 @@ export class IntPretty {
     const dec = this.toDec();
 
     let result = "";
-    if (!this.options.shrink) {
-      result = dec.toString(this.options.maxDecimals, this.options.locale);
+    if (!this._options.shrink) {
+      result = dec.toString(this._options.maxDecimals, this._options.locale);
     } else {
       result = CoinUtils.shrinkDecimals(
         this.int,
-        this.options.precision,
+        this._options.precision,
         0,
-        this.options.maxDecimals,
-        this.options.locale
+        this._options.maxDecimals,
+        this._options.locale
       );
     }
-    if (this.options.trim) {
+    if (this._options.trim) {
       result = DecUtils.trim(result);
     }
     return result;
@@ -127,8 +134,8 @@ export class IntPretty {
 
   clone(): IntPretty {
     const pretty = new IntPretty(this.int);
-    pretty.options = {
-      ...this.options,
+    pretty._options = {
+      ...this._options,
     };
     return pretty;
   }
