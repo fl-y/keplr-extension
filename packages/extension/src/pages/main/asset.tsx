@@ -154,7 +154,7 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
       : parseFloat(stakable.toDec().toString()),
     stakedSumPrice
       ? parseFloat(stakedSumPrice.toDec().toString())
-      : parseFloat(stakedSum.toString()),
+      : parseFloat(stakedSum.toDec().toString()),
   ];
 
   return (
@@ -233,7 +233,12 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
                       return `${
                         stakablePrice
                           ? stakablePrice.toString()
-                          : stakable.separator("").toString()
+                          : stakable
+                              .separator("")
+                              .trim(true)
+                              .shrink(true)
+                              .maxDecimals(6)
+                              .toString()
                       } (${ratio.toString(1)}%)`;
                     } else if (item.index === 1) {
                       if (!total.toDec().equals(new Dec(0))) {
@@ -246,7 +251,12 @@ export const AssetStakedChartView: FunctionComponent = observer(() => {
                       return `${
                         stakedSumPrice
                           ? stakedSumPrice.toString()
-                          : stakedSum.separator("").toString()
+                          : stakedSum
+                              .separator("")
+                              .trim(true)
+                              .shrink(true)
+                              .maxDecimals(6)
+                              .toString()
                       } (${ratio.toString(1)}%)`;
                     }
 
