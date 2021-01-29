@@ -6,6 +6,7 @@ import styleCoinInput from "./coin-input.module.scss";
 import { FormGroup, Input, InputGroup, Label } from "reactstrap";
 import { observer } from "mobx-react";
 import { TxConfig } from "@keplr/hooks";
+import { Dec, DecUtils } from "@keplr/unit";
 
 export interface CoinInputProps {
   txConfig: TxConfig;
@@ -79,7 +80,13 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
 
               txConfig.setAmount(e.target.value);
             }}
-            // step={step}
+            step={new Dec(1)
+              .quo(
+                DecUtils.getPrecisionDec(
+                  txConfig.sendCurrency?.coinDecimals ?? 0
+                )
+              )
+              .toString(txConfig.sendCurrency?.coinDecimals ?? 0)}
             min={0}
             // disabled={allBalance}
             autoComplete="off"

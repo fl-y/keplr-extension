@@ -77,10 +77,6 @@ export class TxConfig {
 
   @action
   setAmount(amount: string) {
-    if (amount.length === 0) {
-      amount = "0";
-    }
-
     if (amount.startsWith(".")) {
       amount = "0" + amount;
     }
@@ -220,6 +216,9 @@ export class TxConfig {
         }
         if (Number.isNaN(parseFloat(this.amount))) {
           return new Error("Invalid form of number");
+        }
+        if (new Dec(this.amount).lte(new Dec(0))) {
+          return new Error("Amount should be positive");
         }
         return;
       case "fee":
