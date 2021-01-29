@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import React, { FunctionComponent, useEffect } from "react";
 import {
   AddressInput,
   FeeButtons,
@@ -17,32 +17,53 @@ import { useNotification } from "../../components/notification";
 import { useIntl } from "react-intl";
 import { Button } from "reactstrap";
 
-import { useHistory } from "react-router";
+import { useHistory, useLocation } from "react-router";
+import queryString from "querystring";
 
 import { useTxConfig } from "@keplr/hooks";
 
 export const SendPage: FunctionComponent = observer(() => {
   const history = useHistory();
+  let search = useLocation().search;
+  if (search.startsWith("?")) {
+    search = search.slice(1);
+  }
+  const query = queryString.parse(search) as {
+    defaultDenom: string | undefined;
+  };
 
   const intl = useIntl();
 
   const notification = useNotification();
 
   const { chainStore, accountStore, priceStore, queriesStore } = useStore();
+  const current = chainStore.current;
 
-  const accountInfo = accountStore.getAccount(chainStore.current.chainId);
+  const accountInfo = accountStore.getAccount(current.chainId);
 
   const txConfig = useTxConfig(
     chainStore,
     accountInfo.bech32Address,
-    queriesStore.get(chainStore.current.chainId).getQueryBalances()
+    queriesStore.get(current.chainId).getQueryBalances()
   );
-  txConfig.setChain(chainStore.current.chainId);
+  txConfig.setChain(current.chainId);
+
+  useEffect(() => {
+    if (query.defaultDenom) {
+      const currency = current.currencies.find(
+        (cur) => cur.coinMinimalDenom === query.defaultDenom
+      );
+
+      if (currency) {
+        txConfig.setSendCurrency(currency);
+      }
+    }
+  }, [current.currencies, query.defaultDenom, txConfig]);
 
   // Cyber chain (eular-6) doesn't require the fees to send tx.
   // So, don't need to show the fee input.
   // This is temporary hardcoding.
-  const isCyberNetwork = /^(euler-)(\d)+/.test(chainStore.current.chainId);
+  const isCyberNetwork = /^(euler-)(\d)+/.test(current.chainId);
   const txStateIsValid = isCyberNetwork
     ? txConfig.isValid("recipient", "amount", "memo", "gas")
     : txConfig.isValid("recipient", "amount", "memo", "fee", "gas");

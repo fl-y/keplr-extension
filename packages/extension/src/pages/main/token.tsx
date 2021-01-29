@@ -97,7 +97,7 @@ export const TokensView: FunctionComponent = observer(() => {
             onClick={() => {
               history.push({
                 pathname: "/send",
-                search: `?defaultdenom=${"TODO"}`,
+                search: `?defaultDenom=${currency.coinMinimalDenom}`,
               });
             }}
           />
