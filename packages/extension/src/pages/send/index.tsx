@@ -28,11 +28,15 @@ export const SendPage: FunctionComponent = observer(() => {
 
   const notification = useNotification();
 
-  const { chainStore, accountStore, priceStore } = useStore();
+  const { chainStore, accountStore, priceStore, queriesStore } = useStore();
 
   const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 
-  const txConfig = useTxConfig(chainStore);
+  const txConfig = useTxConfig(
+    chainStore,
+    accountInfo.bech32Address,
+    queriesStore.get(chainStore.current.chainId).getQueryBalances()
+  );
   txConfig.setChain(chainStore.current.chainId);
 
   // Cyber chain (eular-6) doesn't require the fees to send tx.
@@ -90,23 +94,6 @@ export const SendPage: FunctionComponent = observer(() => {
             <AddressInput
               txConfig={txConfig}
               label={intl.formatMessage({ id: "send.input.recipient" })}
-              errorTexts={{
-                invalidBech32Address: intl.formatMessage({
-                  id: "send.input.recipient.error.invalid",
-                }),
-                invalidENSName: intl.formatMessage({
-                  id: "send.input.recipient.error.ens-invalid-name",
-                }),
-                ensNameNotFound: intl.formatMessage({
-                  id: "send.input.recipient.error.ens-not-found",
-                }),
-                ensUnsupported: intl.formatMessage({
-                  id: "send.input.recipient.error.ens-not-supported",
-                }),
-                ensUnknownError: intl.formatMessage({
-                  id: "sned.input.recipient.error.ens-unknown-error",
-                }),
-              }}
             />
             <CoinInput
               txConfig={txConfig}
@@ -114,11 +101,6 @@ export const SendPage: FunctionComponent = observer(() => {
               balanceText={intl.formatMessage({
                 id: "send.input-button.balance",
               })}
-              errorTexts={{
-                insufficient: intl.formatMessage({
-                  id: "send.input.amount.error.insufficient",
-                }),
-              }}
             />
             <MemoInput
               txConfig={txConfig}

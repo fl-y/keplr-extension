@@ -7,9 +7,21 @@ import { CoinPretty, Dec, Int } from "@keplr/unit";
 import { StdFee } from "@cosmjs/launchpad";
 import { Bech32Address } from "@keplr/cosmos";
 import { DenomHelper } from "@keplr/common";
+import {
+  EmptyAddressError,
+  EmptyAmountError,
+  InsufficientAmountError,
+  InvalidBech32Error,
+  InvalidNumberAmountError,
+  NagativeAmountError,
+  ZeroAmountError,
+} from "./errors";
+import { ObservableQueryBalances } from "@keplr/stores/build/query/balances";
 
 type FeeType = "high" | "average" | "low";
 type ErrorOfType = "recipient" | "amount" | "fee" | "gas" | "memo";
+
+export * from "./errors";
 
 export const DefaultGasPriceStep: {
   low: number;
@@ -24,8 +36,14 @@ export const DefaultGasPriceStep: {
 export class TxConfig {
   protected chainGetter: ChainGetter;
 
+  @observable.ref
+  protected queryBalances!: ObservableQueryBalances;
+
   @observable
   protected _chainId!: string;
+
+  @observable
+  protected _sender!: string;
 
   @observable
   protected _recipient!: string;
@@ -48,10 +66,16 @@ export class TxConfig {
   @observable
   protected _gas!: number;
 
-  constructor(chainGetter: ChainGetter) {
+  constructor(
+    chainGetter: ChainGetter,
+    sender: string,
+    queryBalances: ObservableQueryBalances
+  ) {
     this.chainGetter = chainGetter;
     runInAction(() => {
+      this.queryBalances = queryBalances;
       this._chainId = "";
+      this._sender = sender;
       this._recipient = "";
       this._amount = "";
       this._feeCurrencies = [];
@@ -61,8 +85,18 @@ export class TxConfig {
   }
 
   @action
+  setQueryBalances(queryBalances: ObservableQueryBalances) {
+    this.queryBalances = queryBalances;
+  }
+
+  @action
   setChain(chainId: string) {
     this._chainId = chainId;
+  }
+
+  @action
+  setSender(sender: string) {
+    this._sender = sender;
   }
 
   @action
@@ -101,6 +135,10 @@ export class TxConfig {
 
   get chainId(): string {
     return this._chainId;
+  }
+
+  get sender(): string {
+    return this._sender;
   }
 
   @computed
@@ -202,11 +240,16 @@ export class TxConfig {
 
     switch (type) {
       case "recipient":
+        if (!this.recipient) {
+          return new EmptyAddressError("Address is empty");
+        }
         const bech32Prefix = chainInfo.bech32Config.bech32PrefixAccAddr;
         try {
           Bech32Address.validate(this.recipient, bech32Prefix);
         } catch (e) {
-          return e;
+          return new InvalidBech32Error(
+            `Invalid bech32: ${e.message || e.toString()}`
+          );
         }
         return;
       case "amount":
@@ -214,12 +257,36 @@ export class TxConfig {
         if (!sendCurrency) {
           return new Error("Currency to send not set");
         }
+        if (this.amount === "") {
+          return new EmptyAmountError("Amount is empty");
+        }
         if (Number.isNaN(parseFloat(this.amount))) {
-          return new Error("Invalid form of number");
+          return new InvalidNumberAmountError("Invalid form of number");
         }
-        if (new Dec(this.amount).lte(new Dec(0))) {
-          return new Error("Amount should be positive");
+        const dec = new Dec(this.amount);
+        if (dec.equals(new Dec(0))) {
+          return new ZeroAmountError("Amount is zero");
         }
+        if (new Dec(this.amount).lt(new Dec(0))) {
+          return new NagativeAmountError("Amount is nagative");
+        }
+
+        const balances = this.queryBalances.getQueryBech32Address(this.sender)
+          .balances;
+
+        const balance = balances.find(
+          (bal) =>
+            bal.currency.coinMinimalDenom === sendCurrency.coinMinimalDenom
+        );
+        if (!balance) {
+          return new InsufficientAmountError("Insufficient amount");
+        } else {
+          const balanceDec = balance.balance.toDec();
+          if (dec.gt(balanceDec)) {
+            return new InsufficientAmountError("Insufficient amount");
+          }
+        }
+
         return;
       case "fee":
         if (chainInfo.feeCurrencies.length === 0) {
@@ -305,9 +372,15 @@ export class TxConfig {
 }
 
 // CONTRACT: Use with `observer`.
-export const useTxConfig = (chainGetter: ChainGetter) => {
+export const useTxConfig = (
+  chainGetter: ChainGetter,
+  sender: string,
+  queryBalances: ObservableQueryBalances
+) => {
   // TODO: Replace this with `useLocalObservable` of `mobx-react` after updating the version for mobx.
-  const [txConfig] = useState(new TxConfig(chainGetter));
+  const [txConfig] = useState(new TxConfig(chainGetter, sender, queryBalances));
+  txConfig.setQueryBalances(queryBalances);
+  txConfig.setSender(sender);
 
   return txConfig;
 };

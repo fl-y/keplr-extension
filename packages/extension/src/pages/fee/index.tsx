@@ -20,8 +20,18 @@ export const FeePage: FunctionComponent = observer(() => {
 
   const intl = useIntl();
 
-  const { chainStore, txConfigStore, priceStore } = useStore();
-  const txConfig = useTxConfig(chainStore);
+  const {
+    chainStore,
+    txConfigStore,
+    priceStore,
+    queriesStore,
+    accountStore,
+  } = useStore();
+  const txConfig = useTxConfig(
+    chainStore,
+    accountStore.getAccount(chainStore.current.chainId).bech32Address,
+    queriesStore.get(chainStore.current.chainId).getQueryBalances()
+  );
   txConfig.setChain(chainStore.current.chainId);
 
   const interactionInfo = useInteractionInfo(() => {

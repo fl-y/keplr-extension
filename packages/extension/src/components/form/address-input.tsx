@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useMemo, useState } from "react";
 import {
   FormGroup,
   Label,
@@ -13,27 +13,23 @@ import { AddressBookPage } from "../../pages/setting/address-book";
 
 import styleAddressInput from "./address-input.module.scss";
 import classnames from "classnames";
-import { TxConfig } from "@keplr/hooks";
+import { TxConfig, InvalidBech32Error, EmptyAddressError } from "@keplr/hooks";
 import { observer } from "mobx-react";
+import { useIntl } from "react-intl";
 
 export interface AddressInputProps {
   txConfig: TxConfig;
 
   className?: string;
   label?: string;
-  errorTexts: {
-    invalidBech32Address: string;
-    invalidENSName?: string;
-    ensNameNotFound?: string;
-    ensUnsupported?: string;
-    ensUnknownError?: string;
-  };
 
   disableAddressBook?: boolean;
 }
 
 export const AddressInput: FunctionComponent<AddressInputProps> = observer(
-  ({ txConfig, className, label, errorTexts, disableAddressBook }) => {
+  ({ txConfig, className, label, disableAddressBook }) => {
+    const intl = useIntl();
+
     const [isAddressBookOpen, setIsAddressBookOpen] = useState(false);
 
     const [inputId] = useState(() => {
@@ -41,6 +37,23 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
       crypto.getRandomValues(bytes);
       return `input-${Buffer.from(bytes).toString("hex")}`;
     });
+
+    const error = txConfig.getErrorOf("recipient");
+    const errorText: string | undefined = useMemo(() => {
+      if (error) {
+        switch (error.constructor) {
+          case EmptyAddressError:
+            // No need to show the error to user.
+            return;
+          case InvalidBech32Error:
+            return intl.formatMessage({
+              id: "input.recipient.error.invalid-bech32",
+            });
+          default:
+            return intl.formatMessage({ id: "input.recipient.error.unknown" });
+        }
+      }
+    }, [intl, error]);
 
     return (
       <React.Fragment>
@@ -91,9 +104,9 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
               </Button>
             ) : null}
           </InputGroup>
-          {txConfig.getErrorOf("recipient") ? (
+          {errorText != null ? (
             <FormFeedback style={{ display: "block" }}>
-              {errorTexts.invalidBech32Address}
+              {errorText}
             </FormFeedback>
           ) : null}
         </FormGroup>

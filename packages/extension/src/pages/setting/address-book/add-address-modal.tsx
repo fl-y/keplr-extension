@@ -31,8 +31,12 @@ export const AddAddressModal: FunctionComponent<{
 
     const [name, setName] = useState("");
 
-    const { chainStore } = useStore();
-    const txConfig = useTxConfig(chainStore);
+    const { chainStore, queriesStore, accountStore } = useStore();
+    const txConfig = useTxConfig(
+      chainStore,
+      accountStore.getAccount(chainStore.current.chainId).bech32Address,
+      queriesStore.get(chainStore.current.chainId).getQueryBalances()
+    );
 
     // Make sure to load the editables only once.
     const [editingLoaded, setEditingLoaded] = useState(false);
@@ -81,23 +85,6 @@ export const AddAddressModal: FunctionComponent<{
           <AddressInput
             txConfig={txConfig}
             label={intl.formatMessage({ id: "setting.address-book.address" })}
-            errorTexts={{
-              invalidBech32Address: intl.formatMessage({
-                id: "setting.address-book.address.error.invalid",
-              }),
-              invalidENSName: intl.formatMessage({
-                id: "send.input.recipient.error.ens-invalid-name",
-              }),
-              ensNameNotFound: intl.formatMessage({
-                id: "send.input.recipient.error.ens-not-found",
-              }),
-              ensUnsupported: intl.formatMessage({
-                id: "send.input.recipient.error.ens-not-supported",
-              }),
-              ensUnknownError: intl.formatMessage({
-                id: "sned.input.recipient.error.ens-unknown-error",
-              }),
-            }}
             disableAddressBook={true}
           />
           <MemoInput

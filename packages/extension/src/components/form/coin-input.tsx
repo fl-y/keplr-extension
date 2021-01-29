@@ -1,12 +1,20 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useMemo, useState } from "react";
 
 import classnames from "classnames";
 import styleCoinInput from "./coin-input.module.scss";
 
-import { FormGroup, Input, InputGroup, Label } from "reactstrap";
+import { FormFeedback, FormGroup, Input, InputGroup, Label } from "reactstrap";
 import { observer } from "mobx-react";
-import { TxConfig } from "@keplr/hooks";
+import {
+  EmptyAmountError,
+  InvalidNumberAmountError,
+  TxConfig,
+  ZeroAmountError,
+  NagativeAmountError,
+  InsufficientAmountError,
+} from "@keplr/hooks";
 import { Dec, DecUtils } from "@keplr/unit";
+import { useIntl } from "react-intl";
 
 export interface CoinInputProps {
   txConfig: TxConfig;
@@ -15,20 +23,48 @@ export interface CoinInputProps {
 
   className?: string;
   label?: string;
-  errorTexts: {
-    insufficient: string;
-  };
 
   disableAllBalance?: boolean;
 }
 
 export const CoinInput: FunctionComponent<CoinInputProps> = observer(
   ({ txConfig, className, label }) => {
+    const intl = useIntl();
+
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);
       crypto.getRandomValues(bytes);
       return `input-${Buffer.from(bytes).toString("hex")}`;
     });
+
+    const error = txConfig.getErrorOf("amount");
+    const errorText: string | undefined = useMemo(() => {
+      if (error) {
+        switch (error.constructor) {
+          case EmptyAmountError:
+            // No need to show the error to user.
+            return;
+          case InvalidNumberAmountError:
+            return intl.formatMessage({
+              id: "input.amount.error.invalid-number",
+            });
+          case ZeroAmountError:
+            return intl.formatMessage({
+              id: "input.amount.error.is-zero",
+            });
+          case NagativeAmountError:
+            return intl.formatMessage({
+              id: "input.amount.error.is-negative",
+            });
+          case InsufficientAmountError:
+            return intl.formatMessage({
+              id: "input.amount.error.insufficient",
+            });
+          default:
+            return intl.formatMessage({ id: "input.amount.error.unknown" });
+        }
+      }
+    }, [intl, error]);
 
     return (
       <FormGroup className={className}>
@@ -120,11 +156,9 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
             })}
           </Input>
         </InputGroup>
-        {/*txConfig.getError("amount", ErrorIdInsufficient) ? (
-          <FormFeedback style={{ display: "block" }}>
-            {errorTexts.insufficient}
-          </FormFeedback>
-        ) : null*/}
+        {errorText != null ? (
+          <FormFeedback style={{ display: "block" }}>{errorText}</FormFeedback>
+        ) : null}
       </FormGroup>
     );
   }
