@@ -1,7 +1,6 @@
 import { KVStore } from "./interface";
-import { makeThrottelableKVStore } from "./throttle";
 
-class BaseLocalKVStore implements KVStore {
+export class LocalKVStore implements KVStore {
   constructor(private readonly _prefix: string) {}
 
   get<T = unknown>(key: string): Promise<T | undefined> {
@@ -28,5 +27,3 @@ class BaseLocalKVStore implements KVStore {
     return this._prefix;
   }
 }
-
-export const LocalKVStore = makeThrottelableKVStore(BaseLocalKVStore);

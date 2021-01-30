@@ -385,15 +385,6 @@ export class ObservableQuery<
     await this.kvStore.set(key, response);
   }
 
-  protected onStop() {
-    super.onStop();
-
-    // If `KVStore` supports the throttling, try to remove getting the cache.
-    if (this.kvStore.abortGet && this.instance) {
-      this.kvStore.abortGet(this.getCacheKey());
-    }
-  }
-
   protected async loadStaledResponse(): Promise<QueryResponse<T> | undefined> {
     const key = this.getCacheKey();
     const response = await this.kvStore.get<QueryResponse<T>>(key);
