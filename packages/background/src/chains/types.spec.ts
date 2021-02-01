@@ -422,6 +422,25 @@ describe("Test chain info schema", () => {
     });
 
     await assert.doesNotReject(async () => {
+      const plainChainInfo = generatePlainChainInfo();
+      const chainInfoWithUnknownField = {
+        ...plainChainInfo,
+        unknownField: "unknown",
+      };
+
+      // Should not reject the chain info with unknown field
+      const validated = await ChainInfoSchema.validateAsync(
+        chainInfoWithUnknownField,
+        {
+          stripUnknown: true,
+        }
+      );
+
+      // But, after being validated, the unknown field should be stripped.
+      assert.strictEqual(validated["unknownField"], undefined);
+    });
+
+    await assert.doesNotReject(async () => {
       let chainInfo = generatePlainChainInfo();
       // @ts-ignore
       chainInfo["currencies"] = [
