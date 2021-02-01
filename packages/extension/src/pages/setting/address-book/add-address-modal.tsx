@@ -77,6 +77,7 @@ export const AddAddressModal: FunctionComponent<{
           disabled={!name || !txConfig.isValid("recipient", "memo")}
           onClick={async (e) => {
             e.preventDefault();
+            e.stopPropagation();
 
             if (!txConfig.recipient) {
               throw new Error("Invalid address");

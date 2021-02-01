@@ -78,6 +78,7 @@ export const AddressBookPage: FunctionComponent<{
         style={{ cursor: "pointer" }}
         onClick={(e) => {
           e.preventDefault();
+          e.stopPropagation();
 
           setAddAddressModalOpen(true);
           setAddAddressModalIndex(index);
@@ -89,6 +90,7 @@ export const AddressBookPage: FunctionComponent<{
         style={{ cursor: "pointer" }}
         onClick={async (e) => {
           e.preventDefault();
+          e.stopPropagation();
 
           if (
             await confirm.confirm({
@@ -185,6 +187,7 @@ export const AddressBookPage: FunctionComponent<{
               size="sm"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
 
                 setAddAddressModalOpen(true);
               }}
@@ -215,6 +218,7 @@ export const AddressBookPage: FunctionComponent<{
                 data-index={i}
                 onClick={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
 
                   addressBookConfig.selectAddressAt(i);
 
