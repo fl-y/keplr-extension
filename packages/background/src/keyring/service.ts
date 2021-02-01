@@ -32,6 +32,7 @@ import {
 } from "./messages";
 
 import { Buffer } from "buffer/";
+import { RNG } from "@keplr/crypto";
 
 @singleton()
 export class KeyRingService {
@@ -49,9 +50,11 @@ export class KeyRingService {
     @inject(delay(() => PermissionService))
     public readonly permissionService: PermissionService,
     @inject(LedgerService)
-    ledgerService: LedgerService
+    ledgerService: LedgerService,
+    @inject(TYPES.RNG)
+    protected readonly rng: RNG
   ) {
-    this.keyRing = new KeyRing(embedChainInfos, kvStore, ledgerService);
+    this.keyRing = new KeyRing(embedChainInfos, kvStore, ledgerService, rng);
   }
 
   async restore(): Promise<{

@@ -10,4 +10,6 @@ export const TYPES = {
   TokensStore: Symbol("TokensStore"),
   TxStore: Symbol("TxStore"),
   UpdaterStore: Symbol("UpdaterStore"),
+
+  RNG: Symbol("RandomNumberGenerator"),
 };

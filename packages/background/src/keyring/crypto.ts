@@ -1,7 +1,7 @@
 import scrypt from "scrypt-js";
 import AES, { Counter } from "aes-js";
 import { BIP44HDPath, CoinTypeForChain } from "./types";
-import { Hash } from "@keplr/crypto";
+import { Hash, RNG } from "@keplr/crypto";
 
 import { Buffer } from "buffer/";
 
@@ -43,6 +43,7 @@ export interface KeyStore {
 
 export class Crypto {
   public static async encrypt(
+    rng: RNG,
     type: "mnemonic" | "privateKey" | "ledger",
     text: string,
     password: string,
@@ -50,8 +51,7 @@ export class Crypto {
     bip44HDPath?: BIP44HDPath
   ): Promise<KeyStore> {
     let random = new Uint8Array(32);
-    crypto.getRandomValues(random);
-    const salt = Buffer.from(random).toString("hex");
+    const salt = Buffer.from(await rng(random)).toString("hex");
 
     const scryptParams: ScryptParams = {
       salt,
@@ -64,8 +64,7 @@ export class Crypto {
     const buf = Buffer.from(text);
 
     random = new Uint8Array(16);
-    crypto.getRandomValues(random);
-    const iv = Buffer.from(random);
+    const iv = Buffer.from(await rng(random));
 
     const counter = new Counter(0);
     counter.setBytes(iv);

@@ -29,15 +29,19 @@ export * from "./permission";
 
 import { KVStore } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
+import { RNG } from "@keplr/crypto";
 
 export function init(
   router: Router,
   storeCreator: (prefix: string) => KVStore,
-  embedChainInfos: ChainInfo[]
+  embedChainInfos: ChainInfo[],
+  rng: RNG
 ) {
   container.register(TYPES.ChainsEmbedChainInfos, {
     useValue: embedChainInfos,
   });
+
+  container.register(TYPES.RNG, { useValue: rng });
 
   container.register(TYPES.ChainsStore, { useValue: storeCreator("chains") });
   container.register(TYPES.InteractionStore, {

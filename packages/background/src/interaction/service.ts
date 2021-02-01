@@ -1,8 +1,10 @@
-import { singleton } from "tsyringe";
+import { singleton, inject } from "tsyringe";
+import { TYPES } from "../types";
 
 import { InteractionWaitingData } from "./types";
 import { Env, FnRequestInteractionOptions } from "@keplr/router";
 import { PushInteractionDataMsg } from "./foreground";
+import { RNG } from "@keplr/crypto";
 
 @singleton()
 export class InteractionService {
@@ -11,6 +13,8 @@ export class InteractionService {
     string,
     { onApprove: (result: unknown) => void; onReject: (e: Error) => void }
   > = new Map();
+
+  constructor(@inject(TYPES.RNG) protected readonly rng: RNG) {}
 
   // Dispatch the data to the frontend. Don't wait any interaction.
   async dispatchData(
@@ -25,7 +29,7 @@ export class InteractionService {
     }
 
     // TODO: Add timeout?
-    const interactionWaitingData = this.addDataToMap(type, data);
+    const interactionWaitingData = await this.addDataToMap(type, data);
 
     const msg = new PushInteractionDataMsg(interactionWaitingData);
 
@@ -44,7 +48,7 @@ export class InteractionService {
     }
 
     // TODO: Add timeout?
-    const interactionWaitingData = this.addDataToMap(type, data);
+    const interactionWaitingData = await this.addDataToMap(type, data);
 
     const msg = new PushInteractionDataMsg(interactionWaitingData);
 
@@ -84,9 +88,12 @@ export class InteractionService {
     }
   }
 
-  protected addDataToMap(type: string, data: unknown): InteractionWaitingData {
+  protected async addDataToMap(
+    type: string,
+    data: unknown
+  ): Promise<InteractionWaitingData> {
     const bytes = new Uint8Array(8);
-    const id: string = Array.from(crypto.getRandomValues(bytes))
+    const id: string = Array.from(await this.rng(bytes))
       .map((value) => {
         return value.toString(16);
       })
