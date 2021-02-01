@@ -8,6 +8,7 @@ export type CoinPrettyOptions = {
   separator: string;
   upperCase: boolean;
   lowerCase: boolean;
+  hideDenom: boolean;
 };
 
 export class CoinPretty {
@@ -17,6 +18,7 @@ export class CoinPretty {
     separator: " ",
     upperCase: false,
     lowerCase: false,
+    hideDenom: false,
   };
 
   constructor(
@@ -66,6 +68,12 @@ export class CoinPretty {
     const pretty = this.clone();
     pretty._options.lowerCase = bool;
     pretty._options.upperCase = !bool;
+    return pretty;
+  }
+
+  hideDenom(bool: boolean): CoinPretty {
+    const pretty = this.clone();
+    pretty._options.hideDenom = bool;
     return pretty;
   }
 
@@ -135,7 +143,14 @@ export class CoinPretty {
       denom = denom.toLowerCase();
     }
 
-    return `${this.intPretty.toString()}${this._options.separator}${denom}`;
+    let separator = this._options.separator;
+
+    if (this._options.hideDenom) {
+      denom = "";
+      separator = "";
+    }
+
+    return `${this.intPretty.toString()}${separator}${denom}`;
   }
 
   clone(): CoinPretty {

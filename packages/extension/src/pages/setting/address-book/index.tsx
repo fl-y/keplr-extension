@@ -41,10 +41,10 @@ export const AddressBookPage: FunctionComponent<{
 
   const txConfig = useTxConfig(
     chainStore,
+    selectedChainId,
     "",
     queriesStore.get(current.chainId).getQueryBalances()
   );
-  txConfig.setChain(selectedChainId);
 
   const addressBookConfig = useAddressBookConfig(
     new BrowserKVStore("address-book"),

@@ -29,10 +29,10 @@ export const FeePage: FunctionComponent = observer(() => {
   } = useStore();
   const txConfig = useTxConfig(
     chainStore,
+    chainStore.current.chainId,
     accountStore.getAccount(chainStore.current.chainId).bech32Address,
     queriesStore.get(chainStore.current.chainId).getQueryBalances()
   );
-  txConfig.setChain(chainStore.current.chainId);
 
   const interactionInfo = useInteractionInfo(() => {
     txConfigStore.rejectAll();

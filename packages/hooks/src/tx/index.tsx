@@ -54,9 +54,6 @@ export class TxConfig {
   @observable.ref
   protected _sendCurrency?: AppCurrency;
 
-  @observable.ref
-  protected _feeCurrencies!: Currency[];
-
   @observable
   protected _feeType: FeeType | undefined;
 
@@ -68,17 +65,18 @@ export class TxConfig {
 
   constructor(
     chainGetter: ChainGetter,
+    initialChainId: string,
     sender: string,
     queryBalances: ObservableQueryBalances
   ) {
     this.chainGetter = chainGetter;
     runInAction(() => {
       this.queryBalances = queryBalances;
-      this._chainId = "";
+      this._chainId = initialChainId;
       this._sender = sender;
       this._recipient = "";
       this._amount = "";
-      this._feeCurrencies = [];
+      this._feeType = "average";
       this._memo = "";
       this._gas = 0;
     });
@@ -142,10 +140,7 @@ export class TxConfig {
   }
 
   @computed
-  get chainInfo(): ChainInfo | undefined {
-    if (this.chainId === "") {
-      return undefined;
-    }
+  get chainInfo(): ChainInfo {
     return this.chainGetter.getChain(this.chainId);
   }
 
@@ -158,18 +153,16 @@ export class TxConfig {
   }
 
   get feeCurrencies(): Currency[] {
-    return this._feeCurrencies;
+    return this.chainInfo.feeCurrencies;
   }
 
   @computed
-  get sendCurrency(): AppCurrency | undefined {
+  get sendCurrency(): AppCurrency {
     const chainInfo = this.chainInfo;
-    if (!chainInfo) {
-      return undefined;
-    }
 
     if (this._sendCurrency) {
       const find = chainInfo.currencies.find(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         (cur) => cur.coinMinimalDenom === this._sendCurrency!.coinMinimalDenom
       );
       if (find) {
@@ -177,19 +170,16 @@ export class TxConfig {
       }
     }
 
-    return chainInfo.currencies.length > 0
-      ? chainInfo.currencies[0]
-      : undefined;
+    if (chainInfo.currencies.length === 0) {
+      throw new Error("Chain doesn't have the sendable currency informations");
+    }
+
+    return chainInfo.currencies[0];
   }
 
   @computed
   get sendableCurrencies(): AppCurrency[] {
-    const chainInfo = this.chainInfo;
-    if (!chainInfo) {
-      return [];
-    }
-
-    return chainInfo.currencies;
+    return this.chainInfo.currencies;
   }
 
   get feeType(): FeeType | undefined {
@@ -234,9 +224,6 @@ export class TxConfig {
 
   readonly getErrorOf = computedFn((type: ErrorOfType): Error | undefined => {
     const chainInfo = this.chainInfo;
-    if (!chainInfo) {
-      return new Error("Unknown chain info");
-    }
 
     switch (type) {
       case "recipient":
@@ -301,6 +288,24 @@ export class TxConfig {
     }
   });
 
+  @computed
+  get fee(): CoinPretty {
+    if (this.feeCurrencies.length === 0) {
+      throw new Error("Fee currencies are empty");
+    }
+
+    if (!this.feeType) {
+      throw new Error("TODO: Implement advanced fee setting");
+    }
+
+    const feePrimitive = this.getFeeTypePrimitive(this.feeType);
+
+    return new CoinPretty(
+      feePrimitive.feeCurrency,
+      new Int(feePrimitive.amount)
+    );
+  }
+
   getFeePrimitive(): CoinPrimitive {
     if (!this.feeType) {
       throw new Error("TODO: Implement advanced fee setting");
@@ -319,33 +324,24 @@ export class TxConfig {
   protected getFeeTypePrimitive(
     feeType: FeeType
   ): CoinPrimitive & {
-    feeCurrency?: Currency;
+    feeCurrency: Currency;
   } {
     const chainInfo = this.chainInfo;
 
-    if (chainInfo) {
-      const feeCurrencies = chainInfo.feeCurrencies;
-      if (feeCurrencies.length > 0) {
-        const feeCurrency = feeCurrencies[0];
+    const feeCurrencies = chainInfo.feeCurrencies;
+    const feeCurrency = feeCurrencies[0];
 
-        const gasPriceStep = chainInfo.gasPriceStep
-          ? chainInfo.gasPriceStep
-          : DefaultGasPriceStep;
+    const gasPriceStep = chainInfo.gasPriceStep
+      ? chainInfo.gasPriceStep
+      : DefaultGasPriceStep;
 
-        const gasPrice = new Dec(gasPriceStep[feeType].toString());
-        const feeAmount = gasPrice.mul(new Dec(this.gas));
-
-        return {
-          feeCurrency,
-          denom: feeCurrency.coinMinimalDenom,
-          amount: feeAmount.truncate().toString(),
-        };
-      }
-    }
+    const gasPrice = new Dec(gasPriceStep[feeType].toString());
+    const feeAmount = gasPrice.mul(new Dec(this.gas));
 
     return {
-      amount: "0",
-      denom: "unknown",
+      feeCurrency,
+      denom: feeCurrency.coinMinimalDenom,
+      amount: feeAmount.truncate().toString(),
     };
   }
 
@@ -374,11 +370,15 @@ export class TxConfig {
 // CONTRACT: Use with `observer`.
 export const useTxConfig = (
   chainGetter: ChainGetter,
+  chainId: string,
   sender: string,
   queryBalances: ObservableQueryBalances
 ) => {
   // TODO: Replace this with `useLocalObservable` of `mobx-react` after updating the version for mobx.
-  const [txConfig] = useState(new TxConfig(chainGetter, sender, queryBalances));
+  const [txConfig] = useState(
+    new TxConfig(chainGetter, chainId, sender, queryBalances)
+  );
+  txConfig.setChain(chainId);
   txConfig.setQueryBalances(queryBalances);
   txConfig.setSender(sender);
 

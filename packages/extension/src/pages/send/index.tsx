@@ -43,10 +43,10 @@ export const SendPage: FunctionComponent = observer(() => {
 
   const txConfig = useTxConfig(
     chainStore,
+    current.chainId,
     accountInfo.bech32Address,
     queriesStore.get(current.chainId).getQueryBalances()
   );
-  txConfig.setChain(current.chainId);
 
   useEffect(() => {
     if (query.defaultDenom) {

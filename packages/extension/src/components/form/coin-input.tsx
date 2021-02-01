@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useMemo, useState } from "react";
+import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
 
 import classnames from "classnames";
 import styleCoinInput from "./coin-input.module.scss";
@@ -13,8 +13,9 @@ import {
   NagativeAmountError,
   InsufficientAmountError,
 } from "@keplr/hooks";
-import { Dec, DecUtils } from "@keplr/unit";
+import { CoinPretty, Dec, DecUtils, Int } from "@keplr/unit";
 import { useIntl } from "react-intl";
+import { useStore } from "../../stores";
 
 export interface CoinInputProps {
   txConfig: TxConfig;
@@ -28,8 +29,49 @@ export interface CoinInputProps {
 }
 
 export const CoinInput: FunctionComponent<CoinInputProps> = observer(
-  ({ txConfig, className, label }) => {
+  ({ txConfig, className, label, disableAllBalance }) => {
     const intl = useIntl();
+
+    const { queriesStore } = useStore();
+    const queryBalances = queriesStore
+      .get(txConfig.chainId)
+      .getQueryBalances()
+      .getQueryBech32Address(txConfig.sender);
+
+    const queryBalance = queryBalances.balances.find(
+      (bal) =>
+        txConfig.sendCurrency.coinMinimalDenom === bal.currency.coinMinimalDenom
+    );
+    const balance = queryBalance
+      ? queryBalance.balance
+      : new CoinPretty(txConfig.sendCurrency, new Int(0));
+
+    const [isAllBalanceMode, setIsAllBalanceMode] = useState(false);
+    const toggleAllBalanceMode = () => setIsAllBalanceMode((value) => !value);
+
+    const fee = txConfig.fee;
+    useEffect(() => {
+      if (isAllBalanceMode) {
+        console.log(balance.toDec().toString(), fee.toDec().toString());
+        console.log(balance.toDec().sub(fee.toDec()).toString());
+        // Get the actual sendable balance with considering the fee.
+        const sendableBalance =
+          balance.currency.coinMinimalDenom === fee.currency.coinMinimalDenom
+            ? new CoinPretty(
+                balance.currency,
+                balance
+                  .toDec()
+                  .sub(fee.toDec())
+                  .mul(DecUtils.getPrecisionDec(balance.currency.coinDecimals))
+                  .truncate()
+              )
+            : balance;
+
+        txConfig.setAmount(
+          sendableBalance.trim(true).locale(false).hideDenom(true).toString()
+        );
+      }
+    }, [balance, fee, isAllBalanceMode, txConfig]);
 
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);
@@ -75,33 +117,26 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
             style={{ width: "100%" }}
           >
             {label}
-            {/*txState.balances && currency && balance && !disableAllBalance ? (
+            {!disableAllBalance ? (
               <div
                 className={classnames(
                   styleCoinInput.balance,
                   styleCoinInput.clickable,
                   {
-                    [styleCoinInput.clicked]: allBalance
+                    [styleCoinInput.clicked]: isAllBalanceMode,
                   }
                 )}
-                onClick={toggleAllBalance}
+                onClick={toggleAllBalanceMode}
               >
-                {balanceText
-                  ? // TODO: Can use api in react-intl?
-                    `${balanceText}: 
-                        ${CoinUtils.coinToTrimmedString(balance, currency)}`
-                  : `Balance: ${CoinUtils.coinToTrimmedString(
-                      balance,
-                      currency
-                    )}`}
+                {`Balance: ${balance.trim(true).maxDecimals(6).toString()}`}
               </div>
-            ) : null*/}
+            ) : null}
           </Label>
         ) : null}
         <InputGroup
           id={inputId}
           className={classnames(styleCoinInput.selectContainer, {
-            disabled: false,
+            disabled: isAllBalanceMode,
           })}
         >
           <Input
@@ -124,7 +159,7 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
               )
               .toString(txConfig.sendCurrency?.coinDecimals ?? 0)}
             min={0}
-            // disabled={allBalance}
+            disabled={isAllBalanceMode}
             autoComplete="off"
           />
           <Input
@@ -145,7 +180,7 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
               txConfig.setSendCurrency(currency);
               e.preventDefault();
             }}
-            // disabled={allBalance || !currency}
+            disabled={isAllBalanceMode}
           >
             {txConfig.sendableCurrencies.map((currency, i) => {
               return (
