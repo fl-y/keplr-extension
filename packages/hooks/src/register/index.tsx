@@ -36,9 +36,7 @@ export class RegisterConfig {
   constructor(
     keyRingStore: KeyRingStore,
     options: RegisterOption[],
-    protected readonly rng: RNG = (array) => {
-      return Promise.resolve(crypto.getRandomValues(array));
-    }
+    protected readonly rng: RNG
   ) {
     this.keyRingStore = keyRingStore;
     runInAction(() => {
@@ -231,10 +229,15 @@ export class RegisterConfig {
 // CONTRACT: Use with `observer`.
 export const useRegisterConfig = (
   keyRingStore: KeyRingStore,
-  initialOptions: RegisterOption[]
+  initialOptions: RegisterOption[],
+  rng: RNG = (array) => {
+    return Promise.resolve(crypto.getRandomValues(array));
+  }
 ) => {
   // TODO: Replace this with `useLocalObservable` of `mobx-react` after updating the version for mobx.
-  const [txConfig] = useState(new RegisterConfig(keyRingStore, initialOptions));
+  const [txConfig] = useState(
+    new RegisterConfig(keyRingStore, initialOptions, rng)
+  );
 
   return txConfig;
 };
