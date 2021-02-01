@@ -67,8 +67,8 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
           <ModalBody className={styleAddressInput.fullModal}>
             <AddressBookPage
               onBackButton={() => setIsAddressBookOpen(false)}
-              onSelect={() => {}}
               hideChainDropdown={true}
+              selectHandler={txConfig}
             />
           </ModalBody>
         </Modal>

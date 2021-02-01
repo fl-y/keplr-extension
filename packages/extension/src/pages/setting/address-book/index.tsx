@@ -1,10 +1,4 @@
-import React, {
-  FunctionComponent,
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import React, { FunctionComponent, useState } from "react";
 import { observer } from "mobx-react";
 import { HeaderLayout } from "../../../layouts";
 import { FormattedMessage, useIntl } from "react-intl";
@@ -23,165 +17,103 @@ import styleAddressBook from "./style.module.scss";
 import { useStore } from "../../../stores";
 import { PageButton } from "../page-button";
 import { AddAddressModal } from "./add-address-modal";
-import { AddressBookData } from "./types";
-import { AddressBookKVStore } from "./kv-store";
 import { BrowserKVStore } from "@keplr/common";
-import { ChainInfo } from "@keplr/types";
 import { Bech32Address } from "@keplr/cosmos";
 import { useConfirm } from "../../../components/confirm";
+import {
+  AddressBookSelectHandler,
+  useAddressBookConfig,
+  useTxConfig,
+} from "@keplr/hooks";
 
 export const AddressBookPage: FunctionComponent<{
   onBackButton?: () => void;
-  onSelect?: (data: AddressBookData) => void;
   hideChainDropdown?: boolean;
-}> = observer(({ onBackButton, onSelect, hideChainDropdown }) => {
+  selectHandler?: AddressBookSelectHandler;
+}> = observer(({ onBackButton, hideChainDropdown, selectHandler }) => {
   const intl = useIntl();
   const history = useHistory();
-  const { chainStore } = useStore();
 
-  const [addressBook, setAddressBook] = useState<AddressBookData[]>([]);
-
-  const [addressBookKVStore] = useState(
-    new AddressBookKVStore(new BrowserKVStore("address-book"))
-  );
-
-  const refreshAddressBook = useCallback(
-    async (chainInfo: ChainInfo) => {
-      setAddressBook(await addressBookKVStore.getAddressBook(chainInfo));
-    },
-    [addressBookKVStore]
-  );
-
+  const { chainStore, queriesStore } = useStore();
   const current = chainStore.current;
-  useEffect(() => {
-    refreshAddressBook(current);
-  }, [current, refreshAddressBook]);
+
+  const [selectedChainId, setSelectedChainId] = useState(current.chainId);
+
+  const txConfig = useTxConfig(
+    chainStore,
+    "",
+    queriesStore.get(current.chainId).getQueryBalances()
+  );
+  txConfig.setChain(selectedChainId);
+
+  const addressBookConfig = useAddressBookConfig(
+    new BrowserKVStore("address-book"),
+    chainStore,
+    selectedChainId,
+    selectHandler
+      ? selectHandler
+      : {
+          setRecipient: (): void => {
+            // noop
+          },
+          setMemo: (): void => {
+            // noop
+          },
+        }
+  );
 
   const [dropdownOpen, setOpen] = useState(false);
   const toggle = () => setOpen(!dropdownOpen);
 
-  const [addAddressModalOpen, setAddressModalOpen] = useState(false);
+  const [addAddressModalOpen, setAddAddressModalOpen] = useState(false);
   const [addAddressModalIndex, setAddAddressModalIndex] = useState(-1);
 
   const confirm = useConfirm();
-
-  const openAddAddressModal = useCallback(() => {
-    setAddressModalOpen(true);
-  }, []);
-
-  const closeAddAddressModal = useCallback(() => {
-    setAddressModalOpen(false);
-    setAddAddressModalIndex(-1);
-  }, []);
-
-  const addAddressBook = useCallback(
-    async (data: AddressBookData) => {
-      closeAddAddressModal();
-      if (addAddressModalIndex < 0) {
-        await addressBookKVStore.addAddressBook(current, data);
-      } else {
-        await addressBookKVStore.editAddressBookAt(
-          current,
-          addAddressModalIndex,
-          data
-        );
-      }
-      await refreshAddressBook(current);
-    },
-    [
-      addAddressModalIndex,
-      addressBookKVStore,
-      current,
-      closeAddAddressModal,
-      refreshAddressBook,
-    ]
-  );
-
-  const removeAddressBook = async (index: number) => {
-    if (
-      await confirm.confirm({
-        img: (
-          <img
-            src={require("../../../public/assets/img/trash.svg")}
-            style={{ height: "80px" }}
-          />
-        ),
-        title: intl.formatMessage({
-          id: "setting.address-book.confirm.delete-address.title",
-        }),
-        paragraph: intl.formatMessage({
-          id: "setting.address-book.confirm.delete-address.paragraph",
-        }),
-      })
-    ) {
-      closeAddAddressModal();
-      await addressBookKVStore.removeAddressBook(current, index);
-      await refreshAddressBook(current);
-    }
-  };
-
-  const editAddressBookClick = async (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const indexStr = e.currentTarget.getAttribute("data-index");
-    if (indexStr) {
-      const index = parseInt(indexStr);
-
-      if (index != null && !Number.isNaN(index) && index >= 0) {
-        openAddAddressModal();
-        setAddAddressModalIndex(index);
-      }
-    }
-  };
-
-  const removeAddressBookClick = async (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const indexStr = e.currentTarget.getAttribute("data-index");
-    if (indexStr) {
-      const index = parseInt(indexStr);
-
-      if (index != null && !Number.isNaN(index) && index >= 0) {
-        await removeAddressBook(index);
-      }
-    }
-  };
-
-  const selectAddressBookClick = async (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const indexStr = e.currentTarget.getAttribute("data-index");
-    if (onSelect && indexStr) {
-      const index = parseInt(indexStr);
-
-      if (index != null && !Number.isNaN(index) && index >= 0) {
-        onSelect(await addressBookKVStore.getAddressBookAt(current, index));
-      }
-    }
-  };
 
   const addressBookIcons = (index: number) => {
     return [
       <i
         key="edit"
         className="fas fa-pen"
-        data-index={index}
         style={{ cursor: "pointer" }}
-        onClick={editAddressBookClick}
+        onClick={(e) => {
+          e.preventDefault();
+
+          setAddAddressModalOpen(true);
+          setAddAddressModalIndex(index);
+        }}
       />,
       <i
         key="remove"
         className="fas fa-trash"
-        data-index={index}
         style={{ cursor: "pointer" }}
-        onClick={removeAddressBookClick}
+        onClick={async (e) => {
+          e.preventDefault();
+
+          if (
+            await confirm.confirm({
+              img: (
+                <img
+                  src={require("../../../public/assets/img/trash.svg")}
+                  style={{ height: "80px" }}
+                />
+              ),
+              title: intl.formatMessage({
+                id: "setting.address-book.confirm.delete-address.title",
+              }),
+              paragraph: intl.formatMessage({
+                id: "setting.address-book.confirm.delete-address.paragraph",
+              }),
+            })
+          ) {
+            setAddAddressModalOpen(false);
+            setAddAddressModalIndex(-1);
+            await addressBookConfig.removeAddressBook(index);
+          }
+        }}
       />,
     ];
   };
-
-  const defaultOnBackButton = useCallback(() => {
-    history.goBack();
-  }, [history]);
 
   return (
     <HeaderLayout
@@ -190,7 +122,13 @@ export const AddressBookPage: FunctionComponent<{
       alternativeTitle={intl.formatMessage({
         id: "main.menu.address-book",
       })}
-      onBackButton={onBackButton ? onBackButton : defaultOnBackButton}
+      onBackButton={
+        onBackButton
+          ? onBackButton
+          : () => {
+              history.goBack();
+            }
+      }
     >
       <Modal
         isOpen={addAddressModalOpen}
@@ -201,10 +139,12 @@ export const AddressBookPage: FunctionComponent<{
       >
         <ModalBody className={styleAddressBook.fullModal}>
           <AddAddressModal
-            closeModal={closeAddAddressModal}
-            addAddressBook={addAddressBook}
-            chainInfo={chainStore.current}
-            addressBookKVStore={addressBookKVStore}
+            closeModal={() => {
+              setAddAddressModalOpen(false);
+              setAddAddressModalIndex(-1);
+            }}
+            txConfig={txConfig}
+            addressBookConfig={addressBookConfig}
             index={addAddressModalIndex}
           />
         </ModalBody>
@@ -214,7 +154,7 @@ export const AddressBookPage: FunctionComponent<{
           {hideChainDropdown ? null : (
             <ButtonDropdown isOpen={dropdownOpen} toggle={toggle}>
               <DropdownToggle caret style={{ boxShadow: "none" }}>
-                {chainStore.current.chainName}
+                {chainStore.getChain(selectedChainId).chainName}
               </DropdownToggle>
               <DropdownMenu>
                 {chainStore.chainInfos.map((chainInfo) => {
@@ -222,7 +162,7 @@ export const AddressBookPage: FunctionComponent<{
                     <DropdownItem
                       key={chainInfo.chainId}
                       onClick={() => {
-                        chainStore.selectChain(chainInfo.chainId);
+                        setSelectedChainId(chainInfo.chainId);
                       }}
                     >
                       {chainInfo.chainName}
@@ -240,7 +180,15 @@ export const AddressBookPage: FunctionComponent<{
               justifyContent: "center",
             }}
           >
-            <Button color="primary" size="sm" onClick={openAddAddressModal}>
+            <Button
+              color="primary"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+
+                setAddAddressModalOpen(true);
+              }}
+            >
               <i
                 className="fas fa-plus"
                 style={{ marginRight: "4px", fontSize: "8px" }}
@@ -250,7 +198,7 @@ export const AddressBookPage: FunctionComponent<{
           </div>
         </div>
         <div style={{ flex: "1 1 0", overflowY: "auto" }}>
-          {addressBook.map((data, i) => {
+          {addressBookConfig.addressBookDatas.map((data, i) => {
             return (
               <PageButton
                 key={i.toString()}
@@ -265,8 +213,16 @@ export const AddressBookPage: FunctionComponent<{
                 subParagraph={data.memo}
                 icons={addressBookIcons(i)}
                 data-index={i}
-                onClick={selectAddressBookClick}
-                style={{ cursor: onSelect ? undefined : "auto" }}
+                onClick={(e) => {
+                  e.preventDefault();
+
+                  addressBookConfig.selectAddressAt(i);
+
+                  if (onBackButton) {
+                    onBackButton();
+                  }
+                }}
+                style={{ cursor: selectHandler ? undefined : "auto" }}
               />
             );
           })}
@@ -275,5 +231,3 @@ export const AddressBookPage: FunctionComponent<{
     </HeaderLayout>
   );
 });
-
-export * from "./types";
