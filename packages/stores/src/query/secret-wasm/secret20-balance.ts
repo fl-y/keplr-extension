@@ -30,14 +30,6 @@ export class ObservableQuerySecret20Balance extends ObservableSecretContractChai
       querySecretContractCodeHash
     );
 
-    if (!this.bech32Address) {
-      this.setError({
-        status: 0,
-        statusText: "Address is empty",
-        message: "Address is empty",
-      });
-    }
-
     if (!this.viewingKey) {
       this.setError({
         status: 0,

@@ -28,14 +28,6 @@ export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
     );
 
     this.bech32Address = bech32Address;
-
-    if (!this.bech32Address) {
-      this.setError({
-        status: 0,
-        statusText: "Address is empty",
-        message: "Address is empty",
-      });
-    }
   }
 
   protected canFetch(): boolean {
