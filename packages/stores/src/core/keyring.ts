@@ -29,33 +29,34 @@ import { Buffer } from "buffer/";
 import { InteractionStore } from "./interaction";
 import { ChainGetter } from "../common";
 import { BIP44 } from "@keplr/types";
-
-export type SelectableAccount = {
-  readonly path: BIP44;
-  readonly bech32Address: string;
-  readonly isExistent: boolean;
-  readonly sequence: string;
-  readonly coins: { amount: string; denom: string }[];
-};
+import { DeepReadonly } from "utility-types";
 
 export class KeyRingSelectablesStore {
   @observable
   isInitializing!: boolean;
 
   @observable
-  _isKeyStoreCoinTypeSet!: boolean;
+  protected _isKeyStoreCoinTypeSet!: boolean;
+
+  @observable.ref
+  _selectables!: {
+    path: BIP44;
+    bech32Address: string;
+  }[];
 
   constructor(
     protected readonly chainGetter: ChainGetter,
     protected readonly requester: MessageRequester,
-    protected readonly chainId: string
+    protected readonly chainId: string,
+    protected readonly keyRingStore: KeyRingStore
   ) {
     runInAction(() => {
       this.isInitializing = false;
-      this._isKeyStoreCoinTypeSet = true;
+      this._isKeyStoreCoinTypeSet = false;
+      this._selectables = [];
     });
 
-    this.init();
+    this.refresh();
   }
 
   @computed
@@ -67,17 +68,55 @@ export class KeyRingSelectablesStore {
     ) {
       return false;
     }
-    return !this._isKeyStoreCoinTypeSet;
+    return !this.isInitializing && !this._isKeyStoreCoinTypeSet;
+  }
+
+  get selectables(): DeepReadonly<
+    {
+      path: BIP44;
+      bech32Address: string;
+    }[]
+  > {
+    return this._selectables;
   }
 
   @actionAsync
-  async init() {
+  async refresh() {
+    // No need to set the coin type.
+    if (this.keyRingStore.keyRingType !== "mnemonic") {
+      this.isInitializing = false;
+      this._isKeyStoreCoinTypeSet = true;
+      this._selectables = [];
+
+      return;
+    }
+
     this.isInitializing = true;
 
-    const msg = new GetIsKeyStoreCoinTypeSetMsg(this.chainId);
-    this._isKeyStoreCoinTypeSet = await task(
+    const chainInfo = this.chainGetter.getChain(this.chainId);
+
+    const msg = new GetIsKeyStoreCoinTypeSetMsg(this.chainId, [
+      chainInfo.bip44,
+      ...(chainInfo.alternativeBIP44s ?? []),
+    ]);
+    const seletables = await task(
       this.requester.sendMessage(BACKGROUND_PORT, msg)
     );
+
+    if (seletables.length === 0) {
+      this._isKeyStoreCoinTypeSet = true;
+    } else if (seletables.length === 1) {
+      await task(
+        this.keyRingStore.setKeyStoreCoinType(
+          this.chainId,
+          seletables[0].path.coinType
+        )
+      );
+      this._isKeyStoreCoinTypeSet = true;
+    } else {
+      this._selectables = seletables;
+      this._isKeyStoreCoinTypeSet = false;
+    }
 
     this.isInitializing = false;
   }
@@ -98,7 +137,7 @@ export class KeyRingStore {
   multiKeyStoreInfo!: MultiKeyStoreInfoWithSelected;
 
   @observable.shallow
-  selectablesMap!: Map<string, KeyRingSelectablesStore>;
+  protected selectablesMap!: Map<string, KeyRingSelectablesStore>;
 
   constructor(
     protected readonly chainGetter: ChainGetter,
@@ -209,6 +248,7 @@ export class KeyRingStore {
 
     // Emit the key store changed event manually.
     window.dispatchEvent(new Event("keplr_keystorechange"));
+    this.selectablesMap.forEach((selectables) => selectables.refresh());
   }
 
   @actionAsync
@@ -268,7 +308,12 @@ export class KeyRingStore {
       runInAction(() => {
         this.selectablesMap.set(
           chainId,
-          new KeyRingSelectablesStore(this.chainGetter, this.requester, chainId)
+          new KeyRingSelectablesStore(
+            this.chainGetter,
+            this.requester,
+            chainId,
+            this
+          )
         );
       });
     }
@@ -293,5 +338,9 @@ export class KeyRingStore {
     );
 
     this.status = status;
+
+    // Emit the key store changed event manually.
+    window.dispatchEvent(new Event("keplr_keystorechange"));
+    this.selectablesMap.forEach((selectables) => selectables.refresh());
   }
 }

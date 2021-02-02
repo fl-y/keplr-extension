@@ -6,9 +6,9 @@ import {
   RNG,
 } from "@keplr/crypto";
 import { KVStore } from "@keplr/common";
-import { LedgerService } from "../ledger/service";
+import { LedgerService } from "../ledger";
 import { BIP44HDPath } from "./types";
-import { ChainUpdaterService } from "../updater/service";
+import { ChainUpdaterService } from "../updater";
 import { ChainInfo } from "@keplr/types";
 import { Env } from "@keplr/router";
 

@@ -2,7 +2,7 @@ import { observable, runInAction } from "mobx";
 import { KVStore } from "@keplr/common";
 import { DeepReadonly } from "utility-types";
 import { ObservableQueryBalances } from "./balances";
-import { ChainGetter } from "../common/types";
+import { ChainGetter } from "../common";
 import {
   ObservableQuerySecret20BalanceRegistry,
   ObservableQuerySecretContractCodeHash,
@@ -18,6 +18,7 @@ import {
   ObservableQueryUnbondingDelegations,
   ObservableQueryValidators,
   ObservableQueryGovernance,
+  ObservableQueryAccount,
 } from "./cosmos";
 import { ObservableQueryCosmosBalanceRegistry } from "./cosmos/balance";
 import { ObservableQuerySecret20ContractInfo } from "./secret-wasm/secret20-contract-info";
@@ -25,6 +26,7 @@ import { ObservableQuerySecret20ContractInfo } from "./secret-wasm/secret20-cont
 export class Queries {
   protected readonly _queryBalances: ObservableQueryBalances;
 
+  protected readonly _queryAccount: ObservableQueryAccount;
   protected readonly _queryMint: ObservableQueryMintingInfation;
   protected readonly _queryPool: ObservableQueryStakingPool;
   protected readonly _queryStakingParams: ObservableQueryStakingParams;
@@ -49,6 +51,11 @@ export class Queries {
       new ObservableQueryCosmosBalanceRegistry(kvStore)
     );
 
+    this._queryAccount = new ObservableQueryAccount(
+      kvStore,
+      chainId,
+      chainGetter
+    );
     this._queryMint = new ObservableQueryMintingInfation(
       kvStore,
       chainId,
@@ -118,6 +125,10 @@ export class Queries {
       chainGetter,
       this._querySecretContractCodeHash
     );
+  }
+
+  getQueryAccount(): DeepReadonly<ObservableQueryAccount> {
+    return this._queryAccount;
   }
 
   getQueryMint(): DeepReadonly<ObservableQueryMintingInfation> {

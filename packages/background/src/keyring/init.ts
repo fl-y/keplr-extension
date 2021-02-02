@@ -17,7 +17,6 @@ import {
   ChangeKeyRingMsg,
   CreateLedgerKeyMsg,
   AddLedgerKeyMsg,
-  GetKeyStoreBIP44SelectablesMsg,
   GetIsKeyStoreCoinTypeSetMsg,
   SetKeyStoreCoinTypeMsg,
   RestoreKeyRingMsg,
@@ -45,7 +44,6 @@ export function init(router: Router, service: KeyRingService): void {
   router.registerMessage(GetKeyRingTypeMsg);
   router.registerMessage(GetMultiKeyStoreInfoMsg);
   router.registerMessage(ChangeKeyRingMsg);
-  router.registerMessage(GetKeyStoreBIP44SelectablesMsg);
   router.registerMessage(GetIsKeyStoreCoinTypeSetMsg);
   router.registerMessage(SetKeyStoreCoinTypeMsg);
 

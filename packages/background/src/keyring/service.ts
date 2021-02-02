@@ -11,7 +11,6 @@ import {
 import { Bech32Address } from "@keplr/cosmos";
 import {
   BIP44HDPath,
-  SelectableAccount,
   TxBuilderConfigPrimitive,
   TxBuilderConfigPrimitiveWithChainId,
 } from "./types";
@@ -294,26 +293,15 @@ export class KeyRingService {
   }
 
   async getKeyStoreBIP44Selectables(
-    _chainId: string,
-    _paths: BIP44[]
-  ): Promise<SelectableAccount[]> {
-    // TODO
-    return [];
-    // If keystore already has the coin type, return empty array.
-    /*if (this.keyRing.getKeyStoreCoinType(chainId) !== undefined) {
+    chainId: string,
+    paths: BIP44[]
+  ): Promise<{ readonly path: BIP44; readonly bech32Address: string }[]> {
+    if (this.isKeyStoreCoinTypeSet(chainId)) {
       return [];
     }
 
-    const chainInfo = await this.chainsKeeper.getChainInfo(chainId);
-
-    const restInstance = Axios.create({
-      ...{
-        baseURL: chainInfo.rest
-      },
-      ...chainInfo.restConfig
-    });
-
-    const accounts: SelectableAccount[] = [];
+    const result = [];
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
 
     for (const path of paths) {
       const key = await this.keyRing.getKeyFromCoinType(path.coinType);
@@ -321,47 +309,12 @@ export class KeyRingService {
         chainInfo.bech32Config.bech32PrefixAccAddr
       );
 
-      try {
-        const result = await restInstance.get(
-          `/auth/accounts/${bech32Address}`
-        );
-
-        if (result.status === 200) {
-          const baseAccount = BaseAccount.fromJSON(result.data);
-          accounts.push({
-            path,
-            bech32Address,
-            isExistent: true,
-            sequence: baseAccount.getSequence().toString(),
-            // TODO: If the chain is stargate, this will return empty array because the balances doens't exist on the account itself.
-            coins: baseAccount.getCoins().map(coin => {
-              return {
-                denom: coin.denom,
-                amount: coin.amount.toString()
-              };
-            })
-          });
-        } else {
-          accounts.push({
-            path,
-            bech32Address,
-            isExistent: false,
-            sequence: "0",
-            coins: []
-          });
-        }
-      } catch (e) {
-        accounts.push({
-          path,
-          bech32Address,
-          isExistent: false,
-          sequence: "0",
-          coins: []
-        });
-        console.log(`Failed to fetch account: ${e.message}`);
-      }
+      result.push({
+        path,
+        bech32Address,
+      });
     }
 
-    return accounts;*/
+    return result;
   }
 }

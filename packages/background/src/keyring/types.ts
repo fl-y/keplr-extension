@@ -1,5 +1,3 @@
-import { BIP44 } from "@keplr/types";
-
 export interface TxBuilderConfigPrimitive {
   accountNumber?: string; // bigInteger.BigNumber;
   sequence?: string; // bigInteger.BigNumber;
@@ -23,12 +21,4 @@ export type BIP44HDPath = {
   account: number;
   change: number;
   addressIndex: number;
-};
-
-export type SelectableAccount = {
-  readonly path: BIP44;
-  readonly bech32Address: string;
-  readonly isExistent: boolean;
-  readonly sequence: string;
-  readonly coins: { amount: string; denom: string }[];
 };

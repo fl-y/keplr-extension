@@ -27,7 +27,10 @@ export class BaseAccount implements Account {
             value: any;
           };
         }
-      | { type: string; value: any }
+      | { type: string; value: any },
+    // If the account doesn't exist, the result from `auth/accounts` would not have the address.
+    // In this case, if `defaultBech32Address` param is provided, this will use it instead of the result from rest.
+    defaultBech32Address: string = ""
   ): BaseAccount {
     if ("height" in obj) {
       obj = obj.result;
@@ -53,9 +56,12 @@ export class BaseAccount implements Account {
         baseVestingAccount.base_account;
     }
 
-    const address = value.address;
+    let address = value.address;
     if (!address) {
-      throw new Error(`Account's address is unknown: ${JSON.stringify(obj)}`);
+      if (!defaultBech32Address) {
+        throw new Error(`Account's address is unknown: ${JSON.stringify(obj)}`);
+      }
+      address = defaultBech32Address;
     }
 
     const accountNumber = value.account_number;

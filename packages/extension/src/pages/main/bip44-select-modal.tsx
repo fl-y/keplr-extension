@@ -3,22 +3,29 @@ import { Button, Col, CustomInput, Modal, ModalBody, Row } from "reactstrap";
 import { Bech32Address } from "@keplr/cosmos";
 
 import style from "./bip44-select-modal.module.scss";
-import { SelectableAccount } from "@keplr/background";
 import { useStore } from "../../stores";
 import { observer } from "mobx-react";
-import { CoinUtils, Int } from "@keplr/unit";
 import { FormattedMessage } from "react-intl";
+import { BIP44 } from "@keplr/types";
+import { useLoadingIndicator } from "../../components/loading-indicator";
 
 const BIP44Selectable: FunctionComponent<{
-  selectable: SelectableAccount;
+  selectable: {
+    path: BIP44;
+    bech32Address: string;
+  };
   selected: boolean;
   onSelect: () => void;
 }> = observer(({ selectable, selected, onSelect }) => {
-  const { chainStore } = useStore();
+  const { chainStore, queriesStore } = useStore();
+  const queries = queriesStore.get(chainStore.current.chainId);
 
-  const coin = selectable.coins.find(
-    (coin) => coin.denom === chainStore.current.stakeCurrency.coinMinimalDenom
-  );
+  const account = queries
+    .getQueryAccount()
+    .getQueryBech32Address(selectable.bech32Address);
+  const stakable = queries
+    .getQueryBalances()
+    .getQueryBech32Address(selectable.bech32Address).stakable;
 
   return (
     <div
@@ -58,22 +65,26 @@ const BIP44Selectable: FunctionComponent<{
                 <FormattedMessage id="main.modal.select-account.label.balance" />
               </div>
               <div className={style.value}>
-                {coin
-                  ? CoinUtils.shrinkDecimals(
-                      new Int(coin.amount),
-                      chainStore.current.stakeCurrency.coinDecimals,
-                      0,
-                      4
-                    )
-                  : "0"}{" "}
-                {chainStore.current.stakeCurrency.coinDenom}
+                {stakable.balance
+                  .trim(true)
+                  .shrink(true)
+                  .maxDecimals(6)
+                  .toString()}
+                {stakable.isFetching ? (
+                  <i className="fas fa-spinner fa-spin ml-1" />
+                ) : null}
               </div>
             </Col>
             <Col>
               <div className={style.label}>
                 <FormattedMessage id="main.modal.select-account.label.sequence" />
               </div>
-              <div className={style.value}>{selectable.sequence}</div>
+              <div className={style.value}>
+                {account.sequence}
+                {account.isFetching ? (
+                  <i className="fas fa-spinner fa-spin ml-1" />
+                ) : null}
+              </div>
             </Col>
           </Row>
         </div>
@@ -82,37 +93,34 @@ const BIP44Selectable: FunctionComponent<{
   );
 });
 
-export const BIP44SelectModal: FunctionComponent<{
-  enabled: boolean;
-  accounts: SelectableAccount[];
-}> = observer(({ enabled, accounts }) => {
+export const BIP44SelectModal: FunctionComponent = observer(() => {
   const { chainStore, keyRingStore } = useStore();
+
+  const selectables = keyRingStore.getKeyStoreSelectables(
+    chainStore.current.chainId
+  );
+
+  const loadingIndicator = useLoadingIndicator();
+  useEffect(() => {
+    loadingIndicator.setIsLoading(
+      "bip44-selectables-init",
+      selectables.isInitializing
+    );
+  }, [loadingIndicator, selectables.isInitializing]);
 
   const [selectedCoinType, setSelectedCoinType] = useState(-1);
 
-  useEffect(() => {
-    if (selectedCoinType === -1 && accounts.length > 0) {
-      setSelectedCoinType(accounts[0].path.coinType);
-    }
-  }, [accounts, selectedCoinType]);
-
-  const select = async () => {
-    if (selectedCoinType !== -1) {
-      await keyRingStore.setKeyStoreCoinType(
-        chainStore.current.chainId,
-        selectedCoinType
-      );
-    }
-  };
-
   return (
-    <Modal isOpen={enabled && accounts.length > 0} centered>
+    <Modal
+      isOpen={!selectables.isInitializing && selectables.needSelectCoinType}
+      centered
+    >
       <ModalBody>
         <div className={style.title}>
           <FormattedMessage id="main.modal.select-account.title" />
         </div>
         <div>
-          {accounts.map((selectable) => {
+          {selectables.selectables.map((selectable) => {
             return (
               <BIP44Selectable
                 key={selectable.bech32Address}
@@ -130,11 +138,17 @@ export const BIP44SelectModal: FunctionComponent<{
           color="primary"
           block
           style={{ marginTop: "10px" }}
+          disabled={selectedCoinType < 0}
           onClick={async (e) => {
             e.preventDefault();
             e.stopPropagation();
 
-            await select();
+            if (selectedCoinType >= 0) {
+              await keyRingStore.setKeyStoreCoinType(
+                chainStore.current.chainId,
+                selectedCoinType
+              );
+            }
           }}
         >
           <FormattedMessage id="main.modal.select-account.button.select" />

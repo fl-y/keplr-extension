@@ -7,7 +7,6 @@ import {
 } from "./keyring";
 import {
   BIP44HDPath,
-  SelectableAccount,
   TxBuilderConfigPrimitive,
   TxBuilderConfigPrimitiveWithChainId,
 } from "./types";
@@ -579,11 +578,16 @@ export class ChangeKeyRingMsg extends Message<MultiKeyStoreInfoWithSelected> {
   }
 }
 
-export class GetKeyStoreBIP44SelectablesMsg extends Message<
-  SelectableAccount[]
+// Return the list of selectable path.
+// If coin type was set for the key store, will return empty array.
+export class GetIsKeyStoreCoinTypeSetMsg extends Message<
+  {
+    readonly path: BIP44;
+    readonly bech32Address: string;
+  }[]
 > {
   public static type() {
-    return "get-keystore-bip44-selectables";
+    return "get-is-keystore-coin-type-set";
   }
 
   constructor(public readonly chainId: string, public readonly paths: BIP44[]) {
@@ -594,29 +598,9 @@ export class GetKeyStoreBIP44SelectablesMsg extends Message<
     if (!this.chainId) {
       throw new Error("chain id not set");
     }
-  }
 
-  route(): string {
-    return ROUTE;
-  }
-
-  type(): string {
-    return GetKeyStoreBIP44SelectablesMsg.type();
-  }
-}
-
-export class GetIsKeyStoreCoinTypeSetMsg extends Message<boolean> {
-  public static type() {
-    return "get-is-keystore-coin-type-set";
-  }
-
-  constructor(public readonly chainId: string) {
-    super();
-  }
-
-  validateBasic(): void {
-    if (!this.chainId) {
-      throw new Error("chain id not set");
+    if (this.paths.length === 0) {
+      throw new Error("empty bip44 path list");
     }
   }
 

@@ -16,6 +16,7 @@ import { useHistory } from "react-router";
 import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import { TokensView } from "./token";
+import { BIP44SelectModal } from "./bip44-select-modal";
 
 export const MainPage: FunctionComponent = observer(() => {
   const history = useHistory();
@@ -98,6 +99,7 @@ export const MainPage: FunctionComponent = observer(() => {
         </div>
       }
     >
+      <BIP44SelectModal />
       <Card className={classnames(style.card, "shadow")}>
         <CardBody>
           <div className={style.containerAccountInner}>

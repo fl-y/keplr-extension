@@ -17,7 +17,6 @@ import {
   ChangeKeyRingMsg,
   AddLedgerKeyMsg,
   CreateLedgerKeyMsg,
-  GetKeyStoreBIP44SelectablesMsg,
   SetKeyStoreCoinTypeMsg,
   RestoreKeyRingMsg,
   GetIsKeyStoreCoinTypeSetMsg,
@@ -92,11 +91,6 @@ export const getHandler: (service: KeyRingService) => Handler = (
         return handleSetKeyStoreCoinTypeMsg(service)(
           env,
           msg as SetKeyStoreCoinTypeMsg
-        );
-      case GetKeyStoreBIP44SelectablesMsg:
-        return handleGetKeyStoreBIP44SelectablesMsg(service)(
-          env,
-          msg as GetKeyStoreBIP44SelectablesMsg
         );
       default:
         throw new Error("Unknown msg type");
@@ -346,7 +340,7 @@ const handleGetIsKeyStoreCoinTypeSetMsg: (
   service: KeyRingService
 ) => InternalHandler<GetIsKeyStoreCoinTypeSetMsg> = (service) => {
   return (_, msg) => {
-    return service.isKeyStoreCoinTypeSet(msg.chainId);
+    return service.getKeyStoreBIP44Selectables(msg.chainId, msg.paths);
   };
 };
 
@@ -356,13 +350,5 @@ const handleSetKeyStoreCoinTypeMsg: (
   return async (_, msg) => {
     await service.setKeyStoreCoinType(msg.chainId, msg.coinType);
     return service.keyRingStatus;
-  };
-};
-
-const handleGetKeyStoreBIP44SelectablesMsg: (
-  service: KeyRingService
-) => InternalHandler<GetKeyStoreBIP44SelectablesMsg> = (service) => {
-  return (_, msg) => {
-    return service.getKeyStoreBIP44Selectables(msg.chainId, msg.paths);
   };
 };
