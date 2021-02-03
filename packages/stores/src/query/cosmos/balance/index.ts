@@ -1,5 +1,5 @@
 import { DenomHelper, KVStore } from "@keplr/common";
-import { ChainGetter } from "../../../common/types";
+import { ChainGetter } from "../../../common";
 import { computed } from "mobx";
 import { CoinPretty, Int } from "@keplr/unit";
 import { StoreUtils } from "../../../common";
@@ -35,6 +35,10 @@ export class ObservableQueryBalanceNative extends ObservableQueryBalanceInner {
 
   get error() {
     return this.nativeBalances.error;
+  }
+
+  get response() {
+    return this.nativeBalances.response;
   }
 
   @computed

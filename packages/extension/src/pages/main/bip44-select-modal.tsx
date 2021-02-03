@@ -8,6 +8,7 @@ import { observer } from "mobx-react";
 import { FormattedMessage } from "react-intl";
 import { BIP44 } from "@keplr/types";
 import { useLoadingIndicator } from "../../components/loading-indicator";
+import { Dec } from "@keplr/unit";
 
 const BIP44Selectable: FunctionComponent<{
   selectable: {
@@ -94,25 +95,116 @@ const BIP44Selectable: FunctionComponent<{
 });
 
 export const BIP44SelectModal: FunctionComponent = observer(() => {
-  const { chainStore, keyRingStore } = useStore();
+  const { chainStore, keyRingStore, queriesStore } = useStore();
+  const queries = queriesStore.get(chainStore.current.chainId);
 
   const selectables = keyRingStore.getKeyStoreSelectables(
     chainStore.current.chainId
   );
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const loadingIndicator = useLoadingIndicator();
   useEffect(() => {
-    loadingIndicator.setIsLoading(
-      "bip44-selectables-init",
-      selectables.isInitializing
-    );
-  }, [loadingIndicator, selectables.isInitializing]);
+    if (selectables.isInitializing) {
+      loadingIndicator.setIsLoading(
+        "bip44-selectables-init",
+        selectables.isInitializing
+      );
+      setIsModalOpen(false);
+    } else if (!selectables.needSelectCoinType) {
+      loadingIndicator.setIsLoading("bip44-selectables-init", false);
+      setIsModalOpen(false);
+    } else {
+      // Wait to fetch the balances of the accounts.
+      const queryBalancesWaiter = selectables.selectables
+        .map((selectable) => {
+          return queries
+            .getQueryBalances()
+            .getQueryBech32Address(selectable.bech32Address).balances;
+        })
+        .map((bals) => {
+          return bals.map((bal) => {
+            return bal.waitFreshResponse();
+          });
+        })
+        // Flatten
+        .reduce((pre, cur) => {
+          return pre.concat(cur);
+        }, []);
+
+      // Wait to fetch the account.
+      const queryAccountsWaiter = selectables.selectables
+        .map((selectable) => {
+          return queries
+            .getQueryAccount()
+            .getQueryBech32Address(selectable.bech32Address);
+        })
+        .map((account) => {
+          return account.waitFreshResponse();
+        });
+
+      Promise.all([...queryBalancesWaiter, ...queryAccountsWaiter]).then(() => {
+        // Assume that the first one as the main account of paths.
+        const others = selectables.selectables.slice(1);
+
+        // Check that the others have some balances/
+        const hasBalances = others.find((other) => {
+          const balances = queries
+            .getQueryBalances()
+            .getQueryBech32Address(other.bech32Address).balances;
+          for (let i = 0; i < balances.length; i++) {
+            const bal = balances[i];
+
+            if (bal.balance.toDec().gt(new Dec(0))) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+
+        // Check that the others have sent txs.
+        const hasSequence = others.find((other) => {
+          const account = queries
+            .getQueryAccount()
+            .getQueryBech32Address(other.bech32Address);
+          return account.sequence !== "0";
+        });
+
+        // If there is no other accounts that have the balances or have sent txs,
+        // just select the first account without requesting the users to select the account they want.
+        if (!hasBalances && !hasSequence) {
+          keyRingStore.setKeyStoreCoinType(
+            chainStore.current.chainId,
+            selectables.selectables[0].path.coinType
+          );
+        } else {
+          setIsModalOpen(true);
+        }
+
+        loadingIndicator.setIsLoading("bip44-selectables-init", false);
+      });
+    }
+  }, [
+    chainStore,
+    keyRingStore,
+    loadingIndicator,
+    queries,
+    selectables.isInitializing,
+    selectables.needSelectCoinType,
+    selectables.selectables,
+  ]);
 
   const [selectedCoinType, setSelectedCoinType] = useState(-1);
 
   return (
     <Modal
-      isOpen={!selectables.isInitializing && selectables.needSelectCoinType}
+      isOpen={
+        !selectables.isInitializing &&
+        selectables.needSelectCoinType &&
+        isModalOpen
+      }
       centered
     >
       <ModalBody>

@@ -294,7 +294,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
   /**
    * Wait the response and return the response until it is fetched.
    */
-  waitRefreshResponse(): Promise<Readonly<QueryResponse<T>>> {
+  waitFreshResponse(): Promise<Readonly<QueryResponse<T>>> {
     if (!this.isFetching && this.response && !this.response.staled) {
       return Promise.resolve(this.response);
     }

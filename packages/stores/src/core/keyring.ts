@@ -82,7 +82,7 @@ export class KeyRingSelectablesStore {
 
   @actionAsync
   async refresh() {
-    // No need to set the coin type.
+    // No need to set the coin type if the key store type is not mnemonic.
     if (this.keyRingStore.keyRingType !== "mnemonic") {
       this.isInitializing = false;
       this._isKeyStoreCoinTypeSet = true;
