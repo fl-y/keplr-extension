@@ -3,6 +3,7 @@ import { delay, inject, singleton } from "tsyringe";
 import Axios, { AxiosInstance } from "axios";
 import { ChainsService } from "../chains";
 import { PermissionService } from "../permission";
+import { TendermintTxTracer } from "@keplr/cosmos/build/tx-tracer";
 
 import { Buffer } from "buffer/";
 
@@ -32,7 +33,7 @@ export class BackgroundTxService {
     chainId: string,
     tx: unknown,
     mode: "async" | "sync" | "block"
-  ): Promise<unknown> {
+  ): Promise<Uint8Array> {
     const chainInfo = await this.chainsService.getChainInfo(chainId);
     const restInstance = Axios.create({
       ...{
@@ -55,9 +56,15 @@ export class BackgroundTxService {
 
     try {
       const result = await restInstance.post("/txs", params);
-      BackgroundTxService.processTxResultNotification(result.data);
 
-      return result.data;
+      const txHash = Buffer.from(result.data.txhash, "hex");
+
+      const txTracer = new TendermintTxTracer(chainInfo.rpc, "/websocket");
+      txTracer.traceTx(txHash).then((tx) => {
+        BackgroundTxService.processTxResultNotification(tx);
+      });
+
+      return txHash;
     } catch (e) {
       console.log(e);
       BackgroundTxService.processTxErrorNotification(e);

@@ -82,31 +82,29 @@ export const SendPage: FunctionComponent = observer(() => {
           e.preventDefault();
 
           if (accountInfo.isReadyToSendMsgs && txStateIsValid) {
-            accountInfo.sendToken(
-              txConfig.amount,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              txConfig.sendCurrency!,
-              txConfig.recipient,
-              txConfig.toStdFee(),
-              txConfig.memo,
-              "block",
-              () => {
-                history.replace("/");
-              },
-              (e: Error) => {
-                history.replace("/");
-                notification.push({
-                  type: "warning",
-                  placement: "top-center",
-                  duration: 5,
-                  content: `Fail to send token: ${e.message}`,
-                  canDelete: true,
-                  transition: {
-                    duration: 0.25,
-                  },
-                });
-              }
-            );
+            try {
+              await accountInfo.sendToken(
+                txConfig.amount,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                txConfig.sendCurrency!,
+                txConfig.recipient,
+                txConfig.toStdFee(),
+                txConfig.memo
+              );
+              history.replace("/");
+            } catch (e) {
+              history.replace("/");
+              notification.push({
+                type: "warning",
+                placement: "top-center",
+                duration: 5,
+                content: `Fail to send token: ${e.message}`,
+                canDelete: true,
+                transition: {
+                  duration: 0.25,
+                },
+              });
+            }
           }
         }}
       >

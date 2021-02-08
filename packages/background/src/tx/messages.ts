@@ -1,7 +1,8 @@
 import { Message } from "@keplr/router";
 import { ROUTE } from "./constants";
 
-export class SendTxMsg extends Message<unknown> {
+// Return the tx hash
+export class SendTxMsg extends Message<Uint8Array> {
   public static type() {
     return "send-tx-to-background";
   }
@@ -44,7 +45,7 @@ export class SendTxMsg extends Message<unknown> {
   }
 }
 
-export class RequestBackgroundTxMsg extends Message<{}> {
+export class RequestBackgroundTxMsg extends Message<void> {
   public static type() {
     return "request-background-tx";
   }

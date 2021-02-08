@@ -5,7 +5,7 @@ import {
   TxBuilderConfigPrimitive,
 } from "@keplr/types";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
-import { BroadcastMode, BroadcastTxResult, StdTx } from "@cosmjs/launchpad";
+import { BroadcastMode, StdTx } from "@cosmjs/launchpad";
 import {
   EnableKeyRingMsg,
   SuggestChainInfoMsg,
@@ -60,9 +60,9 @@ export class Keplr implements IKeplr {
     chainId: string,
     stdTx: StdTx,
     mode: BroadcastMode
-  ): Promise<BroadcastTxResult> {
+  ): Promise<Uint8Array> {
     const msg = new SendTxMsg(chainId, stdTx, mode);
-    return (await this.requester.sendMessage(BACKGROUND_PORT, msg)) as any;
+    return await this.requester.sendMessage(BACKGROUND_PORT, msg);
   }
 
   async sign(

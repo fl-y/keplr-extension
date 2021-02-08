@@ -39,35 +39,34 @@ export const StakeView: FunctionComponent = observer(() => {
     return stakable.balance.toDec().gt(new Dec(0));
   }, [stakable.balance]);
 
-  const withdrawAllRewards = () => {
+  const withdrawAllRewards = async () => {
     if (accountInfo.isReadyToSendMsgs) {
-      accountInfo.sendWithdrawDelegationRewardMsgs(
-        rewards.pendingRewardValidatorAddresses,
-        {
-          amount: [{ denom: "uatom", amount: "1" }],
-          gas: (
-            rewards.pendingRewardValidatorAddresses.length * 140000
-          ).toString(),
-        },
-        "",
-        "block",
-        () => {
-          history.replace("/");
-        },
-        (e: Error) => {
-          history.replace("/");
-          notification.push({
-            type: "warning",
-            placement: "top-center",
-            duration: 5,
-            content: `Fail to withdraw rewards: ${e.message}`,
-            canDelete: true,
-            transition: {
-              duration: 0.25,
-            },
-          });
-        }
-      );
+      try {
+        await accountInfo.sendWithdrawDelegationRewardMsgs(
+          rewards.pendingRewardValidatorAddresses,
+          {
+            amount: [{ denom: "uatom", amount: "1" }],
+            gas: (
+              rewards.pendingRewardValidatorAddresses.length * 140000
+            ).toString(),
+          },
+          ""
+        );
+
+        history.replace("/");
+      } catch (e) {
+        history.replace("/");
+        notification.push({
+          type: "warning",
+          placement: "top-center",
+          duration: 5,
+          content: `Fail to withdraw rewards: ${e.message}`,
+          canDelete: true,
+          transition: {
+            duration: 0.25,
+          },
+        });
+      }
     }
   };
 

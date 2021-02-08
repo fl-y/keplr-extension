@@ -4,11 +4,10 @@ import { ChainGetter } from "../common";
 import { computed, observable, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
 import { AppCurrency, Keplr } from "@keplr/types";
-import { BaseAccount } from "@keplr/cosmos";
+import { BaseAccount, TendermintTxTracer } from "@keplr/cosmos";
 import Axios, { AxiosInstance } from "axios";
 import {
   BroadcastMode,
-  BroadcastTxResult,
   encodeSecp256k1Signature,
   makeSignDoc,
   makeStdTx,
@@ -19,11 +18,11 @@ import {
 import { fromHex } from "@cosmjs/encoding";
 import { Coin, Dec, DecUtils } from "@keplr/unit";
 import { QueriesStore } from "../query";
-import { BondStatus } from "../query/cosmos/staking/types";
 import { Queries } from "../query/queries";
 import PQueue from "p-queue";
 
 import { Buffer } from "buffer/";
+import { BondStatus } from "../query/cosmos/staking/types";
 
 export enum WalletStatus {
   Loading = "Loading",
@@ -47,6 +46,8 @@ export class AccountStoreInner {
 
   @observable
   protected _isSendingMsg!: boolean;
+
+  public broadcastMode: "sync" | "async" | "block" = "async";
 
   protected pubKey: Uint8Array;
 
@@ -130,60 +131,50 @@ export class AccountStoreInner {
     );
   }
 
-  sendMsgs(
+  async sendMsgs(
     msgs: Msg[],
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block",
-    onSuccess?: (result?: BroadcastTxResult) => void,
-    onFail?: (e: Error) => void,
-    onFulfill?: () => void
+    onFulfill?: (tx: any) => void
   ) {
     runInAction(() => {
       this._isSendingMsg = true;
     });
-    this.broadcastMsgs(msgs, fee, memo, mode)
-      .then((result) => {
-        if (onSuccess) {
-          onSuccess(result);
-        }
-      })
-      .catch((e) => {
-        // 아직 트랜잭션 자체가 실패했는지는 고려하지 않는다.
-        // 만약 wallet status가 loaded가 아닐 경우는 오류가 뜰 것.
-        // 또는 케플러에서 rejected 당할 때 오류가 뜰 것.
-        // 트랜잭션 자체의 오류에 대해서도 처리해줄 필요가 있는가?
-        if (onFail) {
-          onFail(e);
-        }
-      })
-      .finally(() => {
-        runInAction(() => {
-          this._isSendingMsg = false;
-        });
+    const txHash = await this.broadcastMsgs(
+      msgs,
+      fee,
+      memo,
+      this.broadcastMode
+    );
 
-        // After sending tx, the balances is probably changed due to the fee.
-        this.queries
-          .getQueryBalances()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-
-        if (onFulfill) {
-          onFulfill();
-        }
+    const txTracer = new TendermintTxTracer(
+      this.chainGetter.getChain(this.chainId).rpc,
+      "/websocket"
+    );
+    txTracer.traceTx(txHash).then((tx) => {
+      runInAction(() => {
+        this._isSendingMsg = false;
       });
+
+      // After sending tx, the balances is probably changed due to the fee.
+      this.queries
+        .getQueryBalances()
+        .getQueryBech32Address(this.bech32Address)
+        .fetch();
+
+      if (onFulfill) {
+        onFulfill(tx);
+      }
+    });
   }
 
-  sendToken(
+  async sendToken(
     amount: string,
     currency: AppCurrency,
     recipient: string,
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block",
-    onSuccess?: () => void,
-    onFail?: (e: Error) => void,
-    onFulfill?: () => void
+    onFulfill?: (tx: any) => void
   ) {
     const denomHelper = new DenomHelper(currency.coinMinimalDenom);
 
@@ -195,7 +186,7 @@ export class AccountStoreInner {
 
     switch (denomHelper.type) {
       case "native":
-        this.sendMsgs(
+        await this.sendMsgs(
           [
             {
               type: "cosmos-sdk/MsgSend",
@@ -213,35 +204,34 @@ export class AccountStoreInner {
           ],
           fee,
           memo,
-          mode,
-          () => {
-            // After succeeding to delegate, refresh the validators and delegations, rewards.
-            const queryBalance = this.queries
-              .getQueryBalances()
-              .getQueryBech32Address(this.bech32Address)
-              .balances.find((bal) => {
-                return (
-                  bal.currency.coinMinimalDenom === currency.coinMinimalDenom
-                );
-              });
+          (tx) => {
+            if (tx.code == null || tx.code === 0) {
+              // After succeeding to send token, refresh the balance.
+              const queryBalance = this.queries
+                .getQueryBalances()
+                .getQueryBech32Address(this.bech32Address)
+                .balances.find((bal) => {
+                  return (
+                    bal.currency.coinMinimalDenom === currency.coinMinimalDenom
+                  );
+                });
 
-            if (queryBalance) {
-              queryBalance.fetch();
+              if (queryBalance) {
+                queryBalance.fetch();
+              }
             }
 
-            if (onSuccess) {
-              onSuccess();
+            if (onFulfill) {
+              onFulfill(tx);
             }
-          },
-          onFail,
-          onFulfill
+          }
         );
         return;
       case "secret20":
         if (!("type" in currency) || currency.type !== "secret20") {
           throw new Error("Currency is not secret20");
         }
-        this.sendExecuteSecretContractMsg(
+        await this.sendExecuteSecretContractMsg(
           currency.contractAddress,
           {
             transfer: {
@@ -251,28 +241,27 @@ export class AccountStoreInner {
           },
           fee,
           memo,
-          mode,
-          () => {
-            // After succeeding to delegate, refresh the validators and delegations, rewards.
-            const queryBalance = this.queries
-              .getQueryBalances()
-              .getQueryBech32Address(this.bech32Address)
-              .balances.find((bal) => {
-                return (
-                  bal.currency.coinMinimalDenom === currency.coinMinimalDenom
-                );
-              });
+          (tx) => {
+            if (tx.code == null || tx.code === 0) {
+              // After succeeding to send token, refresh the balance.
+              const queryBalance = this.queries
+                .getQueryBalances()
+                .getQueryBech32Address(this.bech32Address)
+                .balances.find((bal) => {
+                  return (
+                    bal.currency.coinMinimalDenom === currency.coinMinimalDenom
+                  );
+                });
 
-            if (queryBalance) {
-              queryBalance.fetch();
+              if (queryBalance) {
+                queryBalance.fetch();
+              }
             }
 
-            if (onSuccess) {
-              onSuccess();
+            if (onFulfill) {
+              onFulfill(tx);
             }
-          },
-          onFail,
-          onFulfill
+          }
         );
         return;
       default:
@@ -287,20 +276,14 @@ export class AccountStoreInner {
    * @param validatorAddress
    * @param fee
    * @param memo
-   * @param mode
-   * @param onSuccess
-   * @param onFail
    * @param onFulfill
    */
-  sendDelegateMsg(
+  async sendDelegateMsg(
     amount: string,
     validatorAddress: string,
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block",
-    onSuccess?: () => void,
-    onFail?: (e: Error) => void,
-    onFulfill?: () => void
+    onFulfill?: (tx: any) => void
   ) {
     const currency = this.chainGetter.getChain(this.chainId).stakeCurrency;
 
@@ -319,12 +302,8 @@ export class AccountStoreInner {
       },
     };
 
-    this.sendMsgs(
-      [msg],
-      fee,
-      memo,
-      mode,
-      () => {
+    await this.sendMsgs([msg], fee, memo, (tx) => {
+      if (tx.code == null || tx.code === 0) {
         // After succeeding to delegate, refresh the validators and delegations, rewards.
         this.queries
           .getQueryValidators()
@@ -338,14 +317,12 @@ export class AccountStoreInner {
           .getQueryRewards()
           .getQueryBech32Address(this.bech32Address)
           .fetch();
+      }
 
-        if (onSuccess) {
-          onSuccess();
-        }
-      },
-      onFail,
-      onFulfill
-    );
+      if (onFulfill) {
+        onFulfill(tx);
+      }
+    });
   }
 
   /**
@@ -355,20 +332,14 @@ export class AccountStoreInner {
    * @param validatorAddress
    * @param fee
    * @param memo
-   * @param mode
-   * @param onSuccess
-   * @param onFail
    * @param onFulfill
    */
-  sendUndelegateMsg(
+  async sendUndelegateMsg(
     amount: string,
     validatorAddress: string,
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block",
-    onSuccess?: () => void,
-    onFail?: (e: Error) => void,
-    onFulfill?: () => void
+    onFulfill?: (tx: any) => void
   ) {
     const currency = this.chainGetter.getChain(this.chainId).stakeCurrency;
 
@@ -387,12 +358,8 @@ export class AccountStoreInner {
       },
     };
 
-    this.sendMsgs(
-      [msg],
-      fee,
-      memo,
-      mode,
-      () => {
+    await this.sendMsgs([msg], fee, memo, (tx) => {
+      if (tx.code == null || tx.code === 0) {
         // After succeeding to unbond, refresh the validators and delegations, unbonding delegations, rewards.
         this.queries
           .getQueryValidators()
@@ -410,14 +377,12 @@ export class AccountStoreInner {
           .getQueryRewards()
           .getQueryBech32Address(this.bech32Address)
           .fetch();
+      }
 
-        if (onSuccess) {
-          onSuccess();
-        }
-      },
-      onFail,
-      onFulfill
-    );
+      if (onFulfill) {
+        onFulfill(tx);
+      }
+    });
   }
 
   /**
@@ -428,21 +393,15 @@ export class AccountStoreInner {
    * @param dstValidatorAddress
    * @param fee
    * @param memo
-   * @param mode
-   * @param onSuccess
-   * @param onFail
    * @param onFulfill
    */
-  sendBeginRedelegateMsg(
+  async sendBeginRedelegateMsg(
     amount: string,
     srcValidatorAddress: string,
     dstValidatorAddress: string,
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block",
-    onSuccess?: () => void,
-    onFail?: (e: Error) => void,
-    onFulfill?: () => void
+    onFulfill?: (tx: any) => void
   ) {
     const currency = this.chainGetter.getChain(this.chainId).stakeCurrency;
 
@@ -462,12 +421,8 @@ export class AccountStoreInner {
       },
     };
 
-    this.sendMsgs(
-      [msg],
-      fee,
-      memo,
-      mode,
-      () => {
+    await this.sendMsgs([msg], fee, memo, (tx) => {
+      if (tx.code == null || tx.code === 0) {
         // After succeeding to redelegate, refresh the validators and delegations, rewards.
         this.queries
           .getQueryValidators()
@@ -481,24 +436,19 @@ export class AccountStoreInner {
           .getQueryRewards()
           .getQueryBech32Address(this.bech32Address)
           .fetch();
+      }
 
-        if (onSuccess) {
-          onSuccess();
-        }
-      },
-      onFail,
-      onFulfill
-    );
+      if (onFulfill) {
+        onFulfill(tx);
+      }
+    });
   }
 
-  sendWithdrawDelegationRewardMsgs(
+  async sendWithdrawDelegationRewardMsgs(
     validatorAddresses: string[],
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block",
-    onSuccess?: () => void,
-    onFail?: (e: Error) => void,
-    onFulfill?: () => void
+    onFulfill?: (tx: any) => void
   ) {
     const msgs = validatorAddresses.map((validatorAddress) => {
       return {
@@ -510,36 +460,27 @@ export class AccountStoreInner {
       };
     });
 
-    this.sendMsgs(
-      msgs,
-      fee,
-      memo,
-      mode,
-      () => {
+    await this.sendMsgs(msgs, fee, memo, (tx) => {
+      if (tx.code == null || tx.code === 0) {
         // After succeeding to withdraw rewards, refresh rewards.
         this.queries
           .getQueryRewards()
           .getQueryBech32Address(this.bech32Address)
           .fetch();
+      }
 
-        if (onSuccess) {
-          onSuccess();
-        }
-      },
-      onFail,
-      onFulfill
-    );
+      if (onFulfill) {
+        onFulfill(tx);
+      }
+    });
   }
 
-  sendGovVoteMsg(
+  async sendGovVoteMsg(
     proposalId: string,
     option: "Yes" | "No" | "Abstain" | "NoWithVeto",
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block",
-    onSuccess?: () => void,
-    onFail?: (e: Error) => void,
-    onFulfill?: () => void
+    onFulfill?: (tx: any) => void
   ) {
     const msg = {
       type: "cosmos-sdk/MsgVote",
@@ -550,31 +491,27 @@ export class AccountStoreInner {
       },
     };
 
-    this.sendMsgs(
-      [msg],
-      fee,
-      memo,
-      mode,
-      () => {
-        // After succeeding to vote, refresh the proposals.
-        for (const proposal of this.queries.getQueryGovernance().proposals) {
+    await this.sendMsgs([msg], fee, memo, (tx) => {
+      if (tx.code == null || tx.code === 0) {
+        // After succeeding to vote, refresh the proposal.
+        const proposal = this.queries
+          .getQueryGovernance()
+          .proposals.find((proposal) => proposal.id === proposalId);
+        if (proposal) {
           proposal.fetch();
         }
+      }
 
-        if (onSuccess) {
-          onSuccess();
-        }
-      },
-      onFail,
-      onFulfill
-    );
+      if (onFulfill) {
+        onFulfill(tx);
+      }
+    });
   }
 
   async createSecret20ViewingKey(
     contractAddress: string,
     fee: StdFee,
-    memo: string = "",
-    onFail?: (e: Error) => void
+    memo: string = ""
   ): Promise<string> {
     const random = new Uint8Array(15);
     crypto.getRandomValues(random);
@@ -588,7 +525,6 @@ export class AccountStoreInner {
         },
         fee,
         memo,
-        "block",
         async (result) => {
           if (result && "data" in result && result.data) {
             const dataOutputCipher = Buffer.from(result.data as any, "hex");
@@ -616,8 +552,7 @@ export class AccountStoreInner {
 
             resolve(viewingKey);
           }
-        },
-        onFail
+        }
       );
     });
   }
@@ -629,10 +564,7 @@ export class AccountStoreInner {
     // TODO: Add the `sentFunds`.
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block",
-    onSuccess?: (result?: BroadcastTxResult) => void,
-    onFail?: (e: Error) => void,
-    onFulfill?: () => void
+    onFulfill?: (tx: any) => void
   ): Promise<Uint8Array> {
     const encryptedMsg = await (async () => {
       runInAction(() => {
@@ -659,7 +591,7 @@ export class AccountStoreInner {
       },
     };
 
-    this.sendMsgs([msg], fee, memo, mode, onSuccess, onFail, onFulfill);
+    await this.sendMsgs([msg], fee, memo, onFulfill);
 
     return encryptedMsg;
   }
@@ -691,12 +623,13 @@ export class AccountStoreInner {
     return await enigmaUtils.encrypt(contractCodeHash, obj);
   }
 
+  // Return the tx hash.
   protected async broadcastMsgs(
     msgs: Msg[],
     fee: StdFee,
     memo: string = "",
-    mode: "block" | "async" | "sync" = "block"
-  ): Promise<BroadcastTxResult> {
+    mode: "block" | "async" | "sync" = "async"
+  ): Promise<Uint8Array> {
     if (this.walletStatus !== WalletStatus.Loaded) {
       throw new Error(`Wallet is not loaded: ${this.walletStatus}`);
     }

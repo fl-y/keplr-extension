@@ -54,7 +54,6 @@ const handleRequestBackgroundTxMsg: (
     );
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await service.requestTx(msg.chainId, msg.txBytes, msg.mode!, msg.isRestAPI);
-    return {};
   };
 };
 
