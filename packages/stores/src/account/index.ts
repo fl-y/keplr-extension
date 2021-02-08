@@ -152,6 +152,8 @@ export class AccountStoreInner {
       "/websocket"
     );
     txTracer.traceTx(txHash).then((tx) => {
+      txTracer.close();
+
       runInAction(() => {
         this._isSendingMsg = false;
       });

@@ -41,9 +41,10 @@ export class ObservableQueryBalanceNative extends ObservableQueryBalanceInner {
     return this.nativeBalances.response;
   }
 
-  async fetch(): Promise<void> {
+  readonly fetch = async (): Promise<void> => {
+    console.log(this, this.nativeBalances);
     return this.nativeBalances.fetch();
-  }
+  };
 
   @computed
   get balance(): CoinPretty {

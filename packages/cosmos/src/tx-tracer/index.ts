@@ -66,6 +66,10 @@ export class TendermintTxTracer {
     return url;
   }
 
+  close() {
+    this.ws.close();
+  }
+
   get readyState(): WsReadyState {
     switch (this.ws.readyState) {
       case 0:
