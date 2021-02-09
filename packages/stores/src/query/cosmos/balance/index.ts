@@ -42,7 +42,6 @@ export class ObservableQueryBalanceNative extends ObservableQueryBalanceInner {
   }
 
   readonly fetch = async (): Promise<void> => {
-    console.log(this, this.nativeBalances);
     return this.nativeBalances.fetch();
   };
 
