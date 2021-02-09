@@ -23,6 +23,7 @@ import PQueue from "p-queue";
 
 import { Buffer } from "buffer/";
 import { BondStatus } from "../query/cosmos/staking/types";
+import { DeepReadonly } from "utility-types";
 
 export enum WalletStatus {
   Loading = "Loading",
@@ -31,7 +32,13 @@ export enum WalletStatus {
 }
 
 export interface AccountStoreInnerOpts {
-  reinitializeWhenKeyStoreChanged: boolean;
+  prefetching: boolean;
+  suggestChain: boolean;
+}
+
+export interface AccountStoreOpts {
+  defaultOpts?: Partial<AccountStoreInnerOpts>;
+  chainOpts?: (Partial<AccountStoreInnerOpts> & { chainId: string })[];
 }
 
 export class AccountStoreInner {
@@ -58,13 +65,16 @@ export class AccountStoreInner {
     concurrency: 1,
   });
 
+  public static readonly defaultOpts: DeepReadonly<AccountStoreInnerOpts> = {
+    prefetching: false,
+    suggestChain: false,
+  };
+
   constructor(
     protected readonly chainGetter: ChainGetter,
     protected readonly chainId: string,
     protected readonly queries: Queries,
-    protected readonly opts: AccountStoreInnerOpts = {
-      reinitializeWhenKeyStoreChanged: true,
-    }
+    protected readonly opts: AccountStoreInnerOpts
   ) {
     runInAction(() => {
       this._walletStatus = WalletStatus.Loading;
@@ -81,7 +91,9 @@ export class AccountStoreInner {
   protected async enable(keplr: Keplr, chainId: string): Promise<void> {
     const chainInfo = this.chainGetter.getChain(chainId);
 
-    await keplr.experimentalSuggestChain(chainInfo);
+    if (this.opts.suggestChain) {
+      await keplr.experimentalSuggestChain(chainInfo);
+    }
     await keplr.enable(chainId);
   }
 
@@ -92,12 +104,10 @@ export class AccountStoreInner {
       return;
     }
 
-    if (this.opts.reinitializeWhenKeyStoreChanged) {
-      // If key store in the keplr extension is changed, this event will be dispatched.
-      window.addEventListener("keplr_keystorechange", this.init, {
-        once: true,
-      });
-    }
+    // If key store in the keplr extension is changed, this event will be dispatched.
+    window.addEventListener("keplr_keystorechange", this.init, {
+      once: true,
+    });
 
     // Set wallet status as loading whenever try to init.
     this._walletStatus = WalletStatus.Loading;
@@ -724,18 +734,30 @@ export class AccountStore extends HasMapStore<AccountStoreInner> {
   constructor(
     protected readonly chainGetter: ChainGetter,
     protected readonly queriesStore: QueriesStore,
-    accountPrefetchingChainIds: string[] = []
+    protected readonly opts: AccountStoreOpts = {}
   ) {
     super((chainId: string) => {
       return new AccountStoreInner(
         this.chainGetter,
         chainId,
-        this.queriesStore.get(chainId)
+        this.queriesStore.get(chainId),
+        Object.assign(
+          {},
+          AccountStoreInner.defaultOpts,
+          this.opts.chainOpts?.find((opts) => opts.chainId === chainId)
+        )
       );
     });
 
-    for (const chainId of accountPrefetchingChainIds) {
-      this.getAccount(chainId);
+    const defaultOpts = Object.assign(
+      {},
+      AccountStoreInner.defaultOpts,
+      this.opts.defaultOpts
+    );
+    for (const opts of this.opts.chainOpts ?? []) {
+      if (opts.prefetching || defaultOpts.prefetching) {
+        this.getAccount(opts.chainId);
+      }
     }
   }
 

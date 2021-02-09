@@ -75,7 +75,14 @@ export class RootStore {
       this.chainStore
     );
 
-    this.accountStore = new AccountStore(this.chainStore, this.queriesStore);
+    this.accountStore = new AccountStore(this.chainStore, this.queriesStore, {
+      defaultOpts: {
+        prefetching: true,
+      },
+      chainOpts: this.chainStore.chainInfos.map((chainInfo) => {
+        return { chainId: chainInfo.chainId };
+      }),
+    });
 
     this.priceStore = new CoinGeckoPriceStore(
       new BrowserKVStore("store_prices"),
