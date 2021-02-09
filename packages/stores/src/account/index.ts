@@ -184,12 +184,17 @@ export class AccountStoreInner {
     runInAction(() => {
       this._isSendingMsg = true;
     });
-    const txHash = await this.broadcastMsgs(
-      msgs,
-      fee,
-      memo,
-      this.broadcastMode
-    );
+
+    let txHash: Uint8Array | undefined;
+    try {
+      txHash = await this.broadcastMsgs(msgs, fee, memo, this.broadcastMode);
+    } catch (e) {
+      runInAction(() => {
+        this._isSendingMsg = false;
+      });
+
+      throw e;
+    }
 
     const txTracer = new TendermintTxTracer(
       this.chainGetter.getChain(this.chainId).rpc,
