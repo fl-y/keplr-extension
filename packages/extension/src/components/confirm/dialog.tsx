@@ -30,7 +30,7 @@ export const ConfirmDialog: FunctionComponent<{
           color="default"
           outline
           onClick={useCallback(
-            e => {
+            (e) => {
               if (onReject) {
                 onReject();
               }
@@ -46,7 +46,7 @@ export const ConfirmDialog: FunctionComponent<{
           size="sm"
           color="primary"
           onClick={useCallback(
-            e => {
+            (e) => {
               if (onConfirm) {
                 onConfirm();
               }

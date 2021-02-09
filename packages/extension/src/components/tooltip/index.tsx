@@ -19,11 +19,11 @@ interface ToolTipState {
 
 export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
   static defaultProps = {
-    theme: "dark"
+    theme: "dark",
   };
 
   state = {
-    show: false
+    show: false,
   };
 
   private ref = React.createRef<HTMLDivElement>();
@@ -46,7 +46,7 @@ export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
       if (!options.modifiers) {
         options.modifiers = {};
         options.modifiers.arrow = {
-          enabled: true
+          enabled: true,
         };
       }
 
@@ -93,7 +93,7 @@ export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
         ref={this.ref}
         className={classNames({
           [style.bright]: theme === "bright",
-          show: show
+          show: show,
         })}
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
@@ -107,7 +107,7 @@ export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
               width: "100%",
               height: "100%",
               top: 0,
-              left: 0
+              left: 0,
             }}
           />
         )}
@@ -117,7 +117,7 @@ export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
           className="popper"
           style={{
             visibility: show ? "visible" : "hidden",
-            opacity: show ? 1 : 0
+            opacity: show ? 1 : 0,
           }}
         >
           <div x-arrow="" />
@@ -131,7 +131,7 @@ export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
   // This doesn't work if trigger is static
   public toggle = () => {
     this.setState({
-      show: !this.state.show
+      show: !this.state.show,
     });
   };
 
@@ -139,7 +139,7 @@ export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
     if (this.props.trigger !== "click") return;
 
     this.setState({
-      show: !this.state.show
+      show: !this.state.show,
     });
 
     if (this.bodyClicked) {
@@ -152,7 +152,7 @@ export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
 
     this.hover = true;
     this.setState({
-      show: true
+      show: true,
     });
   };
 
@@ -164,7 +164,7 @@ export class ToolTip extends React.Component<ToolTipProps, ToolTipState> {
     setTimeout(() => {
       if (!this.hover) {
         this.setState({
-          show: false
+          show: false,
         });
       }
     }, 150);

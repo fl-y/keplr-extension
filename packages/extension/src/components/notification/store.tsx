@@ -6,9 +6,7 @@ export const NotificationStoreContext = React.createContext<NotificationStore | 
   null
 );
 
-export const NotificationStoreProvider: FunctionComponent<{}> = ({
-  children
-}) => (
+export const NotificationStoreProvider: FunctionComponent = ({ children }) => (
   <NotificationStoreContext.Provider value={new NotificationStore()}>
     {children}
   </NotificationStoreContext.Provider>
@@ -68,7 +66,7 @@ export class NotificationStore {
 
   @action
   removeTopLeftProperty(id: string) {
-    const target = this.topLeftProperties.find(property => {
+    const target = this.topLeftProperties.find((property) => {
       return property.id === id;
     });
 
@@ -79,7 +77,7 @@ export class NotificationStore {
 
   @action
   removeTopCenterProperty(id: string) {
-    const target = this.topCenterProperties.find(property => {
+    const target = this.topCenterProperties.find((property) => {
       return property.id === id;
     });
 
@@ -90,7 +88,7 @@ export class NotificationStore {
 
   @action
   removeTopRightProperty(id: string) {
-    const target = this.topRightProperties.find(property => {
+    const target = this.topRightProperties.find((property) => {
       return property.id === id;
     });
 

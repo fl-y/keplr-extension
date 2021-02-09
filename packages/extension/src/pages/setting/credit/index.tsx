@@ -1,5 +1,5 @@
-import React, { FunctionComponent, useCallback } from "react";
-import { HeaderLayout } from "../../../layouts/header-layout";
+import React, { FunctionComponent } from "react";
+import { HeaderLayout } from "../../../layouts";
 import { useHistory } from "react-router";
 import { useIntl } from "react-intl";
 import { PageButton } from "../page-button";
@@ -15,42 +15,42 @@ export const CreditPage: FunctionComponent = () => {
       showChainName={false}
       canChangeChainInfo={false}
       alternativeTitle={intl.formatMessage({
-        id: "setting.credit"
+        id: "setting.credit",
       })}
-      onBackButton={useCallback(() => {
+      onBackButton={() => {
         history.goBack();
-      }, [history])}
+      }}
     >
       <div className={style.container}>
         <PageButton
           title="Cosmos Hub node"
           paragraph="Provided by Figment Networks Datahub"
-          onClick={useCallback(e => {
+          onClick={(e) => {
             e.preventDefault();
             browser.tabs.create({
-              url: "https://figment.network"
+              url: "https://figment.network",
             });
-          }, [])}
+          }}
         />
         <PageButton
           title="Price data"
           paragraph="Provided by Coingecko API"
-          onClick={useCallback(e => {
+          onClick={(e) => {
             e.preventDefault();
             browser.tabs.create({
-              url: "https://www.coingecko.com/"
+              url: "https://www.coingecko.com/",
             });
-          }, [])}
+          }}
         />
         <PageButton
           title="Development grant support"
           paragraph="Provided by grant.fish"
-          onClick={useCallback(e => {
+          onClick={(e) => {
             e.preventDefault();
             browser.tabs.create({
-              url: "https://stake.fish"
+              url: "https://stake.fish",
             });
-          }, [])}
+          }}
         />
       </div>
     </HeaderLayout>

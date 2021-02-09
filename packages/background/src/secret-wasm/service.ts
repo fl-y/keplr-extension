@@ -45,6 +45,7 @@ export class SecretWasmService {
     env: Env,
     chainId: string,
     contractCodeHash: string,
+    // eslint-disable-next-line @typescript-eslint/ban-types
     msg: object
   ): Promise<Uint8Array> {
     const chainInfo = await this.chainsService.getChainInfo(chainId);

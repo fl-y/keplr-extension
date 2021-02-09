@@ -4,7 +4,7 @@ import React, {
   useCallback,
   useContext,
   useMemo,
-  useState
+  useState,
 } from "react";
 import { ModalBody, Modal } from "reactstrap";
 
@@ -43,7 +43,7 @@ export const ConfirmProvider: FunctionComponent = ({ children }) => {
         currentConfirm.reject();
       }
 
-      return new Promise<boolean>(resolve => {
+      return new Promise<boolean>((resolve) => {
         let resolved = false;
 
         // Resolver resolves `true` and close the dialog.
@@ -67,7 +67,7 @@ export const ConfirmProvider: FunctionComponent = ({ children }) => {
         setCurrentConfirm(
           Object.assign({}, options, {
             resolve: resolver,
-            reject: rejector
+            reject: rejector,
           })
         );
         setIsDialogOpen(true);

@@ -9,7 +9,7 @@ interface Props {
   style?: CSSProperties;
 }
 
-export const EmptyLayout: FunctionComponent<Props> = props => {
+export const EmptyLayout: FunctionComponent<Props> = (props) => {
   const { children } = props;
 
   return (

@@ -29,6 +29,7 @@ export class KeplrEnigmaUtils implements SecretUtils {
 
   public encrypt = async (
     contractCodeHash: string,
+    // eslint-disable-next-line @typescript-eslint/ban-types
     msg: object
   ): Promise<Uint8Array> => {
     // TODO: Set id.

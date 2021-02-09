@@ -41,6 +41,7 @@ export class ReqeustEncryptMsg extends Message<string> {
   constructor(
     public readonly chainId: string,
     public readonly contractCodeHash: string,
+    // eslint-disable-next-line @typescript-eslint/ban-types
     public readonly msg: object
   ) {
     super();

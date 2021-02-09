@@ -83,6 +83,7 @@ interface MsgInstantiateContract {
     sender: string;
     code_id: string;
     label: string;
+    // eslint-disable-next-line @typescript-eslint/ban-types
     init_msg: object;
     init_funds: [
       {
@@ -99,6 +100,7 @@ interface MsgExecuteContract {
   value: {
     contract: string;
     // If message is for secret-wasm, msg will be the base64 encoded and encrypted string.
+    // eslint-disable-next-line @typescript-eslint/ban-types
     msg: object | string;
     sender: string;
     sent_funds: [
@@ -444,6 +446,7 @@ export function renderMessage(
 }
 /* eslint-enable react/display-name */
 export const WasmExecutionMsgView: FunctionComponent<{
+  // eslint-disable-next-line @typescript-eslint/ban-types
   msg: object | string;
 }> = observer(({ msg }) => {
   const { chainStore } = useStore();

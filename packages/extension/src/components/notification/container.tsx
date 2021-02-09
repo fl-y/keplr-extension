@@ -14,21 +14,21 @@ export const NotificationContainer: FunctionComponent<Props> = ({
   id,
   properties,
   initial,
-  variants
+  variants,
 }) => {
   const notification = useNotification();
 
   return (
     <motion.ul id={id} style={{ listStyle: "none" }}>
       <AnimatePresence>
-        {properties.map(property => {
+        {properties.map((property) => {
           return (
             <motion.li
               initial={initial}
               variants={variants}
               animate="visible"
               transition={{
-                duration: property.transition.duration
+                duration: property.transition.duration,
               }}
               exit="hidden"
               key={property.id}

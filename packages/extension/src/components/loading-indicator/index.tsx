@@ -2,7 +2,7 @@ import React, {
   createContext,
   FunctionComponent,
   useContext,
-  useState
+  useState,
 } from "react";
 import { Modal } from "reactstrap";
 
@@ -24,13 +24,13 @@ export const LoadingIndicatorProvider: FunctionComponent = ({ children }) => {
     }[]
   >([]);
 
-  const isLoading = loadingList.find(loading => loading.isLoading) != null;
+  const isLoading = loadingList.find((loading) => loading.isLoading) != null;
 
   return (
     <LoadingIndicatorContext.Provider
       value={{
         setIsLoading: (type: string, isLoading: boolean) => {
-          const loading = loadingList.find(loading => loading.type === type);
+          const loading = loadingList.find((loading) => loading.type === type);
 
           if (loading) {
             if (loading.isLoading === isLoading) {
@@ -42,11 +42,11 @@ export const LoadingIndicatorProvider: FunctionComponent = ({ children }) => {
             setLoadingList(
               loadingList.concat({
                 type,
-                isLoading
+                isLoading,
               })
             );
           }
-        }
+        },
       }}
     >
       {isLoading ? (

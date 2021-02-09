@@ -2,7 +2,7 @@ import React, {
   FunctionComponent,
   useCallback,
   useContext,
-  useRef
+  useRef,
 } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -33,17 +33,17 @@ const sidebar = {
     transition: {
       type: "tween",
       ease: "easeOut",
-      duration: 0.3
-    }
+      duration: 0.3,
+    },
   },
   closed: {
     x: "-100%",
     transition: {
       type: "tween",
       ease: "easeOut",
-      duration: 0.15
-    }
-  }
+      duration: 0.15,
+    },
+  },
 };
 
 const background = {
@@ -52,17 +52,17 @@ const background = {
     transition: {
       type: "tween",
       ease: "easeOut",
-      duration: 0.3
-    }
+      duration: 0.3,
+    },
   },
   closed: {
     opacity: 0,
     transition: {
       type: "tween",
       ease: "easeOut",
-      duration: 0.15
-    }
-  }
+      duration: 0.15,
+    },
+  },
 };
 
 export interface Props {
