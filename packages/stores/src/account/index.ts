@@ -21,9 +21,11 @@ import { QueriesStore } from "../query";
 import { Queries } from "../query/queries";
 import PQueue from "p-queue";
 
-import { Buffer } from "buffer/";
 import { BondStatus } from "../query/cosmos/staking/types";
-import { DeepReadonly } from "utility-types";
+
+import { Buffer } from "buffer/";
+import { DeepPartial, DeepReadonly } from "utility-types";
+import deepmerge from "deepmerge";
 
 export enum WalletStatus {
   Loading = "Loading",
@@ -31,14 +33,31 @@ export enum WalletStatus {
   NotExist = "NotExist",
 }
 
+export interface MsgGasOpts {
+  send: {
+    native: number;
+    cw20: number;
+    secret20: number;
+  };
+  delegate: number;
+  undelegate: number;
+  redelegate: number;
+  // The gas multiplication per rewards.
+  withdrawRewards: number;
+  govVote: number;
+
+  createSecret20ViewingKey: number;
+}
+
 export interface AccountStoreInnerOpts {
   prefetching: boolean;
   suggestChain: boolean;
+  gasOpts: MsgGasOpts;
 }
 
 export interface AccountStoreOpts {
-  defaultOpts?: Partial<AccountStoreInnerOpts>;
-  chainOpts?: (Partial<AccountStoreInnerOpts> & { chainId: string })[];
+  defaultOpts?: DeepPartial<AccountStoreInnerOpts>;
+  chainOpts?: (DeepPartial<AccountStoreInnerOpts> & { chainId: string })[];
 }
 
 export class AccountStoreInner {
@@ -68,6 +87,21 @@ export class AccountStoreInner {
   public static readonly defaultOpts: DeepReadonly<AccountStoreInnerOpts> = {
     prefetching: false,
     suggestChain: false,
+    gasOpts: {
+      send: {
+        native: 80000,
+        cw20: 250000,
+        secret20: 250000,
+      },
+      delegate: 250000,
+      undelegate: 250000,
+      redelegate: 250000,
+      // The gas multiplication per rewards.
+      withdrawRewards: 140000,
+      govVote: 250000,
+
+      createSecret20ViewingKey: 150000,
+    },
   };
 
   constructor(
@@ -184,7 +218,6 @@ export class AccountStoreInner {
     amount: string,
     currency: AppCurrency,
     recipient: string,
-    fee: StdFee,
     memo: string = "",
     onFulfill?: (tx: any) => void
   ) {
@@ -214,7 +247,10 @@ export class AccountStoreInner {
               },
             },
           ],
-          fee,
+          {
+            amount: [],
+            gas: this.opts.gasOpts.send.native.toString(),
+          },
           memo,
           (tx) => {
             if (tx.code == null || tx.code === 0) {
@@ -251,7 +287,10 @@ export class AccountStoreInner {
               amount: actualAmount,
             },
           },
-          fee,
+          {
+            amount: [],
+            gas: this.opts.gasOpts.send.secret20.toString(),
+          },
           memo,
           (tx) => {
             if (tx.code == null || tx.code === 0) {
@@ -286,14 +325,12 @@ export class AccountStoreInner {
    * @param amount Decimal number used by humans.
    *               If amount is 0.1 and the stake currenct is uatom, actual amount will be changed to the 100000uatom.
    * @param validatorAddress
-   * @param fee
    * @param memo
    * @param onFulfill
    */
   async sendDelegateMsg(
     amount: string,
     validatorAddress: string,
-    fee: StdFee,
     memo: string = "",
     onFulfill?: (tx: any) => void
   ) {
@@ -314,27 +351,35 @@ export class AccountStoreInner {
       },
     };
 
-    await this.sendMsgs([msg], fee, memo, (tx) => {
-      if (tx.code == null || tx.code === 0) {
-        // After succeeding to delegate, refresh the validators and delegations, rewards.
-        this.queries
-          .getQueryValidators()
-          .getQueryStatus(BondStatus.Bonded)
-          .fetch();
-        this.queries
-          .getQueryDelegations()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-        this.queries
-          .getQueryRewards()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-      }
+    await this.sendMsgs(
+      [msg],
+      {
+        amount: [],
+        gas: this.opts.gasOpts.delegate.toString(),
+      },
+      memo,
+      (tx) => {
+        if (tx.code == null || tx.code === 0) {
+          // After succeeding to delegate, refresh the validators and delegations, rewards.
+          this.queries
+            .getQueryValidators()
+            .getQueryStatus(BondStatus.Bonded)
+            .fetch();
+          this.queries
+            .getQueryDelegations()
+            .getQueryBech32Address(this.bech32Address)
+            .fetch();
+          this.queries
+            .getQueryRewards()
+            .getQueryBech32Address(this.bech32Address)
+            .fetch();
+        }
 
-      if (onFulfill) {
-        onFulfill(tx);
+        if (onFulfill) {
+          onFulfill(tx);
+        }
       }
-    });
+    );
   }
 
   /**
@@ -342,14 +387,12 @@ export class AccountStoreInner {
    * @param amount Decimal number used by humans.
    *               If amount is 0.1 and the stake currenct is uatom, actual amount will be changed to the 100000uatom.
    * @param validatorAddress
-   * @param fee
    * @param memo
    * @param onFulfill
    */
   async sendUndelegateMsg(
     amount: string,
     validatorAddress: string,
-    fee: StdFee,
     memo: string = "",
     onFulfill?: (tx: any) => void
   ) {
@@ -370,31 +413,39 @@ export class AccountStoreInner {
       },
     };
 
-    await this.sendMsgs([msg], fee, memo, (tx) => {
-      if (tx.code == null || tx.code === 0) {
-        // After succeeding to unbond, refresh the validators and delegations, unbonding delegations, rewards.
-        this.queries
-          .getQueryValidators()
-          .getQueryStatus(BondStatus.Bonded)
-          .fetch();
-        this.queries
-          .getQueryDelegations()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-        this.queries
-          .getQueryUnbondingDelegations()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-        this.queries
-          .getQueryRewards()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-      }
+    await this.sendMsgs(
+      [msg],
+      {
+        amount: [],
+        gas: this.opts.gasOpts.undelegate.toString(),
+      },
+      memo,
+      (tx) => {
+        if (tx.code == null || tx.code === 0) {
+          // After succeeding to unbond, refresh the validators and delegations, unbonding delegations, rewards.
+          this.queries
+            .getQueryValidators()
+            .getQueryStatus(BondStatus.Bonded)
+            .fetch();
+          this.queries
+            .getQueryDelegations()
+            .getQueryBech32Address(this.bech32Address)
+            .fetch();
+          this.queries
+            .getQueryUnbondingDelegations()
+            .getQueryBech32Address(this.bech32Address)
+            .fetch();
+          this.queries
+            .getQueryRewards()
+            .getQueryBech32Address(this.bech32Address)
+            .fetch();
+        }
 
-      if (onFulfill) {
-        onFulfill(tx);
+        if (onFulfill) {
+          onFulfill(tx);
+        }
       }
-    });
+    );
   }
 
   /**
@@ -403,7 +454,6 @@ export class AccountStoreInner {
    *               If amount is 0.1 and the stake currenct is uatom, actual amount will be changed to the 100000uatom.
    * @param srcValidatorAddress
    * @param dstValidatorAddress
-   * @param fee
    * @param memo
    * @param onFulfill
    */
@@ -411,7 +461,6 @@ export class AccountStoreInner {
     amount: string,
     srcValidatorAddress: string,
     dstValidatorAddress: string,
-    fee: StdFee,
     memo: string = "",
     onFulfill?: (tx: any) => void
   ) {
@@ -433,32 +482,39 @@ export class AccountStoreInner {
       },
     };
 
-    await this.sendMsgs([msg], fee, memo, (tx) => {
-      if (tx.code == null || tx.code === 0) {
-        // After succeeding to redelegate, refresh the validators and delegations, rewards.
-        this.queries
-          .getQueryValidators()
-          .getQueryStatus(BondStatus.Bonded)
-          .fetch();
-        this.queries
-          .getQueryDelegations()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-        this.queries
-          .getQueryRewards()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-      }
+    await this.sendMsgs(
+      [msg],
+      {
+        amount: [],
+        gas: this.opts.gasOpts.redelegate.toString(),
+      },
+      memo,
+      (tx) => {
+        if (tx.code == null || tx.code === 0) {
+          // After succeeding to redelegate, refresh the validators and delegations, rewards.
+          this.queries
+            .getQueryValidators()
+            .getQueryStatus(BondStatus.Bonded)
+            .fetch();
+          this.queries
+            .getQueryDelegations()
+            .getQueryBech32Address(this.bech32Address)
+            .fetch();
+          this.queries
+            .getQueryRewards()
+            .getQueryBech32Address(this.bech32Address)
+            .fetch();
+        }
 
-      if (onFulfill) {
-        onFulfill(tx);
+        if (onFulfill) {
+          onFulfill(tx);
+        }
       }
-    });
+    );
   }
 
   async sendWithdrawDelegationRewardMsgs(
     validatorAddresses: string[],
-    fee: StdFee,
     memo: string = "",
     onFulfill?: (tx: any) => void
   ) {
@@ -472,25 +528,34 @@ export class AccountStoreInner {
       };
     });
 
-    await this.sendMsgs(msgs, fee, memo, (tx) => {
-      if (tx.code == null || tx.code === 0) {
-        // After succeeding to withdraw rewards, refresh rewards.
-        this.queries
-          .getQueryRewards()
-          .getQueryBech32Address(this.bech32Address)
-          .fetch();
-      }
+    await this.sendMsgs(
+      msgs,
+      {
+        amount: [],
+        gas: (
+          this.opts.gasOpts.withdrawRewards * validatorAddresses.length
+        ).toString(),
+      },
+      memo,
+      (tx) => {
+        if (tx.code == null || tx.code === 0) {
+          // After succeeding to withdraw rewards, refresh rewards.
+          this.queries
+            .getQueryRewards()
+            .getQueryBech32Address(this.bech32Address)
+            .fetch();
+        }
 
-      if (onFulfill) {
-        onFulfill(tx);
+        if (onFulfill) {
+          onFulfill(tx);
+        }
       }
-    });
+    );
   }
 
   async sendGovVoteMsg(
     proposalId: string,
     option: "Yes" | "No" | "Abstain" | "NoWithVeto",
-    fee: StdFee,
     memo: string = "",
     onFulfill?: (tx: any) => void
   ) {
@@ -503,26 +568,33 @@ export class AccountStoreInner {
       },
     };
 
-    await this.sendMsgs([msg], fee, memo, (tx) => {
-      if (tx.code == null || tx.code === 0) {
-        // After succeeding to vote, refresh the proposal.
-        const proposal = this.queries
-          .getQueryGovernance()
-          .proposals.find((proposal) => proposal.id === proposalId);
-        if (proposal) {
-          proposal.fetch();
+    await this.sendMsgs(
+      [msg],
+      {
+        amount: [],
+        gas: this.opts.gasOpts.govVote.toString(),
+      },
+      memo,
+      (tx) => {
+        if (tx.code == null || tx.code === 0) {
+          // After succeeding to vote, refresh the proposal.
+          const proposal = this.queries
+            .getQueryGovernance()
+            .proposals.find((proposal) => proposal.id === proposalId);
+          if (proposal) {
+            proposal.fetch();
+          }
+        }
+
+        if (onFulfill) {
+          onFulfill(tx);
         }
       }
-
-      if (onFulfill) {
-        onFulfill(tx);
-      }
-    });
+    );
   }
 
   async createSecret20ViewingKey(
     contractAddress: string,
-    fee: StdFee,
     memo: string = ""
   ): Promise<string> {
     const random = new Uint8Array(15);
@@ -535,7 +607,10 @@ export class AccountStoreInner {
         {
           create_viewing_key: { entropy },
         },
-        fee,
+        {
+          amount: [],
+          gas: this.opts.gasOpts.createSecret20ViewingKey.toString(),
+        },
         memo,
         async (result) => {
           if (result && "data" in result && result.data) {
@@ -741,18 +816,16 @@ export class AccountStore extends HasMapStore<AccountStoreInner> {
         this.chainGetter,
         chainId,
         this.queriesStore.get(chainId),
-        Object.assign(
-          {},
+        deepmerge(
           AccountStoreInner.defaultOpts,
-          this.opts.chainOpts?.find((opts) => opts.chainId === chainId)
+          this.opts.chainOpts?.find((opts) => opts.chainId === chainId) ?? {}
         )
       );
     });
 
-    const defaultOpts = Object.assign(
-      {},
+    const defaultOpts = deepmerge(
       AccountStoreInner.defaultOpts,
-      this.opts.defaultOpts
+      this.opts.defaultOpts ?? {}
     );
     for (const opts of this.opts.chainOpts ?? []) {
       if (opts.prefetching || defaultOpts.prefetching) {

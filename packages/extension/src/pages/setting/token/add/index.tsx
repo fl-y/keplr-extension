@@ -53,16 +53,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
 
   const createViewingKey = async () => {
     const viewingKey = await accountInfo.createSecret20ViewingKey(
-      contractAddress,
-      {
-        gas: "150000",
-        amount: [
-          {
-            denom: "test",
-            amount: "1",
-          },
-        ],
-      }
+      contractAddress
     );
 
     console.log(viewingKey);

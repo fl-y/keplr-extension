@@ -44,12 +44,6 @@ export const StakeView: FunctionComponent = observer(() => {
       try {
         await accountInfo.sendWithdrawDelegationRewardMsgs(
           rewards.pendingRewardValidatorAddresses,
-          {
-            amount: [{ denom: "uatom", amount: "1" }],
-            gas: (
-              rewards.pendingRewardValidatorAddresses.length * 140000
-            ).toString(),
-          },
           ""
         );
 

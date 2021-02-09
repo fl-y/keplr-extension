@@ -88,7 +88,6 @@ export const SendPage: FunctionComponent = observer(() => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 txConfig.sendCurrency!,
                 txConfig.recipient,
-                txConfig.toStdFee(),
                 txConfig.memo
               );
               history.replace("/");
