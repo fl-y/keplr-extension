@@ -14,9 +14,11 @@ import { FormattedMessage, useIntl } from "react-intl";
 
 import { useHistory } from "react-router";
 import { observer } from "mobx-react";
-import { useInteractionInfo } from "@keplr/hooks";
-
-import { Buffer } from "buffer/";
+import {
+  useInteractionInfo,
+  useSignDocHelper,
+  useTxConfig,
+} from "@keplr/hooks";
 
 enum Tab {
   Details,
@@ -30,33 +32,36 @@ export const SignPage: FunctionComponent = observer(() => {
 
   const intl = useIntl();
 
-  const { chainStore, keyRingStore, signInteractionStore } = useStore();
+  const {
+    chainStore,
+    accountStore,
+    queriesStore,
+    keyRingStore,
+    signInteractionStore,
+  } = useStore();
   const interactionInfo = useInteractionInfo(() => {
     signInteractionStore.rejectAll();
   });
 
+  const current = chainStore.current;
+  const txConfig = useTxConfig(
+    chainStore,
+    current.chainId,
+    accountStore.getAccount(current.chainId).bech32Address,
+    queriesStore.get(current.chainId).getQueryBalances()
+  );
+
+  const signDoc = signInteractionStore.waitingData?.signDoc;
+  const signDocHelper = useSignDocHelper(chainStore);
+
+  signDocHelper.setFeeAmount(txConfig.toStdFee().amount);
+
   useEffect(() => {
     if (signInteractionStore.waitingData) {
       chainStore.selectChain(signInteractionStore.waitingData.chainId);
+      signDocHelper.setSignDoc(signInteractionStore.waitingData.signDoc);
     }
-  }, [chainStore, signInteractionStore.waitingData]);
-
-  // Approve signing automatically if key type is ledger.
-  useEffect(() => {
-    if (keyRingStore.keyRingType === "ledger") {
-      if (signInteractionStore.waitingData) {
-        signInteractionStore.approve();
-      }
-    }
-  }, [
-    keyRingStore.keyRingType,
-    signInteractionStore,
-    signInteractionStore.waitingData,
-  ]);
-
-  const message = signInteractionStore.waitingData
-    ? Buffer.from(signInteractionStore.waitingData.messageHex, "hex").toString()
-    : "";
+  }, [chainStore, signDocHelper, signInteractionStore.waitingData]);
 
   return (
     <HeaderLayout
@@ -101,8 +106,10 @@ export const SignPage: FunctionComponent = observer(() => {
           </ul>
         </div>
         <div className={style.tabContainer}>
-          {tab === Tab.Data ? <DataTab message={message} /> : null}
-          {tab === Tab.Details ? <DetailsTab message={message} /> : null}
+          {tab === Tab.Data ? <DataTab signDocHelper={signDocHelper} /> : null}
+          {tab === Tab.Details ? (
+            <DetailsTab signDocHelper={signDocHelper} txConfig={txConfig} />
+          ) : null}
         </div>
         <div style={{ flex: 1 }} />
         <div className={style.buttons}>
@@ -121,7 +128,7 @@ export const SignPage: FunctionComponent = observer(() => {
               <Button
                 className={style.button}
                 color="danger"
-                disabled={message === ""}
+                disabled={signDoc == null || signDocHelper.signDoc == null}
                 data-loading={signInteractionStore.isLoading}
                 onClick={(e) => {
                   e.preventDefault();
@@ -137,12 +144,14 @@ export const SignPage: FunctionComponent = observer(() => {
               <Button
                 className={style.button}
                 color="primary"
-                disabled={message === ""}
+                disabled={signDoc == null || signDocHelper.signDoc == null}
                 data-loading={signInteractionStore.isLoading}
                 onClick={(e) => {
                   e.preventDefault();
 
-                  signInteractionStore.approve();
+                  if (signDocHelper.signDoc) {
+                    signInteractionStore.approve(signDocHelper.signDoc);
+                  }
                 }}
               >
                 {intl.formatMessage({

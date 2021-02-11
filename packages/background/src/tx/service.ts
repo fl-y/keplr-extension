@@ -56,6 +56,9 @@ export class BackgroundTxService {
 
     try {
       const result = await restInstance.post("/txs", params);
+      if (result.data.code != null && result.data.code !== 0) {
+        throw new Error(result.data["raw_log"]);
+      }
 
       const txHash = Buffer.from(result.data.txhash, "hex");
 

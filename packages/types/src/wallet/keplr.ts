@@ -1,6 +1,11 @@
 import { ChainInfo } from "../chain-info";
 import { TxBuilderConfigPrimitive } from "../tx";
-import { BroadcastMode, StdTx } from "@cosmjs/launchpad";
+import {
+  BroadcastMode,
+  SignResponse,
+  StdSignDoc,
+  StdTx,
+} from "@cosmjs/launchpad";
 import { SecretUtils } from "secretjs/types/enigmautils";
 
 // TODO: Return the `Uint8Array` instead of hex string.
@@ -26,10 +31,8 @@ export interface Keplr {
   sign(
     chainId: string,
     signer: string,
-    message: Uint8Array
-  ): Promise<{
-    signatureHex: string;
-  }>;
+    signDoc: StdSignDoc
+  ): Promise<SignResponse>;
   sendTx(
     chainId: string,
     stdTx: StdTx,

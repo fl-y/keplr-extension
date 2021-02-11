@@ -5,7 +5,12 @@ import {
   TxBuilderConfigPrimitive,
 } from "@keplr/types";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
-import { BroadcastMode, StdTx } from "@cosmjs/launchpad";
+import {
+  BroadcastMode,
+  SignResponse,
+  StdSignDoc,
+  StdTx,
+} from "@cosmjs/launchpad";
 import {
   EnableKeyRingMsg,
   SuggestChainInfoMsg,
@@ -17,7 +22,6 @@ import {
 } from "@keplr/background";
 import { SecretUtils } from "secretjs/types/enigmautils";
 
-import { Buffer } from "buffer/";
 import { KeplrEnigmaUtils } from "./enigma";
 
 export class Keplr implements IKeplr {
@@ -68,14 +72,9 @@ export class Keplr implements IKeplr {
   async sign(
     chainId: string,
     signer: string,
-    message: Uint8Array
-  ): Promise<{ signatureHex: string }> {
-    const msg = new RequestSignMsg(
-      chainId,
-      signer,
-      Buffer.from(message).toString("hex"),
-      false
-    );
+    signDoc: StdSignDoc
+  ): Promise<SignResponse> {
+    const msg = new RequestSignMsg(chainId, signer, signDoc);
     return await this.requester.sendMessage(BACKGROUND_PORT, msg);
   }
 

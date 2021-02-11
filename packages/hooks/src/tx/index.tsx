@@ -311,7 +311,11 @@ export class TxConfig {
       throw new Error("TODO: Implement advanced fee setting");
     }
 
-    return this.getFeeTypePrimitive(this.feeType);
+    const primitive = this.getFeeTypePrimitive(this.feeType);
+    return {
+      amount: primitive.amount,
+      denom: primitive.denom,
+    };
   }
 
   toStdFee(): StdFee {

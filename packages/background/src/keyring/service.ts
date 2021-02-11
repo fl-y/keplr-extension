@@ -30,7 +30,14 @@ import {
   RequestTxBuilderConfigMsg,
 } from "./messages";
 
-import { Buffer } from "buffer/";
+import { Hash } from "@keplr/crypto";
+import {
+  encodeSecp256k1Signature,
+  serializeSignDoc,
+  SignResponse,
+  StdSignDoc,
+} from "@cosmjs/launchpad";
+
 import { RNG } from "@keplr/crypto";
 
 @singleton()
@@ -208,34 +215,29 @@ export class KeyRingService {
   async requestSign(
     env: Env,
     chainId: string,
-    message: Uint8Array,
-    skipApprove: boolean
-  ): Promise<Uint8Array> {
-    if (skipApprove) {
-      return await this.keyRing.sign(
-        env,
-        chainId,
-        await this.chainsService.getChainCoinType(chainId),
-        message
-      );
-    }
-
-    await this.interactionService.waitApprove(
+    signDoc: StdSignDoc
+  ): Promise<SignResponse> {
+    const newSignDoc = (await this.interactionService.waitApprove(
       env,
       "/sign",
       RequestSignMsg.type(),
       {
         chainId,
-        messageHex: Buffer.from(message).toString("hex"),
+        signDoc,
       }
-    );
+    )) as StdSignDoc;
 
-    return await this.keyRing.sign(
-      env,
-      chainId,
-      await this.chainsService.getChainCoinType(chainId),
-      message
-    );
+    const coinType = await this.chainsService.getChainCoinType(chainId);
+
+    const message = Hash.sha256(serializeSignDoc(newSignDoc));
+    const signature = await this.keyRing.sign(env, chainId, coinType, message);
+
+    const key = await this.keyRing.getKey(chainId, coinType);
+
+    return {
+      signed: newSignDoc,
+      signature: encodeSecp256k1Signature(key.pubKey, signature),
+    };
   }
 
   async sign(

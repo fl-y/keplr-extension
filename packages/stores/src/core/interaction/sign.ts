@@ -2,6 +2,7 @@ import { InteractionStore } from "./interaction";
 import { RequestSignMsg } from "@keplr/background";
 import { autorun, observable, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
+import { StdSignDoc } from "@cosmjs/launchpad";
 
 export class SignInteractionStore {
   @observable
@@ -27,7 +28,7 @@ export class SignInteractionStore {
   protected get waitingDatas() {
     return this.interactionStore.getDatas<{
       chainId: string;
-      messageHex: string;
+      signDoc: StdSignDoc;
     }>(RequestSignMsg.type());
   }
 
@@ -42,7 +43,7 @@ export class SignInteractionStore {
   }
 
   @actionAsync
-  async approve() {
+  async approve(newSignDoc: StdSignDoc) {
     if (this.waitingDatas.length === 0) {
       return;
     }
@@ -53,7 +54,7 @@ export class SignInteractionStore {
         this.interactionStore.approve(
           RequestSignMsg.type(),
           this.waitingDatas[0].id,
-          {}
+          newSignDoc
         )
       );
     } finally {

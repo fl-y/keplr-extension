@@ -14,6 +14,8 @@ import {
 import { Bech32Address } from "@keplr/cosmos";
 import { BIP44, KeyHex } from "@keplr/types";
 
+import { StdSignDoc, SignResponse } from "@cosmjs/launchpad";
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bip39 = require("bip39");
 import { Buffer } from "buffer/";
@@ -449,7 +451,7 @@ export class RequestTxBuilderConfigMsg extends Message<{
   }
 }
 
-export class RequestSignMsg extends Message<{ signatureHex: string }> {
+export class RequestSignMsg extends Message<SignResponse> {
   public static type() {
     return "request-sign";
   }
@@ -457,9 +459,7 @@ export class RequestSignMsg extends Message<{ signatureHex: string }> {
   constructor(
     public readonly chainId: string,
     public readonly bech32Address: string,
-    // Hex encoded message.
-    public readonly messageHex: string,
-    public readonly skipApprove: boolean = false
+    public readonly signDoc: StdSignDoc
   ) {
     super();
   }
@@ -473,19 +473,10 @@ export class RequestSignMsg extends Message<{ signatureHex: string }> {
       throw new Error("bech32 address not set");
     }
 
-    if (!this.messageHex) {
-      throw new Error("message is empty");
-    }
-
     // Validate bech32 address.
     Bech32Address.validate(this.bech32Address);
 
-    // Check that message is encoded as hex.
-    const buffer = Buffer.from(this.messageHex, "hex");
-
-    // Message should be json.
-    const message = JSON.parse(buffer.toString());
-    if (message["chain_id"] !== this.chainId) {
+    if (this.signDoc.chain_id !== this.chainId) {
       throw new Error(
         "Chain id in the message is not matched with the requested chain id"
       );
@@ -493,8 +484,7 @@ export class RequestSignMsg extends Message<{ signatureHex: string }> {
   }
 
   approveExternal(): boolean {
-    // Skipping approving is allowed only in internal request.
-    return !this.skipApprove;
+    return true;
   }
 
   route(): string {

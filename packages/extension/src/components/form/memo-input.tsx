@@ -4,15 +4,17 @@ import { TxConfig } from "@keplr/hooks";
 import { observer } from "mobx-react";
 
 export interface MemoInputProps {
-  txConfig: TxConfig;
+  txConfig: Pick<TxConfig, "memo" | "setMemo">;
 
   label?: string;
   className?: string;
+
+  rows?: number;
 }
 
 // TODO: Handle the max memo bytes length for each chain.
 export const MemoInput: FunctionComponent<MemoInputProps> = observer(
-  ({ txConfig, label, className }) => {
+  ({ txConfig, label, className, rows }) => {
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);
       crypto.getRandomValues(bytes);
@@ -30,7 +32,7 @@ export const MemoInput: FunctionComponent<MemoInputProps> = observer(
           id={inputId}
           className="form-control-alternative"
           type="textarea"
-          rows={2}
+          rows={rows ? rows : 2}
           style={{ resize: "none" }}
           value={txConfig.memo}
           onChange={(e) => {

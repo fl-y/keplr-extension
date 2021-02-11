@@ -35,20 +35,6 @@
     color: gray;
   }
 
-  .fee {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-end;
-
-    font-size: 16px;
-
-    .fiat {
-      font-size: 12px;
-      margin-bottom: 2px;
-      margin-left: 4px;
-    }
-  }
-
   .memo {
     font-size: 16px;
     min-height: 30px;

@@ -12,8 +12,8 @@ import { Buffer } from "buffer/";
 import { AccountStore } from "@keplr/stores";
 
 export interface MessageObj {
-  type: string;
-  value: unknown;
+  readonly type: string;
+  readonly value: unknown;
 }
 
 interface MsgSend {

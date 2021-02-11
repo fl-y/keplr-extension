@@ -8,15 +8,13 @@ import { BaseAccount, TendermintTxTracer } from "@keplr/cosmos";
 import Axios, { AxiosInstance } from "axios";
 import {
   BroadcastMode,
-  encodeSecp256k1Signature,
   makeSignDoc,
   makeStdTx,
   Msg,
-  serializeSignDoc,
   StdFee,
 } from "@cosmjs/launchpad";
 import { fromHex } from "@cosmjs/encoding";
-import { Coin, Dec, DecUtils } from "@keplr/unit";
+import { Dec, DecUtils } from "@keplr/unit";
 import { QueriesStore } from "../query";
 import { Queries } from "../query/queries";
 import PQueue from "p-queue";
@@ -73,7 +71,7 @@ export class AccountStoreInner {
   @observable
   protected _isSendingMsg!: boolean;
 
-  public broadcastMode: "sync" | "async" | "block" = "async";
+  public broadcastMode: "sync" | "async" | "block" = "sync";
 
   protected pubKey: Uint8Array;
 
@@ -738,47 +736,22 @@ export class AccountStoreInner {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const keplr = (await AccountStore.getKeplr())!;
 
-    const txConfig = await keplr.getTxConfig(this.chainId, {
-      gas: fee.gas,
-      memo,
-      fee: fee.amount.map((fee) => `${fee.amount} ${fee.denom}`).join(","),
-    });
-
     const signDoc = makeSignDoc(
       msgs,
-      {
-        gas: txConfig.gas,
-        // 케플러를 cosmjs에 더 친화적으로 바꿔서 밑의 라인을 줄이자...
-        amount: txConfig.fee
-          ? txConfig.fee
-              .split(",")
-              .map((feeStr) => {
-                return Coin.parse(feeStr);
-              })
-              .map((coin) => {
-                return {
-                  amount: coin.amount.toString(),
-                  denom: coin.denom,
-                };
-              })
-          : [],
-      },
+      fee,
       this.chainId,
-      txConfig.memo,
+      memo,
       account.getAccountNumber().toString(),
       account.getSequence().toString()
     );
 
-    const signature = await keplr.sign(
+    const signResponse = await keplr.sign(
       this.chainId,
       this.bech32Address,
-      serializeSignDoc(signDoc)
+      signDoc
     );
 
-    const signedTx = makeStdTx(
-      signDoc,
-      encodeSecp256k1Signature(this.pubKey, fromHex(signature.signatureHex))
-    );
+    const signedTx = makeStdTx(signResponse.signed, signResponse.signature);
 
     return await keplr.sendTx(this.chainId, signedTx, mode as BroadcastMode);
   }

@@ -299,16 +299,7 @@ const handleRequestSignMsg: (
 
     await service.checkBech32Address(msg.chainId, msg.bech32Address);
 
-    return {
-      signatureHex: Buffer.from(
-        await service.requestSign(
-          env,
-          msg.chainId,
-          new Uint8Array(Buffer.from(msg.messageHex, "hex")),
-          msg.skipApprove
-        )
-      ).toString("hex"),
-    };
+    return await service.requestSign(env, msg.chainId, msg.signDoc);
   };
 };
 
