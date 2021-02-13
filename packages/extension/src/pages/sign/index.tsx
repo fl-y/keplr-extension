@@ -17,7 +17,9 @@ import { observer } from "mobx-react";
 import {
   useInteractionInfo,
   useSignDocHelper,
-  useSendTxConfig,
+  useGasConfig,
+  useFeeConfig,
+  useMemoConfig,
 } from "@keplr/hooks";
 
 enum Tab {
@@ -32,36 +34,34 @@ export const SignPage: FunctionComponent = observer(() => {
 
   const intl = useIntl();
 
-  const {
-    chainStore,
-    accountStore,
-    queriesStore,
-    keyRingStore,
-    signInteractionStore,
-  } = useStore();
+  const { chainStore, keyRingStore, signInteractionStore } = useStore();
   const interactionInfo = useInteractionInfo(() => {
     signInteractionStore.rejectAll();
   });
 
   const current = chainStore.current;
-  const sendConfigs = useSendTxConfig(
-    chainStore,
-    current.chainId,
-    accountStore.getAccount(current.chainId).bech32Address,
-    queriesStore.get(current.chainId).getQueryBalances()
-  );
+  const gasConfig = useGasConfig(chainStore, current.chainId);
+  const feeConfig = useFeeConfig(chainStore, current.chainId, gasConfig);
+  const memoConfig = useMemoConfig(chainStore, current.chainId);
 
   const signDoc = signInteractionStore.waitingData?.signDoc;
-  const signDocHelper = useSignDocHelper(chainStore);
-
-  signDocHelper.setFeeAmount(sendConfigs.feeConfig.toStdFee().amount);
+  const signDocHelper = useSignDocHelper(gasConfig, feeConfig, memoConfig);
 
   useEffect(() => {
     if (signInteractionStore.waitingData) {
-      chainStore.selectChain(signInteractionStore.waitingData.chainId);
-      signDocHelper.setSignDoc(signInteractionStore.waitingData.signDoc);
+      const data = signInteractionStore.waitingData;
+      chainStore.selectChain(data.chainId);
+      signDocHelper.setSignDoc(data.signDoc);
+      gasConfig.setGas(parseInt(data.signDoc.fee.gas));
+      memoConfig.setMemo(data.signDoc.memo);
     }
-  }, [chainStore, signDocHelper, signInteractionStore.waitingData]);
+  }, [
+    chainStore,
+    gasConfig,
+    memoConfig,
+    signDocHelper,
+    signInteractionStore.waitingData,
+  ]);
 
   return (
     <HeaderLayout
@@ -110,8 +110,8 @@ export const SignPage: FunctionComponent = observer(() => {
           {tab === Tab.Details ? (
             <DetailsTab
               signDocHelper={signDocHelper}
-              memoConfig={sendConfigs.memoConfig}
-              feeConfig={sendConfigs.feeConfig}
+              memoConfig={memoConfig}
+              feeConfig={feeConfig}
             />
           ) : null}
         </div>
@@ -148,7 +148,12 @@ export const SignPage: FunctionComponent = observer(() => {
               <Button
                 className={style.button}
                 color="primary"
-                disabled={signDoc == null || signDocHelper.signDoc == null}
+                disabled={
+                  signDoc == null ||
+                  signDocHelper.signDoc == null ||
+                  memoConfig.getError() != null ||
+                  feeConfig.getError() != null
+                }
                 data-loading={signInteractionStore.isLoading}
                 onClick={(e) => {
                   e.preventDefault();

@@ -1,6 +1,7 @@
 import { AppCurrency, Currency } from "@keplr/types";
 import { StdFee } from "@cosmjs/launchpad";
 import { CoinPretty } from "@keplr/unit";
+import { CoinPrimitive } from "@keplr/stores";
 
 export interface ITxChainSetter {
   chainId: string;
@@ -29,6 +30,7 @@ export interface IFeeConfig extends ITxChainSetter {
   toStdFee(): StdFee;
   fee: CoinPretty;
   getFeeTypePretty(feeType: FeeType): CoinPretty;
+  getFeePrimitive(): CoinPrimitive;
 
   getError(): Error | undefined;
 }

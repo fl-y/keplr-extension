@@ -1,82 +1,65 @@
 import { action, computed, observable } from "mobx";
-import { Coin, Msg, StdSignDoc } from "@cosmjs/launchpad";
+import { Msg, StdSignDoc } from "@cosmjs/launchpad";
 import { useState } from "react";
-import { ChainGetter } from "@keplr/stores";
-import { ChainInfo } from "@keplr/types";
-import { Mutable } from "utility-types";
+import { IFeeConfig, IGasConfig, IMemoConfig } from "../tx";
 
 export class SignDocHelper {
-  @observable
-  protected _signDoc?: Mutable<StdSignDoc>;
+  @observable.ref
+  protected _signDoc?: StdSignDoc;
 
-  constructor(protected readonly chainGetter: ChainGetter) {}
+  constructor(
+    protected readonly gasConfig: IGasConfig,
+    protected readonly feeConfig: IFeeConfig,
+    protected readonly memoConfig: IMemoConfig
+  ) {}
 
   get signDoc(): StdSignDoc | undefined {
-    return this._signDoc;
+    if (!this._signDoc) {
+      return undefined;
+    }
+
+    return {
+      ...this._signDoc,
+      fee: {
+        gas: this.gasConfig.gas.toString(),
+        amount: [this.feeConfig.getFeePrimitive()],
+      },
+      memo: this.memoConfig.memo,
+    };
   }
 
   @computed
   get msgs(): readonly Msg[] {
-    if (!this._signDoc) {
+    if (!this.signDoc) {
       return [];
     }
 
-    return this._signDoc.msgs;
+    return this.signDoc.msgs;
   }
 
   @computed
   get signDocJson(): string {
-    if (!this._signDoc) {
+    if (!this.signDoc) {
       return "";
     }
 
-    return JSON.stringify(this._signDoc, undefined, 2);
-  }
-
-  @action
-  setFeeAmount(amount: readonly Coin[]) {
-    if (!this._signDoc) {
-      return;
-    }
-
-    this._signDoc.fee = {
-      ...this._signDoc.fee,
-      amount,
-    };
-  }
-
-  @action
-  setMemo(memo: string) {
-    if (this._signDoc) {
-      this._signDoc.memo = memo;
-    }
-  }
-
-  @computed
-  get memo(): string {
-    if (!this._signDoc) {
-      return "";
-    }
-
-    return this._signDoc.memo;
+    return JSON.stringify(this.signDoc, undefined, 2);
   }
 
   @action
   setSignDoc(signDoc: StdSignDoc | undefined) {
     this._signDoc = signDoc;
   }
-
-  getChainInfo(): ChainInfo | undefined {
-    if (!this._signDoc) {
-      return;
-    }
-
-    return this.chainGetter.getChain(this._signDoc.chain_id);
-  }
 }
 
-export const useSignDocHelper = (chainGetter: ChainGetter) => {
-  const [helper] = useState(new SignDocHelper(chainGetter));
+export const useSignDocHelper = (
+  gasConfig: IGasConfig,
+  feeConfig: IFeeConfig,
+  memoConfig: IMemoConfig
+) => {
+  const [helper] = useState(
+    new SignDocHelper(gasConfig, feeConfig, memoConfig)
+  );
 
   return helper;
 };

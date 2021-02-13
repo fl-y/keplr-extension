@@ -56,13 +56,17 @@ export class FeeConfig extends TxChainSetter implements IFeeConfig {
       throw new Error("Fee currencies are empty");
     }
 
+    const feePrimitive = this.getFeePrimitive();
+
+    return new CoinPretty(this.feeCurrency, new Int(feePrimitive.amount));
+  }
+
+  getFeePrimitive(): CoinPrimitive {
     if (!this.feeType) {
       throw new Error("TODO: Implement advanced fee setting");
     }
 
-    const feePrimitive = this.getFeeTypePrimitive(this.feeType);
-
-    return new CoinPretty(this.feeCurrency, new Int(feePrimitive.amount));
+    return this.getFeeTypePrimitive(this.feeType);
   }
 
   protected getFeeTypePrimitive(feeType: FeeType): CoinPrimitive {
