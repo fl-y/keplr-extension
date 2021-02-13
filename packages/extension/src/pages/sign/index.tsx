@@ -155,11 +155,18 @@ export const SignPage: FunctionComponent = observer(() => {
                   feeConfig.getError() != null
                 }
                 data-loading={signInteractionStore.isLoading}
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.preventDefault();
 
                   if (signDocHelper.signDoc) {
-                    signInteractionStore.approve(signDocHelper.signDoc);
+                    await signInteractionStore.approve(signDocHelper.signDoc);
+                  }
+
+                  if (
+                    interactionInfo.interaction &&
+                    !interactionInfo.interactionInternal
+                  ) {
+                    window.close();
                   }
                 }}
               >

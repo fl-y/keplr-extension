@@ -30,7 +30,6 @@ import {
   RequestTxBuilderConfigMsg,
 } from "./messages";
 
-import { Hash } from "@keplr/crypto";
 import {
   encodeSecp256k1Signature,
   serializeSignDoc,
@@ -229,8 +228,12 @@ export class KeyRingService {
 
     const coinType = await this.chainsService.getChainCoinType(chainId);
 
-    const message = Hash.sha256(serializeSignDoc(newSignDoc));
-    const signature = await this.keyRing.sign(env, chainId, coinType, message);
+    const signature = await this.keyRing.sign(
+      env,
+      chainId,
+      coinType,
+      serializeSignDoc(newSignDoc)
+    );
 
     const key = await this.keyRing.getKey(chainId, coinType);
 
