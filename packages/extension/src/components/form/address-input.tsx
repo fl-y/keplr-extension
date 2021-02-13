@@ -13,12 +13,18 @@ import { AddressBookPage } from "../../pages/setting/address-book";
 
 import styleAddressInput from "./address-input.module.scss";
 import classnames from "classnames";
-import { TxConfig, InvalidBech32Error, EmptyAddressError } from "@keplr/hooks";
+import {
+  InvalidBech32Error,
+  EmptyAddressError,
+  IRecipientConfig,
+  IMemoConfig,
+} from "@keplr/hooks";
 import { observer } from "mobx-react";
 import { useIntl } from "react-intl";
 
 export interface AddressInputProps {
-  txConfig: TxConfig;
+  recipientConfig: IRecipientConfig;
+  memoConfig?: IMemoConfig;
 
   className?: string;
   label?: string;
@@ -27,7 +33,7 @@ export interface AddressInputProps {
 }
 
 export const AddressInput: FunctionComponent<AddressInputProps> = observer(
-  ({ txConfig, className, label, disableAddressBook }) => {
+  ({ recipientConfig, memoConfig, className, label, disableAddressBook }) => {
     const intl = useIntl();
 
     const [isAddressBookOpen, setIsAddressBookOpen] = useState(false);
@@ -38,7 +44,7 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
       return `input-${Buffer.from(bytes).toString("hex")}`;
     });
 
-    const error = txConfig.getErrorOf("recipient");
+    const error = recipientConfig.getError();
     const errorText: string | undefined = useMemo(() => {
       if (error) {
         switch (error.constructor) {
@@ -55,6 +61,11 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
       }
     }, [intl, error]);
 
+    const selectAddressFromAddressBook = {
+      setRecipient: recipientConfig.setRecipient,
+      setMemo: memoConfig ? memoConfig.setMemo : () => {},
+    };
+
     return (
       <React.Fragment>
         <Modal
@@ -68,7 +79,7 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
             <AddressBookPage
               onBackButton={() => setIsAddressBookOpen(false)}
               hideChainDropdown={true}
-              selectHandler={txConfig}
+              selectHandler={selectAddressFromAddressBook}
             />
           </ModalBody>
         </Modal>
@@ -85,14 +96,14 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
                 "form-control-alternative",
                 styleAddressInput.input
               )}
-              value={txConfig.recipient}
+              value={recipientConfig.recipient}
               onChange={(e) => {
-                txConfig.setRecipient(e.target.value);
+                recipientConfig.setRecipient(e.target.value);
                 e.preventDefault();
               }}
               autoComplete="off"
             />
-            {!disableAddressBook ? (
+            {!disableAddressBook && memoConfig ? (
               <Button
                 className={styleAddressInput.addressBookButton}
                 color="primary"

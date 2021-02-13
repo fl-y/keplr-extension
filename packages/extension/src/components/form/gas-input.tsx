@@ -1,10 +1,10 @@
 import React, { FunctionComponent, useState } from "react";
 import { FormGroup, Input, Label } from "reactstrap";
-import { TxConfig } from "@keplr/hooks";
+import { IGasConfig } from "@keplr/hooks";
 import { observer } from "mobx-react";
 
 export interface GasInputProps {
-  txConfig: TxConfig;
+  gasConfig: IGasConfig;
 
   label?: string;
   className?: string;
@@ -12,7 +12,7 @@ export interface GasInputProps {
 
 // TODO: Handle the max block gas limit(?)
 export const GasInput: FunctionComponent<GasInputProps> = observer(
-  ({ txConfig, label, className }) => {
+  ({ gasConfig, label, className }) => {
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);
       crypto.getRandomValues(bytes);
@@ -32,11 +32,11 @@ export const GasInput: FunctionComponent<GasInputProps> = observer(
           type="number"
           step={1}
           min={0}
-          value={txConfig.gas}
+          value={gasConfig.gas}
           onChange={(e) => {
             const gas = parseInt(e.target.value);
             if (!isNaN(gas) && gas > 0) {
-              txConfig.setGas(gas);
+              gasConfig.setGas(gas);
             }
             e.preventDefault();
           }}

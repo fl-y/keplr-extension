@@ -12,7 +12,12 @@ import style from "./style.module.scss";
 
 import { FormattedMessage, useIntl } from "react-intl";
 import { useHistory } from "react-router";
-import { useInteractionInfo, useTxConfig } from "@keplr/hooks";
+import {
+  useFeeConfig,
+  useGasConfig,
+  useInteractionInfo,
+  useMemoConfig,
+} from "@keplr/hooks";
 import { CoinPrimitive } from "@keplr/stores";
 
 export const FeePage: FunctionComponent = observer(() => {
@@ -20,18 +25,13 @@ export const FeePage: FunctionComponent = observer(() => {
 
   const intl = useIntl();
 
-  const {
-    chainStore,
-    txConfigStore,
-    priceStore,
-    queriesStore,
-    accountStore,
-  } = useStore();
-  const txConfig = useTxConfig(
+  const { chainStore, txConfigStore, priceStore } = useStore();
+  const gasConfig = useGasConfig(chainStore, chainStore.current.chainId);
+  const memoConfig = useMemoConfig(chainStore, chainStore.current.chainId);
+  const feeConfig = useFeeConfig(
     chainStore,
     chainStore.current.chainId,
-    accountStore.getAccount(chainStore.current.chainId).bech32Address,
-    queriesStore.get(chainStore.current.chainId).getQueryBalances()
+    gasConfig
   );
 
   const interactionInfo = useInteractionInfo(() => {
@@ -42,10 +42,10 @@ export const FeePage: FunctionComponent = observer(() => {
     const config = txConfigStore.waitingData;
     if (config) {
       chainStore.selectChain(config.chainId);
-      txConfig.setGas(parseFloat(config.gas));
-      txConfig.setMemo(config.memo);
+      gasConfig.setGas(parseFloat(config.gas));
+      memoConfig.setMemo(config.memo);
     }
-  }, [chainStore, txConfig, txConfigStore.waitingData]);
+  }, [chainStore, gasConfig, memoConfig, txConfigStore.waitingData]);
 
   // Cyber chain (eular-6) doesn't require the fees to send tx.
   // So, don't need to show the fee input.
@@ -70,7 +70,7 @@ export const FeePage: FunctionComponent = observer(() => {
         onSubmit={async (e) => {
           e.preventDefault();
           if (txStateIsValid && txConfigStore.waitingData) {
-            const stdFee = txConfig.toStdFee();
+            const stdFee = feeConfig.toStdFee();
 
             const config = {
               ...txConfigStore.waitingData,
@@ -78,7 +78,7 @@ export const FeePage: FunctionComponent = observer(() => {
               fee: stdFee.amount
                 .map((fee: CoinPrimitive) => `${fee.amount}${fee.denom}`)
                 .join(","),
-              memo: txConfig.memo,
+              memo: memoConfig.memo,
             };
 
             await txConfigStore.approve(config);
@@ -95,16 +95,16 @@ export const FeePage: FunctionComponent = observer(() => {
         <div className={style.formInnerContainer}>
           <div>
             <GasInput
-              txConfig={txConfig}
+              gasConfig={gasConfig}
               label={intl.formatMessage({ id: "fee.input.gas" })}
             />
             <MemoInput
-              txConfig={txConfig}
+              memoConfig={memoConfig}
               label={intl.formatMessage({ id: "fee.input.memo" })}
             />
             {isCyberNetwork ? null : (
               <FeeButtons
-                txConfig={txConfig}
+                feeConfig={feeConfig}
                 priceStore={priceStore}
                 label={intl.formatMessage({
                   id: "fee.input.fee",
@@ -126,7 +126,9 @@ export const FeePage: FunctionComponent = observer(() => {
             block
             disabled={
               txConfigStore.waitingData == null ||
-              !txConfig.isValid("fee", "gas", "memo")
+              gasConfig.getError() != null ||
+              memoConfig.getError() != null ||
+              feeConfig.getError() != null
             }
             data-loading={txConfigStore.isLoading}
           >

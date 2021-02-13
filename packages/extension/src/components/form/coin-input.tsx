@@ -8,17 +8,19 @@ import { observer } from "mobx-react";
 import {
   EmptyAmountError,
   InvalidNumberAmountError,
-  TxConfig,
   ZeroAmountError,
   NagativeAmountError,
   InsufficientAmountError,
+  IAmountConfig,
+  IFeeConfig,
 } from "@keplr/hooks";
 import { CoinPretty, Dec, DecUtils, Int } from "@keplr/unit";
 import { useIntl } from "react-intl";
 import { useStore } from "../../stores";
 
 export interface CoinInputProps {
-  txConfig: TxConfig;
+  amountConfig: IAmountConfig;
+  feeConfig: IFeeConfig;
 
   balanceText?: string;
 
@@ -29,27 +31,28 @@ export interface CoinInputProps {
 }
 
 export const CoinInput: FunctionComponent<CoinInputProps> = observer(
-  ({ txConfig, className, label, disableAllBalance }) => {
+  ({ amountConfig, feeConfig, className, label, disableAllBalance }) => {
     const intl = useIntl();
 
     const { queriesStore } = useStore();
     const queryBalances = queriesStore
-      .get(txConfig.chainId)
+      .get(amountConfig.chainId)
       .getQueryBalances()
-      .getQueryBech32Address(txConfig.sender);
+      .getQueryBech32Address(amountConfig.sender);
 
     const queryBalance = queryBalances.balances.find(
       (bal) =>
-        txConfig.sendCurrency.coinMinimalDenom === bal.currency.coinMinimalDenom
+        amountConfig.sendCurrency.coinMinimalDenom ===
+        bal.currency.coinMinimalDenom
     );
     const balance = queryBalance
       ? queryBalance.balance
-      : new CoinPretty(txConfig.sendCurrency, new Int(0));
+      : new CoinPretty(amountConfig.sendCurrency, new Int(0));
 
     const [isAllBalanceMode, setIsAllBalanceMode] = useState(false);
     const toggleAllBalanceMode = () => setIsAllBalanceMode((value) => !value);
 
-    const fee = txConfig.fee;
+    const fee = feeConfig.fee;
     useEffect(() => {
       if (isAllBalanceMode) {
         console.log(balance.toDec().toString(), fee.toDec().toString());
@@ -67,11 +70,11 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
               )
             : balance;
 
-        txConfig.setAmount(
+        amountConfig.setAmount(
           sendableBalance.trim(true).locale(false).hideDenom(true).toString()
         );
       }
-    }, [balance, fee, isAllBalanceMode, txConfig]);
+    }, [balance, fee, isAllBalanceMode, amountConfig]);
 
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);
@@ -79,7 +82,7 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
       return `input-${Buffer.from(bytes).toString("hex")}`;
     });
 
-    const error = txConfig.getErrorOf("amount");
+    const error = amountConfig.getError();
     const errorText: string | undefined = useMemo(() => {
       if (error) {
         switch (error.constructor) {
@@ -145,19 +148,19 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
               styleCoinInput.input
             )}
             type="number"
-            value={txConfig.amount}
+            value={amountConfig.amount}
             onChange={(e) => {
               e.preventDefault();
 
-              txConfig.setAmount(e.target.value);
+              amountConfig.setAmount(e.target.value);
             }}
             step={new Dec(1)
               .quo(
                 DecUtils.getPrecisionDec(
-                  txConfig.sendCurrency?.coinDecimals ?? 0
+                  amountConfig.sendCurrency?.coinDecimals ?? 0
                 )
               )
-              .toString(txConfig.sendCurrency?.coinDecimals ?? 0)}
+              .toString(amountConfig.sendCurrency?.coinDecimals ?? 0)}
             min={0}
             disabled={isAllBalanceMode}
             autoComplete="off"
@@ -169,20 +172,22 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
               styleCoinInput.select
             )}
             value={
-              txConfig.sendCurrency
-                ? txConfig.sendCurrency.coinMinimalDenom
+              amountConfig.sendCurrency
+                ? amountConfig.sendCurrency.coinMinimalDenom
                 : ""
             }
             onChange={(e) => {
-              const currency = txConfig.sendableCurrencies.find((currency) => {
-                return currency.coinMinimalDenom === e.target.value;
-              });
-              txConfig.setSendCurrency(currency);
+              const currency = amountConfig.sendableCurrencies.find(
+                (currency) => {
+                  return currency.coinMinimalDenom === e.target.value;
+                }
+              );
+              amountConfig.setSendCurrency(currency);
               e.preventDefault();
             }}
             disabled={isAllBalanceMode}
           >
-            {txConfig.sendableCurrencies.map((currency, i) => {
+            {amountConfig.sendableCurrencies.map((currency, i) => {
               return (
                 <option key={i.toString()} value={currency.coinMinimalDenom}>
                   {currency.coinDenom}

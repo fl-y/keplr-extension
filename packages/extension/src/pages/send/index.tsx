@@ -20,7 +20,7 @@ import { Button } from "reactstrap";
 import { useHistory, useLocation } from "react-router";
 import queryString from "querystring";
 
-import { useTxConfig } from "@keplr/hooks";
+import { useSendTxConfig } from "@keplr/hooks";
 
 export const SendPage: FunctionComponent = observer(() => {
   const history = useHistory();
@@ -41,7 +41,7 @@ export const SendPage: FunctionComponent = observer(() => {
 
   const accountInfo = accountStore.getAccount(current.chainId);
 
-  const txConfig = useTxConfig(
+  const sendConfigs = useSendTxConfig(
     chainStore,
     current.chainId,
     accountInfo.bech32Address,
@@ -55,18 +55,22 @@ export const SendPage: FunctionComponent = observer(() => {
       );
 
       if (currency) {
-        txConfig.setSendCurrency(currency);
+        sendConfigs.amountConfig.setSendCurrency(currency);
       }
     }
-  }, [current.currencies, query.defaultDenom, txConfig]);
+  }, [current.currencies, query.defaultDenom, sendConfigs.amountConfig]);
 
   // Cyber chain (eular-6) doesn't require the fees to send tx.
   // So, don't need to show the fee input.
   // This is temporary hardcoding.
   const isCyberNetwork = /^(euler-)(\d)+/.test(current.chainId);
-  const txStateIsValid = isCyberNetwork
-    ? txConfig.isValid("recipient", "amount", "memo", "gas")
-    : txConfig.isValid("recipient", "amount", "memo", "fee", "gas");
+  const sendConfigError =
+    sendConfigs.recipientConfig.getError() ??
+    sendConfigs.amountConfig.getError() ??
+    sendConfigs.memoConfig.getError() ??
+    sendConfigs.gasConfig.getError() ??
+    (!isCyberNetwork ? sendConfigs.feeConfig.getError() : undefined);
+  const txStateIsValid = sendConfigError == null;
 
   return (
     <HeaderLayout
@@ -84,11 +88,11 @@ export const SendPage: FunctionComponent = observer(() => {
           if (accountInfo.isReadyToSendMsgs && txStateIsValid) {
             try {
               await accountInfo.sendToken(
-                txConfig.amount,
+                sendConfigs.amountConfig.amount,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                txConfig.sendCurrency!,
-                txConfig.recipient,
-                txConfig.memo
+                sendConfigs.amountConfig.sendCurrency!,
+                sendConfigs.recipientConfig.recipient,
+                sendConfigs.memoConfig.memo
               );
               history.replace("/");
             } catch (e) {
@@ -110,23 +114,25 @@ export const SendPage: FunctionComponent = observer(() => {
         <div className={style.formInnerContainer}>
           <div>
             <AddressInput
-              txConfig={txConfig}
+              recipientConfig={sendConfigs.recipientConfig}
+              memoConfig={sendConfigs.memoConfig}
               label={intl.formatMessage({ id: "send.input.recipient" })}
             />
             <CoinInput
-              txConfig={txConfig}
+              amountConfig={sendConfigs.amountConfig}
+              feeConfig={sendConfigs.feeConfig}
               label={intl.formatMessage({ id: "send.input.amount" })}
               balanceText={intl.formatMessage({
                 id: "send.input-button.balance",
               })}
             />
             <MemoInput
-              txConfig={txConfig}
+              memoConfig={sendConfigs.memoConfig}
               label={intl.formatMessage({ id: "send.input.memo" })}
             />
             {isCyberNetwork ? null : (
               <FeeButtons
-                txConfig={txConfig}
+                feeConfig={sendConfigs.feeConfig}
                 priceStore={priceStore}
                 label={intl.formatMessage({ id: "send.input.fee" })}
                 feeSelectLabels={{

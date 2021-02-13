@@ -23,7 +23,8 @@ import { useConfirm } from "../../../components/confirm";
 import {
   AddressBookSelectHandler,
   useAddressBookConfig,
-  useTxConfig,
+  useMemoConfig,
+  useRecipientConfig,
 } from "@keplr/hooks";
 
 export const AddressBookPage: FunctionComponent<{
@@ -34,17 +35,13 @@ export const AddressBookPage: FunctionComponent<{
   const intl = useIntl();
   const history = useHistory();
 
-  const { chainStore, queriesStore } = useStore();
+  const { chainStore } = useStore();
   const current = chainStore.current;
 
   const [selectedChainId, setSelectedChainId] = useState(current.chainId);
 
-  const txConfig = useTxConfig(
-    chainStore,
-    selectedChainId,
-    "",
-    queriesStore.get(current.chainId).getQueryBalances()
-  );
+  const recipientConfig = useRecipientConfig(chainStore, selectedChainId);
+  const memoConfig = useMemoConfig(chainStore, selectedChainId);
 
   const addressBookConfig = useAddressBookConfig(
     new BrowserKVStore("address-book"),
@@ -145,7 +142,8 @@ export const AddressBookPage: FunctionComponent<{
               setAddAddressModalOpen(false);
               setAddAddressModalIndex(-1);
             }}
-            txConfig={txConfig}
+            recipientConfig={recipientConfig}
+            memoConfig={memoConfig}
             addressBookConfig={addressBookConfig}
             index={addAddressModalIndex}
           />

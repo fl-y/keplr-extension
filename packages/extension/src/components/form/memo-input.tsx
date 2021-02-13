@@ -1,10 +1,10 @@
 import React, { FunctionComponent, useState } from "react";
 import { FormGroup, Input, Label } from "reactstrap";
-import { TxConfig } from "@keplr/hooks";
+import { IMemoConfig } from "@keplr/hooks";
 import { observer } from "mobx-react";
 
 export interface MemoInputProps {
-  txConfig: Pick<TxConfig, "memo" | "setMemo">;
+  memoConfig: IMemoConfig;
 
   label?: string;
   className?: string;
@@ -14,7 +14,7 @@ export interface MemoInputProps {
 
 // TODO: Handle the max memo bytes length for each chain.
 export const MemoInput: FunctionComponent<MemoInputProps> = observer(
-  ({ txConfig, label, className, rows }) => {
+  ({ memoConfig, label, className, rows }) => {
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);
       crypto.getRandomValues(bytes);
@@ -34,9 +34,9 @@ export const MemoInput: FunctionComponent<MemoInputProps> = observer(
           type="textarea"
           rows={rows ? rows : 2}
           style={{ resize: "none" }}
-          value={txConfig.memo}
+          value={memoConfig.memo}
           onChange={(e) => {
-            txConfig.setMemo(e.target.value);
+            memoConfig.setMemo(e.target.value);
             e.preventDefault();
           }}
           autoComplete="off"

@@ -11,12 +11,12 @@ import { Button, ButtonGroup, FormGroup, Label } from "reactstrap";
 
 import classnames from "classnames";
 import { observer } from "mobx-react";
-import { TxConfig } from "@keplr/hooks";
+import { IFeeConfig } from "@keplr/hooks";
 import { CoinGeckoPriceStore } from "@keplr/stores";
 import { useLanguage } from "../../languages";
 
 export interface FeeButtonsProps {
-  txConfig: TxConfig;
+  feeConfig: IFeeConfig;
   priceStore: CoinGeckoPriceStore;
 
   className?: string;
@@ -30,14 +30,16 @@ export interface FeeButtonsProps {
 
 export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
   ({
-    txConfig,
+    feeConfig,
     priceStore,
     label,
     feeSelectLabels = { low: "Low", average: "Average", high: "High" },
   }) => {
     useEffect(() => {
-      txConfig.setFeeType("average");
-    }, [txConfig]);
+      if (!feeConfig.feeType) {
+        feeConfig.setFeeType("average");
+      }
+    }, [feeConfig, feeConfig.feeType]);
 
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);
@@ -49,13 +51,13 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
 
     const fiatCurrency = language.fiatCurrency;
 
-    const lowFee = txConfig.getFeeTypePretty("low");
+    const lowFee = feeConfig.getFeeTypePretty("low");
     const lowFeePrice = priceStore.calculatePrice(fiatCurrency, lowFee);
 
-    const averageFee = txConfig.getFeeTypePretty("average");
+    const averageFee = feeConfig.getFeeTypePretty("average");
     const averageFeePrice = priceStore.calculatePrice(fiatCurrency, averageFee);
 
-    const highFee = txConfig.getFeeTypePretty("high");
+    const highFee = feeConfig.getFeeTypePretty("high");
     const highFeePrice = priceStore.calculatePrice(fiatCurrency, highFee);
 
     return (
@@ -69,9 +71,9 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
           <Button
             type="button"
             className={styleFeeButtons.button}
-            color={txConfig.feeType === "low" ? "primary" : undefined}
+            color={feeConfig.feeType === "low" ? "primary" : undefined}
             onClick={(e: MouseEvent) => {
-              txConfig.setFeeType("low");
+              feeConfig.setFeeType("low");
               e.preventDefault();
             }}
           >
@@ -79,7 +81,7 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
             {lowFeePrice ? (
               <div
                 className={classnames(styleFeeButtons.fiat, {
-                  "text-muted": txConfig.feeType !== "low",
+                  "text-muted": feeConfig.feeType !== "low",
                 })}
               >
                 {lowFeePrice.toString()}
@@ -87,7 +89,7 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
             ) : null}
             <div
               className={classnames(styleFeeButtons.coin, {
-                "text-muted": txConfig.feeType !== "low",
+                "text-muted": feeConfig.feeType !== "low",
               })}
             >
               {lowFee.trim(true).toString()}
@@ -96,9 +98,9 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
           <Button
             type="button"
             className={styleFeeButtons.button}
-            color={txConfig.feeType === "average" ? "primary" : undefined}
+            color={feeConfig.feeType === "average" ? "primary" : undefined}
             onClick={(e: MouseEvent) => {
-              txConfig.setFeeType("average");
+              feeConfig.setFeeType("average");
               e.preventDefault();
             }}
           >
@@ -108,7 +110,7 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
             {averageFeePrice ? (
               <div
                 className={classnames(styleFeeButtons.fiat, {
-                  "text-muted": txConfig.feeType !== "average",
+                  "text-muted": feeConfig.feeType !== "average",
                 })}
               >
                 {averageFeePrice.toString()}
@@ -116,18 +118,18 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
             ) : null}
             <div
               className={classnames(styleFeeButtons.coin, {
-                "text-muted": txConfig.feeType !== "average",
+                "text-muted": feeConfig.feeType !== "average",
               })}
             >
-              {txConfig.getFeeTypePretty("average").trim(true).toString()}
+              {feeConfig.getFeeTypePretty("average").trim(true).toString()}
             </div>
           </Button>
           <Button
             type="button"
             className={styleFeeButtons.button}
-            color={txConfig.feeType === "high" ? "primary" : undefined}
+            color={feeConfig.feeType === "high" ? "primary" : undefined}
             onClick={(e: MouseEvent) => {
-              txConfig.setFeeType("high");
+              feeConfig.setFeeType("high");
               e.preventDefault();
             }}
           >
@@ -135,7 +137,7 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
             {highFeePrice ? (
               <div
                 className={classnames(styleFeeButtons.fiat, {
-                  "text-muted": txConfig.feeType !== "high",
+                  "text-muted": feeConfig.feeType !== "high",
                 })}
               >
                 {highFeePrice.toString()}
@@ -143,10 +145,10 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
             ) : null}
             <div
               className={classnames(styleFeeButtons.coin, {
-                "text-muted": txConfig.feeType !== "high",
+                "text-muted": feeConfig.feeType !== "high",
               })}
             >
-              {txConfig.getFeeTypePretty("high").trim(true).toString()}
+              {feeConfig.getFeeTypePretty("high").trim(true).toString()}
             </div>
           </Button>
         </ButtonGroup>

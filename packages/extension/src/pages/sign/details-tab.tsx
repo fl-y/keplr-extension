@@ -9,12 +9,13 @@ import classnames from "classnames";
 import { renderMessage } from "./messages";
 import { useIntl } from "react-intl";
 import { FeeButtons, MemoInput } from "../../components/form";
-import { SignDocHelper, TxConfig } from "@keplr/hooks";
+import { IFeeConfig, IMemoConfig, SignDocHelper } from "@keplr/hooks";
 
 export const DetailsTab: FunctionComponent<{
   signDocHelper: SignDocHelper;
-  txConfig: TxConfig;
-}> = observer(({ signDocHelper, txConfig }) => {
+  memoConfig: IMemoConfig;
+  feeConfig: IFeeConfig;
+}> = observer(({ signDocHelper, memoConfig, feeConfig }) => {
   const { chainStore, priceStore } = useStore();
   const intl = useIntl();
 
@@ -48,12 +49,12 @@ export const DetailsTab: FunctionComponent<{
         })}
       </div>
       <MemoInput
-        txConfig={signDocHelper}
+        memoConfig={memoConfig}
         label={intl.formatMessage({ id: "sign.info.memo" })}
         rows={1}
       />
       <FeeButtons
-        txConfig={txConfig}
+        feeConfig={feeConfig}
         priceStore={priceStore}
         label={intl.formatMessage({ id: "sign.info.fee" })}
       />

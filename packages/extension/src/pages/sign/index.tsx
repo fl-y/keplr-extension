@@ -17,7 +17,7 @@ import { observer } from "mobx-react";
 import {
   useInteractionInfo,
   useSignDocHelper,
-  useTxConfig,
+  useSendTxConfig,
 } from "@keplr/hooks";
 
 enum Tab {
@@ -44,7 +44,7 @@ export const SignPage: FunctionComponent = observer(() => {
   });
 
   const current = chainStore.current;
-  const txConfig = useTxConfig(
+  const sendConfigs = useSendTxConfig(
     chainStore,
     current.chainId,
     accountStore.getAccount(current.chainId).bech32Address,
@@ -54,7 +54,7 @@ export const SignPage: FunctionComponent = observer(() => {
   const signDoc = signInteractionStore.waitingData?.signDoc;
   const signDocHelper = useSignDocHelper(chainStore);
 
-  signDocHelper.setFeeAmount(txConfig.toStdFee().amount);
+  signDocHelper.setFeeAmount(sendConfigs.feeConfig.toStdFee().amount);
 
   useEffect(() => {
     if (signInteractionStore.waitingData) {
@@ -108,7 +108,11 @@ export const SignPage: FunctionComponent = observer(() => {
         <div className={style.tabContainer}>
           {tab === Tab.Data ? <DataTab signDocHelper={signDocHelper} /> : null}
           {tab === Tab.Details ? (
-            <DetailsTab signDocHelper={signDocHelper} txConfig={txConfig} />
+            <DetailsTab
+              signDocHelper={signDocHelper}
+              memoConfig={sendConfigs.memoConfig}
+              feeConfig={sendConfigs.feeConfig}
+            />
           ) : null}
         </div>
         <div style={{ flex: 1 }} />
