@@ -5,13 +5,14 @@ import { KVStore } from "@keplr/common";
 import { Dec, CoinPretty, Int } from "@keplr/unit";
 import { FiatCurrency } from "@keplr/types";
 import { PricePretty } from "@keplr/unit/build/price-pretty";
+import { DeepReadonly } from "utility-types";
 
 export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
   protected coinIds: string[];
   protected vsCurrencies: string[];
 
-  protected supportedVsCurrencies: {
-    [vsCurrency: string]: FiatCurrency;
+  protected _supportedVsCurrencies: {
+    [vsCurrency: string]: FiatCurrency | undefined;
   };
 
   constructor(
@@ -29,7 +30,17 @@ export class CoinGeckoPriceStore extends ObservableQuery<CoinGeckoSimplePrice> {
     this.coinIds = [];
     this.vsCurrencies = [];
 
-    this.supportedVsCurrencies = supportedVsCurrencies;
+    this._supportedVsCurrencies = supportedVsCurrencies;
+  }
+
+  get supportedVsCurrencies(): DeepReadonly<{
+    [vsCurrency: string]: FiatCurrency | undefined;
+  }> {
+    return this._supportedVsCurrencies;
+  }
+
+  getFiatCurrency(currency: string): FiatCurrency | undefined {
+    return this._supportedVsCurrencies[currency];
   }
 
   protected canFetch(): boolean {

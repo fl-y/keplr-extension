@@ -34,6 +34,7 @@ import { ChainSuggestedPage } from "./pages/chain/suggest";
 import Modal from "react-modal";
 import { SettingPage } from "./pages/setting";
 import { SettingLanguagePage } from "./pages/setting/language";
+import { SettingFiatPage } from "./pages/setting/fiat";
 import { SettingConnectionsPage } from "./pages/setting/connections";
 import { AddressBookPage } from "./pages/setting/address-book";
 import { CreditPage } from "./pages/setting/credit";
@@ -145,6 +146,11 @@ ReactDOM.render(
                     exact
                     path="/setting/language"
                     component={SettingLanguagePage}
+                  />
+                  <Route
+                    exact
+                    path="/setting/fiat"
+                    component={SettingFiatPage}
                   />
                   <Route
                     exact

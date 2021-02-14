@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useCallback, useMemo } from "react";
+import React, { FunctionComponent, useMemo } from "react";
 import { HeaderLayout } from "../../layouts";
 import { useHistory } from "react-router";
 import { PageButton } from "./page-button";
@@ -6,8 +6,9 @@ import { PageButton } from "./page-button";
 import style from "./style.module.scss";
 import { useLanguage } from "../../languages";
 import { useIntl } from "react-intl";
+import { observer } from "mobx-react";
 
-export const SettingPage: FunctionComponent = () => {
+export const SettingPage: FunctionComponent = observer(() => {
   const language = useLanguage();
   const history = useHistory();
   const intl = useIntl();
@@ -27,6 +28,17 @@ export const SettingPage: FunctionComponent = () => {
         id: `setting.language.${language.language}`,
       });
 
+  const paragraphFiat = !language.isFiatCurrencyAutomatic
+    ? language.fiatCurrency.toUpperCase()
+    : intl.formatMessage(
+        {
+          id: "setting.fiat.automatic-with-fiat",
+        },
+        {
+          fiat: language.fiatCurrency.toUpperCase(),
+        }
+      );
+
   return (
     <HeaderLayout
       showChainName={false}
@@ -34,9 +46,9 @@ export const SettingPage: FunctionComponent = () => {
       alternativeTitle={intl.formatMessage({
         id: "main.menu.settings",
       })}
-      onBackButton={useCallback(() => {
+      onBackButton={() => {
         history.goBack();
-      }, [history])}
+      }}
     >
       <div className={style.container}>
         <PageButton
@@ -44,11 +56,26 @@ export const SettingPage: FunctionComponent = () => {
             id: "setting.language",
           })}
           paragraph={paragraphLang}
-          onClick={useCallback(() => {
+          onClick={() => {
             history.push({
               pathname: "/setting/language",
             });
-          }, [history])}
+          }}
+          icons={useMemo(
+            () => [<i key="next" className="fas fa-chevron-right" />],
+            []
+          )}
+        />
+        <PageButton
+          title={intl.formatMessage({
+            id: "setting.fiat",
+          })}
+          paragraph={paragraphFiat}
+          onClick={() => {
+            history.push({
+              pathname: "/setting/fiat",
+            });
+          }}
           icons={useMemo(
             () => [<i key="next" className="fas fa-chevron-right" />],
             []
@@ -61,11 +88,11 @@ export const SettingPage: FunctionComponent = () => {
           paragraph={intl.formatMessage({
             id: "setting.connections.paragraph",
           })}
-          onClick={useCallback(() => {
+          onClick={() => {
             history.push({
               pathname: "/setting/connections",
             });
-          }, [history])}
+          }}
           icons={useMemo(
             () => [<i key="next" className="fas fa-chevron-right" />],
             []
@@ -75,11 +102,11 @@ export const SettingPage: FunctionComponent = () => {
           title={intl.formatMessage({
             id: "setting.credit",
           })}
-          onClick={useCallback(() => {
+          onClick={() => {
             history.push({
               pathname: "/setting/credit",
             });
-          }, [history])}
+          }}
           icons={useMemo(
             () => [<i key="next" className="fas fa-chevron-right" />],
             []
@@ -88,4 +115,4 @@ export const SettingPage: FunctionComponent = () => {
       </div>
     </HeaderLayout>
   );
-};
+});
