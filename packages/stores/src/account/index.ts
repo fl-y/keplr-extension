@@ -31,26 +31,33 @@ export enum WalletStatus {
   NotExist = "NotExist",
 }
 
-export interface MsgGasOpts {
-  send: {
-    native: number;
-    cw20: number;
-    secret20: number;
-  };
-  delegate: number;
-  undelegate: number;
-  redelegate: number;
-  // The gas multiplication per rewards.
-  withdrawRewards: number;
-  govVote: number;
+interface MsgOpt {
+  type: string;
+  gas: number;
+}
 
-  createSecret20ViewingKey: number;
+export interface MsgOpts {
+  send: {
+    native: MsgOpt;
+    cw20: Pick<MsgOpt, "gas">;
+    secret20: Pick<MsgOpt, "gas">;
+  };
+  delegate: MsgOpt;
+  undelegate: MsgOpt;
+  redelegate: MsgOpt;
+  // The gas multiplication per rewards.
+  withdrawRewards: MsgOpt;
+  govVote: MsgOpt;
+
+  createSecret20ViewingKey: Pick<MsgOpt, "gas">;
+
+  executeSecretWasm: Pick<MsgOpt, "type">;
 }
 
 export interface AccountStoreInnerOpts {
   prefetching: boolean;
   suggestChain: boolean;
-  gasOpts: MsgGasOpts;
+  msgOpts: MsgOpts;
 }
 
 export interface AccountStoreOpts {
@@ -85,20 +92,48 @@ export class AccountStoreInner {
   public static readonly defaultOpts: DeepReadonly<AccountStoreInnerOpts> = {
     prefetching: false,
     suggestChain: false,
-    gasOpts: {
+    msgOpts: {
       send: {
-        native: 80000,
-        cw20: 250000,
-        secret20: 250000,
+        native: {
+          type: "cosmos-sdk/MsgSend",
+          gas: 80000,
+        },
+        cw20: {
+          gas: 250000,
+        },
+        secret20: {
+          gas: 250000,
+        },
       },
-      delegate: 250000,
-      undelegate: 250000,
-      redelegate: 250000,
+      delegate: {
+        type: "cosmos-sdk/MsgDelegate",
+        gas: 250000,
+      },
+      undelegate: {
+        type: "cosmos-sdk/MsgUndelegate",
+        gas: 250000,
+      },
+      redelegate: {
+        type: "cosmos-sdk/MsgBeginRedelegate",
+        gas: 250000,
+      },
       // The gas multiplication per rewards.
-      withdrawRewards: 140000,
-      govVote: 250000,
+      withdrawRewards: {
+        type: "cosmos-sdk/MsgWithdrawDelegationReward",
+        gas: 140000,
+      },
+      govVote: {
+        type: "cosmos-sdk/MsgVote",
+        gas: 250000,
+      },
 
-      createSecret20ViewingKey: 150000,
+      createSecret20ViewingKey: {
+        gas: 150000,
+      },
+
+      executeSecretWasm: {
+        type: "wasm/MsgExecuteContract",
+      },
     },
   };
 
@@ -237,7 +272,7 @@ export class AccountStoreInner {
         await this.sendMsgs(
           [
             {
-              type: "cosmos-sdk/MsgSend",
+              type: this.opts.msgOpts.send.native.type,
               value: {
                 from_address: this.bech32Address,
                 to_address: recipient,
@@ -252,7 +287,7 @@ export class AccountStoreInner {
           ],
           {
             amount: [],
-            gas: this.opts.gasOpts.send.native.toString(),
+            gas: this.opts.msgOpts.send.native.gas.toString(),
           },
           memo,
           (tx) => {
@@ -292,7 +327,7 @@ export class AccountStoreInner {
           },
           {
             amount: [],
-            gas: this.opts.gasOpts.send.secret20.toString(),
+            gas: this.opts.msgOpts.send.secret20.gas.toString(),
           },
           memo,
           (tx) => {
@@ -343,7 +378,7 @@ export class AccountStoreInner {
     dec = dec.mulTruncate(DecUtils.getPrecisionDec(currency.coinDecimals));
 
     const msg = {
-      type: "cosmos-sdk/MsgDelegate",
+      type: this.opts.msgOpts.delegate.type,
       value: {
         delegator_address: this.bech32Address,
         validator_address: validatorAddress,
@@ -358,7 +393,7 @@ export class AccountStoreInner {
       [msg],
       {
         amount: [],
-        gas: this.opts.gasOpts.delegate.toString(),
+        gas: this.opts.msgOpts.delegate.gas.toString(),
       },
       memo,
       (tx) => {
@@ -405,7 +440,7 @@ export class AccountStoreInner {
     dec = dec.mulTruncate(DecUtils.getPrecisionDec(currency.coinDecimals));
 
     const msg = {
-      type: "cosmos-sdk/MsgUndelegate",
+      type: this.opts.msgOpts.undelegate.type,
       value: {
         delegator_address: this.bech32Address,
         validator_address: validatorAddress,
@@ -420,7 +455,7 @@ export class AccountStoreInner {
       [msg],
       {
         amount: [],
-        gas: this.opts.gasOpts.undelegate.toString(),
+        gas: this.opts.msgOpts.undelegate.gas.toString(),
       },
       memo,
       (tx) => {
@@ -473,7 +508,7 @@ export class AccountStoreInner {
     dec = dec.mulTruncate(DecUtils.getPrecisionDec(currency.coinDecimals));
 
     const msg = {
-      type: "cosmos-sdk/MsgBeginRedelegate",
+      type: this.opts.msgOpts.redelegate.type,
       value: {
         delegator_address: this.bech32Address,
         validator_src_address: srcValidatorAddress,
@@ -489,7 +524,7 @@ export class AccountStoreInner {
       [msg],
       {
         amount: [],
-        gas: this.opts.gasOpts.redelegate.toString(),
+        gas: this.opts.msgOpts.redelegate.gas.toString(),
       },
       memo,
       (tx) => {
@@ -523,7 +558,7 @@ export class AccountStoreInner {
   ) {
     const msgs = validatorAddresses.map((validatorAddress) => {
       return {
-        type: "cosmos-sdk/MsgWithdrawDelegationReward",
+        type: this.opts.msgOpts.withdrawRewards.type,
         value: {
           delegator_address: this.bech32Address,
           validator_address: validatorAddress,
@@ -536,7 +571,7 @@ export class AccountStoreInner {
       {
         amount: [],
         gas: (
-          this.opts.gasOpts.withdrawRewards * validatorAddresses.length
+          this.opts.msgOpts.withdrawRewards.gas * validatorAddresses.length
         ).toString(),
       },
       memo,
@@ -563,7 +598,7 @@ export class AccountStoreInner {
     onFulfill?: (tx: any) => void
   ) {
     const msg = {
-      type: "cosmos-sdk/MsgVote",
+      type: this.opts.msgOpts.govVote.type,
       value: {
         option,
         proposal_id: proposalId,
@@ -575,7 +610,7 @@ export class AccountStoreInner {
       [msg],
       {
         amount: [],
-        gas: this.opts.gasOpts.govVote.toString(),
+        gas: this.opts.msgOpts.govVote.gas.toString(),
       },
       memo,
       (tx) => {
@@ -612,7 +647,7 @@ export class AccountStoreInner {
         },
         {
           amount: [],
-          gas: this.opts.gasOpts.createSecret20ViewingKey.toString(),
+          gas: this.opts.msgOpts.createSecret20ViewingKey.gas.toString(),
         },
         memo,
         async (result) => {
@@ -670,7 +705,7 @@ export class AccountStoreInner {
     })();
 
     const msg = {
-      type: "wasm/MsgExecuteContract",
+      type: this.opts.msgOpts.executeSecretWasm.type,
       value: {
         sender: this.bech32Address,
         contract: contractAddress,
