@@ -9,6 +9,7 @@ export type PricePrettyOptions = {
   separator: string;
   upperCase: boolean;
   lowerCase: boolean;
+  locale: string;
 };
 
 export class PricePretty {
@@ -18,6 +19,7 @@ export class PricePretty {
     separator: "",
     upperCase: false,
     lowerCase: false,
+    locale: "en-US",
   };
 
   constructor(
@@ -33,13 +35,18 @@ export class PricePretty {
     this.intPretty = this.intPretty
       .maxDecimals(_fiatCurrency.maxDecimals)
       .shrink(true)
-      .trim(true);
+      .trim(true)
+      .locale(false);
+
+    this._options.locale = _fiatCurrency.locale;
   }
 
-  get options(): DeepReadonly<IntPrettyOptions & PricePrettyOptions> {
+  get options(): DeepReadonly<
+    Omit<IntPrettyOptions, "locale"> & PricePrettyOptions
+  > {
     return {
-      ...this._options,
       ...this.intPretty.options,
+      ...this._options,
     };
   }
 
@@ -95,9 +102,9 @@ export class PricePretty {
     return pretty;
   }
 
-  locale(locale: boolean): PricePretty {
+  locale(locale: string): PricePretty {
     const pretty = this.clone();
-    pretty.intPretty = pretty.intPretty.locale(locale);
+    pretty._options.locale = locale;
     return pretty;
   }
 
@@ -144,14 +151,24 @@ export class PricePretty {
         DecUtils.getPrecisionDec(this.options.maxDecimals)
       );
       if (dec.lt(precision)) {
-        return `< ${symbol}${this._options.separator}${precision.toString(
-          options.maxDecimals,
-          options.locale
-        )}`;
+        const precisionLocaleString = parseFloat(
+          precision.toString(options.maxDecimals)
+        ).toLocaleString(options.locale, {
+          maximumFractionDigits: options.maxDecimals,
+        });
+
+        return `< ${symbol}${this._options.separator}${precisionLocaleString}`;
       }
     }
 
-    return `${symbol}${this._options.separator}${this.intPretty.toString()}`;
+    const localeString = parseFloat(this.intPretty.toString()).toLocaleString(
+      options.locale,
+      {
+        maximumFractionDigits: options.maxDecimals,
+      }
+    );
+
+    return `${symbol}${this._options.separator}${localeString}`;
   }
 
   clone(): PricePretty {

@@ -91,11 +91,13 @@ export class RootStore {
           currency: "usd",
           symbol: "$",
           maxDecimals: 2,
+          locale: "en-US",
         },
         krw: {
           currency: "krw",
           symbol: "₩",
           maxDecimals: 0,
+          locale: "ko-KR",
         },
       }
     );
