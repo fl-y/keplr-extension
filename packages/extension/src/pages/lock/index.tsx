@@ -15,6 +15,7 @@ import style from "./style.module.scss";
 
 import { FormattedMessage, useIntl } from "react-intl";
 import { useInteractionInfo } from "@keplr/hooks";
+import { useHistory } from "react-router";
 
 interface FormData {
   password: string;
@@ -22,6 +23,7 @@ interface FormData {
 
 export const LockPage: FunctionComponent = observer(() => {
   const intl = useIntl();
+  const history = useHistory();
 
   const interactionInfo = useInteractionInfo();
 
@@ -42,11 +44,12 @@ export const LockPage: FunctionComponent = observer(() => {
           setLoading(true);
           try {
             await keyRingStore.unlock(data.password);
-            if (
-              interactionInfo.interaction &&
-              !interactionInfo.interactionInternal
-            ) {
-              window.close();
+            if (interactionInfo.interaction) {
+              if (!interactionInfo.interactionInternal) {
+                window.close();
+              } else {
+                history.replace("/");
+              }
             }
           } catch (e) {
             console.log("Fail to decrypt: " + e.message);
