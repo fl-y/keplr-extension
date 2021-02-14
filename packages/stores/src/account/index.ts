@@ -652,7 +652,7 @@ export class AccountStoreInner {
         memo,
         async (result) => {
           if (result && "data" in result && result.data) {
-            const dataOutputCipher = Buffer.from(result.data as any, "hex");
+            const dataOutputCipher = Buffer.from(result.data as any, "base64");
 
             const keplr = await AccountStore.getKeplr();
 
