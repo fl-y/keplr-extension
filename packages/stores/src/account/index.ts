@@ -17,7 +17,6 @@ import { fromHex } from "@cosmjs/encoding";
 import { Dec, DecUtils } from "@keplr/unit";
 import { QueriesStore } from "../query";
 import { Queries } from "../query/queries";
-import PQueue from "p-queue";
 
 import { BondStatus } from "../query/cosmos/staking/types";
 
@@ -81,13 +80,6 @@ export class AccountStoreInner {
   public broadcastMode: "sync" | "async" | "block" = "sync";
 
   protected pubKey: Uint8Array;
-
-  // If there are multiple enabling at the same time,
-  // keplr wallet works somewhat strangely.
-  // So to solve this problem, just make enabling execute sequently.
-  protected static enablingQueue: PQueue = new PQueue({
-    concurrency: 1,
-  });
 
   public static readonly defaultOpts: DeepReadonly<AccountStoreInnerOpts> = {
     prefetching: false,
@@ -186,11 +178,7 @@ export class AccountStoreInner {
     }
 
     // TODO: Handle not approved.
-    await task(
-      AccountStoreInner.enablingQueue.add(() =>
-        this.enable(keplr, this.chainId)
-      )
-    );
+    await task(this.enable(keplr, this.chainId));
 
     const key = await task(keplr.getKey(this.chainId));
     this._bech32Address = key.bech32Address;
