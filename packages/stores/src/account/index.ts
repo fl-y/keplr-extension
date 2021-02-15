@@ -633,53 +633,56 @@ export class AccountStoreInner {
 
   async createSecret20ViewingKey(
     contractAddress: string,
-    memo: string = ""
-  ): Promise<string> {
+    memo: string = "",
+    onFulfill?: (tx: any, viewingKey: string) => void
+  ) {
     const random = new Uint8Array(15);
     crypto.getRandomValues(random);
     const entropy = Buffer.from(random).toString("hex");
 
-    return new Promise<string>(async (resolve) => {
-      const encrypted = await this.sendExecuteSecretContractMsg(
-        contractAddress,
-        {
-          create_viewing_key: { entropy },
-        },
-        {
-          amount: [],
-          gas: this.opts.msgOpts.createSecret20ViewingKey.gas.toString(),
-        },
-        memo,
-        async (result) => {
-          if (result && "data" in result && result.data) {
-            const dataOutputCipher = Buffer.from(result.data as any, "base64");
+    const encrypted = await this.sendExecuteSecretContractMsg(
+      contractAddress,
+      {
+        create_viewing_key: { entropy },
+      },
+      {
+        amount: [],
+        gas: this.opts.msgOpts.createSecret20ViewingKey.gas.toString(),
+      },
+      memo,
+      async (tx) => {
+        let viewingKey = "";
+        if (tx && "data" in tx && tx.data) {
+          const dataOutputCipher = Buffer.from(tx.data as any, "base64");
 
-            const keplr = await AccountStore.getKeplr();
+          const keplr = await AccountStore.getKeplr();
 
-            if (!keplr) {
-              throw new Error("Can't get the Keplr API");
-            }
-
-            const enigmaUtils = keplr.getEnigmaUtils(this.chainId);
-
-            const nonce = encrypted.slice(0, 32);
-
-            const dataOutput = Buffer.from(
-              Buffer.from(
-                await enigmaUtils.decrypt(dataOutputCipher, nonce)
-              ).toString(),
-              "base64"
-            ).toString();
-
-            // Expected: {"create_viewing_key":{"key":"api_key_1k1T...btJQo="}}
-            const data = JSON.parse(dataOutput);
-            const viewingKey = data["create_viewing_key"]["key"];
-
-            resolve(viewingKey);
+          if (!keplr) {
+            throw new Error("Can't get the Keplr API");
           }
+
+          const enigmaUtils = keplr.getEnigmaUtils(this.chainId);
+
+          const nonce = encrypted.slice(0, 32);
+
+          const dataOutput = Buffer.from(
+            Buffer.from(
+              await enigmaUtils.decrypt(dataOutputCipher, nonce)
+            ).toString(),
+            "base64"
+          ).toString();
+
+          // Expected: {"create_viewing_key":{"key":"api_key_1k1T...btJQo="}}
+          const data = JSON.parse(dataOutput);
+          viewingKey = data["create_viewing_key"]["key"];
         }
-      );
-    });
+
+        if (onFulfill) {
+          onFulfill(tx, viewingKey);
+        }
+      }
+    );
+    return;
   }
 
   async sendExecuteSecretContractMsg(

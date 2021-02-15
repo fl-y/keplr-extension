@@ -23,6 +23,7 @@ import { InteractionService } from "../interaction";
 import { PermissionService } from "../permission";
 
 import { Buffer } from "buffer/";
+import { SuggestTokenMsg } from "./messages";
 
 @singleton()
 export class TokensService {
@@ -69,15 +70,14 @@ export class TokensService {
       contractAddress,
     };
 
-    // TODO: Currently, this line just opens the adding token page to the user.
-    //       and, just expects that the adding token page will add the token without knowing the result.
-    //       Probably, this approach can be improved.
-    this.interactionService.waitApprove(
+    const appCurrency = await this.interactionService.waitApprove(
       env,
       "/setting/token/add",
-      "suggest-token",
+      SuggestTokenMsg.type(),
       params
     );
+
+    await this.addToken(chainId, appCurrency as AppCurrency);
   }
 
   async addToken(chainId: string, currency: AppCurrency) {

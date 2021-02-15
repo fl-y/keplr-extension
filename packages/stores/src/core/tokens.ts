@@ -1,19 +1,25 @@
 import { HasMapStore } from "../common";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 import { actionAsync, task } from "mobx-utils";
-import { AddTokenMsg, GetTokensMsg, RemoveTokenMsg } from "@keplr/background";
+import {
+  AddTokenMsg,
+  GetTokensMsg,
+  RemoveTokenMsg,
+  SuggestTokenMsg,
+} from "@keplr/background";
 import { observable, runInAction } from "mobx";
 import { AppCurrency, ChainInfo } from "@keplr/types";
 import { DeepReadonly } from "utility-types";
 import { ChainStore } from "../chain";
+import { InteractionStore } from "./interaction";
 
 export class TokensStoreInner {
   @observable.ref
   protected _tokens!: AppCurrency[];
 
   constructor(
-    protected readonly requester: MessageRequester,
-    protected readonly chainId: string
+    protected readonly chainId: string,
+    protected readonly requester: MessageRequester
   ) {
     runInAction(() => {
       this._tokens = [];
@@ -64,10 +70,11 @@ export class TokensStore<
 > extends HasMapStore<TokensStoreInner> {
   constructor(
     protected readonly chainStore: ChainStore<C>,
-    protected readonly requester: MessageRequester
+    protected readonly requester: MessageRequester,
+    protected readonly interactionStore: InteractionStore
   ) {
     super((chainId: string) => {
-      return new TokensStoreInner(this.requester, chainId);
+      return new TokensStoreInner(chainId, this.requester);
     });
 
     this.chainStore.registerChainInfoOverrider(this.overrideChainInfo);
@@ -95,5 +102,43 @@ export class TokensStore<
 
   getTokensOf(chainId: string) {
     return this.get(chainId);
+  }
+
+  get waitingSuggestedToken() {
+    const datas = this.interactionStore.getDatas<{
+      chainId: string;
+      contractAddress: string;
+    }>(SuggestTokenMsg.type());
+
+    if (datas.length > 0) {
+      return datas[0];
+    }
+  }
+
+  @actionAsync
+  async approveSuggestedToken(appCurrency: AppCurrency) {
+    const data = this.waitingSuggestedToken;
+    if (data) {
+      await this.interactionStore.approve(
+        SuggestTokenMsg.type(),
+        data.id,
+        appCurrency
+      );
+
+      await this.getTokensOf(data.data.chainId).refreshTokens();
+    }
+  }
+
+  @actionAsync
+  async rejectSuggestedToken() {
+    const data = this.waitingSuggestedToken;
+    if (data) {
+      await this.interactionStore.reject(SuggestTokenMsg.type(), data.id);
+    }
+  }
+
+  @actionAsync
+  async rejectAllSuggestedTokens() {
+    await this.interactionStore.rejectAll(SuggestTokenMsg.type());
   }
 }

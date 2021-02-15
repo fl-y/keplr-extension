@@ -84,7 +84,10 @@ export class ExtensionEnv {
           url += "?" + queryString;
         }
 
-        const windows = browser.extension.getViews({ type: "popup" });
+        const backgroundPage = await browser.runtime.getBackgroundPage();
+        const windows = browser.extension.getViews().filter((window) => {
+          return window.location.href !== backgroundPage.location.href;
+        });
         windows[0].location.href = url;
 
         return await new InExtensionMessageRequester().sendMessage(

@@ -146,7 +146,8 @@ export class RootStore {
 
     this.tokensStore = new TokensStore(
       this.chainStore,
-      new InExtensionMessageRequester()
+      new InExtensionMessageRequester(),
+      this.interactionStore
     );
 
     router.listen(APP_PORT);

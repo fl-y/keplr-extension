@@ -1,7 +1,7 @@
 import { Secret20ContractTokenInfo } from "./types";
 import { KVStore } from "@keplr/common";
 import { ObservableChainQueryMap } from "../chain-query";
-import { ChainGetter } from "../../common/types";
+import { ChainGetter } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
 import { computed, observable } from "mobx";
 import { Keplr } from "@keplr/types";
