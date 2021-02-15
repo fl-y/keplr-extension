@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useCallback } from "react";
+import React, { FunctionComponent } from "react";
 
 import styleMenu from "./menu.module.scss";
 import { observer } from "mobx-react";
@@ -16,21 +16,21 @@ export const Menu: FunctionComponent = observer(() => {
     <div className={styleMenu.container}>
       <div
         className={styleMenu.item}
-        onClick={useCallback(() => {
+        onClick={() => {
           history.push({
             pathname: "/setting/address-book",
           });
-        }, [history])}
+        }}
       >
         <FormattedMessage id="main.menu.address-book" />
       </div>
       <div
         className={styleMenu.item}
-        onClick={useCallback(() => {
+        onClick={() => {
           history.push({
             pathname: "/setting",
           });
-        }, [history])}
+        }}
       >
         <FormattedMessage id="main.menu.settings" />
       </div>
@@ -52,9 +52,9 @@ export const Menu: FunctionComponent = observer(() => {
       <div style={{ flex: 1 }} />
       <div
         className={styleMenu.item}
-        onClick={useCallback(() => {
+        onClick={() => {
           keyRingStore.lock();
-        }, [keyRingStore])}
+        }}
       >
         <FormattedMessage id="main.menu.sign-out" />
       </div>
