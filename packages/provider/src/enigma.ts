@@ -46,6 +46,10 @@ export class KeplrEnigmaUtils implements SecretUtils {
     ciphertext: Uint8Array,
     nonce: Uint8Array
   ): Promise<Uint8Array> => {
+    if (!ciphertext || ciphertext.length === 0) {
+      return new Uint8Array();
+    }
+
     return Buffer.from(
       await this.requester.sendMessage(
         BACKGROUND_PORT,

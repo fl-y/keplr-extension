@@ -39,6 +39,9 @@ export interface Keplr {
     mode: BroadcastMode
   ): Promise<Uint8Array>;
   suggestToken(chainId: string, contractAddress: string): Promise<void>;
-
+  getSecret20ViewingKey(
+    chainId: string,
+    contractAddress: string
+  ): Promise<string>;
   getEnigmaUtils(chainId: string): SecretUtils;
 }

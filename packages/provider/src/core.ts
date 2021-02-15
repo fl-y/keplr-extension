@@ -19,6 +19,7 @@ import {
   RequestSignMsg,
   SuggestTokenMsg,
   SendTxMsg,
+  GetSecret20ViewingKey,
 } from "@keplr/background";
 import { SecretUtils } from "secretjs/types/enigmautils";
 
@@ -81,6 +82,14 @@ export class Keplr implements IKeplr {
   async suggestToken(chainId: string, contractAddress: string): Promise<void> {
     const msg = new SuggestTokenMsg(chainId, contractAddress);
     await this.requester.sendMessage(BACKGROUND_PORT, msg);
+  }
+
+  async getSecret20ViewingKey(
+    chainId: string,
+    contractAddress: string
+  ): Promise<string> {
+    const msg = new GetSecret20ViewingKey(chainId, contractAddress);
+    return await this.requester.sendMessage(BACKGROUND_PORT, msg);
   }
 
   getEnigmaUtils(chainId: string): SecretUtils {

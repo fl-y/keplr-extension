@@ -49,7 +49,7 @@ export class TokensService {
   async suggestToken(env: Env, chainId: string, contractAddress: string) {
     const chainInfo = await this.chainsService.getChainInfo(chainId);
 
-    const find = chainInfo.currencies.find(
+    const find = (await this.getTokens(chainId)).find(
       (currency) =>
         "contractAddress" in currency &&
         currency.contractAddress === contractAddress
@@ -85,7 +85,7 @@ export class TokensService {
 
     currency = await TokensService.validateCurrency(chainInfo, currency);
 
-    const chainCurrencies = chainInfo.currencies;
+    const chainCurrencies = await this.getTokens(chainId);
 
     const isTokenForAccount =
       "type" in currency && currency.type === "secret20";
@@ -102,6 +102,8 @@ export class TokensService {
       }
     }
 
+    console.log(isTokenForAccount, isCurrencyUpdated);
+
     if (!isTokenForAccount) {
       const currencies = await this.getTokensFromChain(chainId);
       currencies.push(currency);
@@ -115,6 +117,7 @@ export class TokensService {
         const index = currencies.findIndex(
           (cur) => cur.coinMinimalDenom === currency.coinMinimalDenom
         );
+        console.log(index);
         if (index >= 0) {
           currencies[index] = currency;
           await this.saveTokensToChainAndAccount(chainId, currencies);
@@ -128,7 +131,7 @@ export class TokensService {
 
     currency = await TokensService.validateCurrency(chainInfo, currency);
 
-    const chainCurrencies = chainInfo.currencies;
+    const chainCurrencies = await this.getTokens(chainId);
 
     const isTokenForAccount =
       "type" in currency && currency.type === "secret20";
@@ -258,9 +261,9 @@ export class TokensService {
     chainId: string,
     contractAddress: string
   ): Promise<string> {
-    const chainInfo = await this.chainsService.getChainInfo(chainId);
+    const tokens = await this.getTokens(chainId);
 
-    for (const currency of chainInfo.currencies) {
+    for (const currency of tokens) {
       if ("type" in currency && currency.type === "secret20") {
         if (currency.contractAddress === contractAddress) {
           return currency.viewingKey;
