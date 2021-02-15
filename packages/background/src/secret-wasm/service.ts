@@ -15,16 +15,24 @@ import { Buffer } from "buffer/";
 
 @singleton()
 export class SecretWasmService {
+  protected cacheEnigmaUtils: Map<string, EnigmaUtils> = new Map();
+
   constructor(
     @inject(TYPES.SecretWasmStore)
     protected readonly kvStore: KVStore,
-    @inject(delay(() => ChainsService))
+    @inject(ChainsService)
     protected readonly chainsService: ChainsService,
     @inject(delay(() => KeyRingService))
     protected readonly keyRingService: KeyRingService,
     @inject(delay(() => PermissionService))
     public readonly permissionService: PermissionService
-  ) {}
+  ) {
+    this.chainsService.addChainRemovedHandler(this.onChainRemoved);
+  }
+
+  protected readonly onChainRemoved = () => {
+    this.cacheEnigmaUtils = new Map();
+  };
 
   async getPubkey(env: Env, chainId: string): Promise<Uint8Array> {
     const chainInfo = await this.chainsService.getChainInfo(chainId);
@@ -36,8 +44,7 @@ export class SecretWasmService {
 
     const seed = await this.getSeed(env, chainInfo);
 
-    // TODO: Handle the rest config.
-    const utils = new EnigmaUtils(chainInfo.rest, seed);
+    const utils = this.getEnigmaUtils(chainInfo, seed);
     return utils.pubkey;
   }
 
@@ -61,8 +68,7 @@ export class SecretWasmService {
     // It need to more research.
     const seed = await this.getSeed(env, chainInfo);
 
-    // TODO: Handle the rest config.
-    const utils = new EnigmaUtils(chainInfo.rest, seed);
+    const utils = this.getEnigmaUtils(chainInfo, seed);
 
     return await utils.encrypt(contractCodeHash, msg);
   }
@@ -86,10 +92,24 @@ export class SecretWasmService {
     // It need to more research.
     const seed = await this.getSeed(env, chainInfo);
 
-    // TODO: Handle the rest config.
-    const utils = new EnigmaUtils(chainInfo.rest, seed);
+    const utils = this.getEnigmaUtils(chainInfo, seed);
 
     return await utils.decrypt(ciphertext, nonce);
+  }
+
+  private getEnigmaUtils(chainInfo: ChainInfo, seed: Uint8Array): EnigmaUtils {
+    const key = `${chainInfo.chainId}-${Buffer.from(seed).toString("hex")}`;
+
+    if (this.cacheEnigmaUtils.has(key)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return this.cacheEnigmaUtils.get(key)!;
+    }
+
+    // TODO: Handle the rest config.
+    const utils = new EnigmaUtils(chainInfo.rest, seed);
+    this.cacheEnigmaUtils.set(key, utils);
+
+    return utils;
   }
 
   private async getSeed(env: Env, chainInfo: ChainInfo): Promise<Uint8Array> {
