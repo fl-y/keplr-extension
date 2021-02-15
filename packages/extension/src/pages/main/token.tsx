@@ -5,19 +5,22 @@ import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import { useHistory } from "react-router";
 import { Hash } from "@keplr/crypto";
+import { ObservableQueryBalanceInner } from "@keplr/stores/build/query/balances";
 
 const TokenView: FunctionComponent<{
-  name: string;
-  minimalDenom: string;
-  amount: string;
+  balance: ObservableQueryBalanceInner;
   onClick: () => void;
-}> = ({ name, minimalDenom, amount, onClick }) => {
+}> = observer(({ onClick, balance }) => {
   const [backgroundColors] = useState([
     "#5e72e4",
     "#11cdef",
     "#2dce89",
     "#fb6340",
   ]);
+
+  const name = balance.currency.coinDenom.toUpperCase();
+  const minimalDenom = balance.currency.coinMinimalDenom;
+  const amount = balance.balance.trim(true);
 
   const backgroundColor = useMemo(() => {
     const hash = Hash.sha256(Buffer.from(minimalDenom));
@@ -59,7 +62,12 @@ const TokenView: FunctionComponent<{
       <div className={styleToken.innerContainer}>
         <div className={styleToken.content}>
           <div className={styleToken.name}>{name}</div>
-          <div className={styleToken.amount}>{amount}</div>
+          <div className={styleToken.amount}>
+            {amount.toString()}
+            {balance.isFetching ? (
+              <i className="fas fa-spinner fa-spin ml-1" />
+            ) : null}
+          </div>
         </div>
         <div className={styleToken.arrow}>
           <i className="fas fa-angle-right" />
@@ -67,7 +75,7 @@ const TokenView: FunctionComponent<{
       </div>
     </div>
   );
-};
+});
 
 export const TokensView: FunctionComponent = observer(() => {
   const { chainStore, accountStore, queriesStore } = useStore();
@@ -85,19 +93,14 @@ export const TokensView: FunctionComponent = observer(() => {
     <div className={styleToken.tokensContainer}>
       <h1 className={styleToken.title}>Tokens</h1>
       {tokens.map((token, i) => {
-        const currency = token.currency;
-        const bal = token.balance;
-
         return (
           <TokenView
             key={i.toString()}
-            name={currency.coinDenom.toUpperCase()}
-            minimalDenom={currency.coinMinimalDenom}
-            amount={bal.trim(true).toString()}
+            balance={token}
             onClick={() => {
               history.push({
                 pathname: "/send",
-                search: `?defaultDenom=${currency.coinMinimalDenom}`,
+                search: `?defaultDenom=${token.currency.coinMinimalDenom}`,
               });
             }}
           />
