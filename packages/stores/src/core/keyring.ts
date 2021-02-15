@@ -274,6 +274,8 @@ export class KeyRingStore {
         {}
       );
     }
+
+    window.dispatchEvent(new Event("keplr_keystoreunlock"));
   }
 
   @actionAsync

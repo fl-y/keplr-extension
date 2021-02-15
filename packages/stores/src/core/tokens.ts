@@ -21,6 +21,12 @@ export class TokensStoreInner {
 
     this.refreshTokens();
 
+    // If key store in the keplr extension is unlocked, this event will be dispatched.
+    // This is needed becuase the token such as secret20 exists according to the account.
+    window.addEventListener("keplr_keystoreunlock", () => {
+      this.refreshTokens();
+    });
+
     // If key store in the keplr extension is changed, this event will be dispatched.
     // This is needed becuase the token such as secret20 exists according to the account.
     window.addEventListener("keplr_keystorechange", () => {
