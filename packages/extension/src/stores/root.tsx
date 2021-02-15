@@ -77,7 +77,14 @@ export class RootStore {
 
     this.accountStore = new AccountStore(this.chainStore, this.queriesStore, {
       defaultOpts: {
-        prefetching: true,
+        // When the unlock request sent from external webpage,
+        // it will open the extension popup below the uri "/unlock".
+        // But, in this case, if the prefetching option is true, it will redirect
+        // the page to the "/unlock" with **interactionInternal=true**
+        // because prefetching will request the unlock from the internal.
+        // To prevent this problem, just check the first uri is "#/unlcok" and
+        // if it is "#/unlock", don't use the prefetching option.
+        prefetching: !window.location.href.includes("#/unlock"),
       },
       chainOpts: this.chainStore.chainInfos.map((chainInfo) => {
         return { chainId: chainInfo.chainId };
