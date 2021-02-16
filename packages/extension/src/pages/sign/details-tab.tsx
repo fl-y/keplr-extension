@@ -10,7 +10,7 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { FeeButtons, MemoInput } from "../../components/form";
 import { IFeeConfig, IMemoConfig, SignDocHelper } from "@keplr/hooks";
 import { useLanguage } from "../../languages";
-import { Label } from "reactstrap";
+import { Badge, Label } from "reactstrap";
 
 export const DetailsTab: FunctionComponent<{
   signDocHelper: SignDocHelper;
@@ -26,8 +26,15 @@ export const DetailsTab: FunctionComponent<{
 
   return (
     <div className={styleDetailsTab.container}>
-      <Label for="signing-messages" className="form-control-label">
+      <Label
+        for="signing-messages"
+        className="form-control-label"
+        style={{ display: "flex" }}
+      >
         <FormattedMessage id="sign.list.messages.label" />
+        <Badge className="ml-2" color="primary">
+          {signDocHelper.msgs.length}
+        </Badge>
       </Label>
       <div id="signing-messages" className={styleDetailsTab.msgContainer}>
         {signDocHelper.msgs.map((msg, i) => {
