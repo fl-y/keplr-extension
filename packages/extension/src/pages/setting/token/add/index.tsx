@@ -237,7 +237,8 @@ export const AddTokenPage: FunctionComponent = observer(() => {
             form.errors.contractAddress
               ? form.errors.contractAddress.message
               : tokenInfo == null
-              ? queryContractInfo.error?.message
+              ? (queryContractInfo.error?.data as any)?.error ||
+                queryContractInfo.error?.message
               : undefined
           }
           text={

@@ -1,7 +1,7 @@
 import { Secret20ContractTokenInfo } from "./types";
 import { KVStore } from "@keplr/common";
 import { ObservableChainQueryMap } from "../chain-query";
-import { ChainGetter } from "../../common";
+import { ChainGetter, QueryError } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
 import { computed, observable } from "mobx";
 import { Keplr } from "@keplr/types";
@@ -31,8 +31,18 @@ export class ObservableQuerySecret20ContactInfoInner extends ObservableSecretCon
     );
   }
 
+  get error(): Readonly<QueryError<unknown>> | undefined {
+    return (
+      super.error ||
+      this.querySecretContractCodeHash.getQueryContract(this.contractAddress)
+        .error
+    );
+  }
+
   @computed
   get tokenInfo(): Secret20ContractTokenInfo["token_info"] | undefined {
+    console.log(this.response, this.error);
+
     if (!this.response) {
       return undefined;
     }
