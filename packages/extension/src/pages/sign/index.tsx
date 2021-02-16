@@ -95,6 +95,13 @@ export const SignPage: FunctionComponent = observer(() => {
     isSignDocInternalSend,
   ]);
 
+  const [
+    isLoadingSignDocInternalSend,
+    setIsLoadingSignDocInternalSend,
+  ] = useState(false);
+
+  const hideFeeButtons = isSignDocInternalSend || isLoadingSignDocInternalSend;
+
   return (
     <HeaderLayout
       showChainName
@@ -148,7 +155,7 @@ export const SignPage: FunctionComponent = observer(() => {
               signDocHelper={signDocHelper}
               memoConfig={memoConfig}
               feeConfig={feeConfig}
-              hideFeeButtons={isSignDocInternalSend}
+              hideFeeButtons={hideFeeButtons}
             />
           ) : null}
         </div>
@@ -174,6 +181,10 @@ export const SignPage: FunctionComponent = observer(() => {
                 data-loading={signInteractionStore.isLoading}
                 onClick={async (e) => {
                   e.preventDefault();
+
+                  if (isSignDocInternalSend) {
+                    setIsLoadingSignDocInternalSend(true);
+                  }
 
                   await signInteractionStore.reject();
 
@@ -202,6 +213,10 @@ export const SignPage: FunctionComponent = observer(() => {
                 data-loading={signInteractionStore.isLoading}
                 onClick={async (e) => {
                   e.preventDefault();
+
+                  if (isSignDocInternalSend) {
+                    setIsLoadingSignDocInternalSend(true);
+                  }
 
                   if (signDocHelper.signDoc) {
                     await signInteractionStore.approveAndWaitEnd(
