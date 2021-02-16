@@ -31,6 +31,11 @@
       .name {
         font-size: 14px;
         color: #525f7f;
+
+        max-width: 200px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
 
       .amount {
@@ -38,6 +43,11 @@
         line-height: 1.13;
         letter-spacing: -0.3px;
         color: #32325d;
+
+        max-width: 200px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
     }
 

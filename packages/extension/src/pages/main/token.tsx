@@ -27,7 +27,7 @@ const TokenView: FunctionComponent<{
 
   const name = balance.currency.coinDenom.toUpperCase();
   const minimalDenom = balance.currency.coinMinimalDenom;
-  const amount = balance.balance.trim(true);
+  const amount = balance.balance.trim(true).shrink(true);
 
   const backgroundColor = useMemo(() => {
     const hash = Hash.sha256(Buffer.from(minimalDenom));
