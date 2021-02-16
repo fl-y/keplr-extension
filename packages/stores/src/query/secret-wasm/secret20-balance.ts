@@ -1,6 +1,6 @@
 import { computed } from "mobx";
 import { DenomHelper, KVStore } from "@keplr/common";
-import { ChainGetter } from "../../common/types";
+import { ChainGetter, QueryResponse } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
 import { actionAsync, task } from "mobx-utils";
 import { AccountStore } from "../../account";
@@ -8,9 +8,14 @@ import { QueryError } from "../../common";
 import { CoinPretty, Int } from "@keplr/unit";
 import { BalanceRegistry, ObservableQueryBalanceInner } from "../balances";
 import { ObservableSecretContractChainQuery } from "./contract-query";
+import { CancelToken } from "axios";
+import { WrongViewingKeyError } from "./errors";
 
 export class ObservableQuerySecret20Balance extends ObservableSecretContractChainQuery<{
   balance: { amount: string };
+  ["viewing_key_error"]?: {
+    msg: string;
+  };
 }> {
   constructor(
     kvStore: KVStore,
@@ -43,6 +48,18 @@ export class ObservableQuerySecret20Balance extends ObservableSecretContractChai
     return (
       super.canFetch() && this.bech32Address !== "" && this.viewingKey !== ""
     );
+  }
+
+  protected async fetchResponse(
+    cancelToken: CancelToken
+  ): Promise<QueryResponse<{ balance: { amount: string } }>> {
+    const result = await super.fetchResponse(cancelToken);
+
+    if (result.data["viewing_key_error"]) {
+      throw new WrongViewingKeyError(result.data["viewing_key_error"]?.msg);
+    }
+
+    return result;
   }
 
   @actionAsync

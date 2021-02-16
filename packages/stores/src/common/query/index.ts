@@ -239,6 +239,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
           status: 0,
           statusText: e.message,
           message: e.message,
+          data: e,
         };
 
         this.setError(error);

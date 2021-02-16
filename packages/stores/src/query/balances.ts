@@ -1,6 +1,6 @@
 import { ObservableChainQuery } from "./chain-query";
 import { DenomHelper, KVStore } from "@keplr/common";
-import { ChainGetter } from "../common/types";
+import { ChainGetter } from "../common";
 import { computed, observable, runInAction } from "mobx";
 import { CoinPretty } from "@keplr/unit";
 import { AppCurrency } from "@keplr/types";

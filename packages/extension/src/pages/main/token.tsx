@@ -8,11 +8,16 @@ import { Hash } from "@keplr/crypto";
 import { ObservableQueryBalanceInner } from "@keplr/stores/build/query/balances";
 import classmames from "classnames";
 import { UncontrolledTooltip } from "reactstrap";
+import { WrongViewingKeyError } from "@keplr/stores";
+import { useNotification } from "../../components/notification";
+import { useLoadingIndicator } from "../../components/loading-indicator";
 
 const TokenView: FunctionComponent<{
   balance: ObservableQueryBalanceInner;
   onClick: () => void;
 }> = observer(({ onClick, balance }) => {
+  const { chainStore, accountStore, tokensStore } = useStore();
+
   const [backgroundColors] = useState([
     "#5e72e4",
     "#11cdef",
@@ -42,6 +47,29 @@ const TokenView: FunctionComponent<{
     .toString("hex")
     .replace(/\d+/g, "")
     .slice(0, 20);
+
+  const history = useHistory();
+
+  const notification = useNotification();
+  const loadingIndicator = useLoadingIndicator();
+
+  const accountInfo = accountStore.getAccount(chainStore.current.chainId);
+  const createViewingKey = async (): Promise<string | undefined> => {
+    if ("type" in balance.currency && balance.currency.type === "secret20") {
+      const contractAddress = balance.currency.contractAddress;
+      return new Promise((resolve) => {
+        accountInfo
+          .createSecret20ViewingKey(contractAddress, "", (_, viewingKey) => {
+            loadingIndicator.setIsLoading("create-veiwing-key", false);
+
+            resolve(viewingKey);
+          })
+          .then(() => {
+            loadingIndicator.setIsLoading("create-veiwing-key", true);
+          });
+      });
+    }
+  };
 
   return (
     <div
@@ -91,6 +119,55 @@ const TokenView: FunctionComponent<{
             <UncontrolledTooltip target={validSelector}>
               {error.message}
             </UncontrolledTooltip>
+          </div>
+        ) : null}
+        {error?.data && error.data instanceof WrongViewingKeyError ? (
+          <div
+            className={classmames(styleToken.rightIcon, "mr-2")}
+            onClick={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              if (
+                "type" in balance.currency &&
+                balance.currency.type === "secret20"
+              ) {
+                const viewingKey = await createViewingKey();
+                if (!viewingKey) {
+                  notification.push({
+                    placement: "top-center",
+                    type: "danger",
+                    duration: 2,
+                    content: "Failed to create the viewing key",
+                    canDelete: true,
+                    transition: {
+                      duration: 0.25,
+                    },
+                  });
+
+                  return;
+                }
+
+                const tokenOf = tokensStore.getTokensOf(
+                  chainStore.current.chainId
+                );
+
+                await tokenOf.addToken({
+                  ...balance.currency,
+                  viewingKey,
+                });
+
+                history.push({
+                  pathname: "/",
+                });
+              }
+            }}
+          >
+            {!accountInfo.isSendingMsg ? (
+              <i className="fas fa-wrench" />
+            ) : (
+              <i className="fa fa-spinner fa-spin fa-fw" />
+            )}
           </div>
         ) : null}
         <div className={styleToken.rightIcon}>
