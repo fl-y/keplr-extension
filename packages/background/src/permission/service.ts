@@ -10,6 +10,7 @@ import {
 } from "./types";
 import { KVStore } from "@keplr/common";
 import { ChainsService } from "../chains";
+import { KeyRingService } from "../keyring";
 
 @singleton()
 export class PermissionService {
@@ -27,7 +28,9 @@ export class PermissionService {
     @inject(delay(() => InteractionService))
     protected readonly interactionService: InteractionService,
     @inject(ChainsService)
-    protected readonly chainsService: ChainsService
+    protected readonly chainsService: ChainsService,
+    @inject(delay(() => KeyRingService))
+    protected readonly keyRingService: KeyRingService
   ) {
     this.restore();
 
@@ -43,6 +46,9 @@ export class PermissionService {
     chainId: string,
     origin: string
   ) {
+    // Try to unlock the key ring before checking or granting the basic permission.
+    await this.keyRingService.enable(env);
+
     if (!this.hasPermisson(getBasicAccessPermissionType(chainId), origin)) {
       await this.grantBasicAccessPermission(env, chainId, [origin]);
     }

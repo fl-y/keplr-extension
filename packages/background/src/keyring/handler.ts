@@ -110,17 +110,18 @@ const handleEnableKeyRingMsg: (
   service: KeyRingService
 ) => InternalHandler<EnableKeyRingMsg> = (service) => {
   return async (env, msg) => {
+    // Will throw an error if chain is unknown.
+    await service.chainsService.getChainInfo(msg.chainId);
+
+    // This method itself tries to unlock the keyring.
     await service.permissionService.checkOrGrantBasicAccessPermission(
       env,
       msg.chainId,
       msg.origin
     );
 
-    // Will throw an error if chain is unknown.
-    await service.chainsService.getChainInfo(msg.chainId);
-
     return {
-      status: await service.enable(env),
+      status: service.keyRingStatus,
     };
   };
 };
