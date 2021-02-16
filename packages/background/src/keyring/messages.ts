@@ -5,11 +5,7 @@ import {
   KeyRingStatus,
   MultiKeyStoreInfoWithSelected,
 } from "./keyring";
-import {
-  BIP44HDPath,
-  TxBuilderConfigPrimitive,
-  TxBuilderConfigPrimitiveWithChainId,
-} from "./types";
+import { BIP44HDPath } from "./types";
 
 import { Bech32Address } from "@keplr/cosmos";
 import { BIP44, KeyHex } from "@keplr/types";
@@ -414,40 +410,6 @@ export class GetKeyMsg extends Message<KeyHex> {
 
   type(): string {
     return GetKeyMsg.type();
-  }
-}
-
-export class RequestTxBuilderConfigMsg extends Message<{
-  config: TxBuilderConfigPrimitive;
-}> {
-  public static type() {
-    return "request-tx-builder-config";
-  }
-
-  constructor(
-    public readonly config: TxBuilderConfigPrimitiveWithChainId,
-    public readonly skipApprove: boolean = false
-  ) {
-    super();
-  }
-
-  validateBasic(): void {
-    if (!this.config) {
-      throw new Error("config is null");
-    }
-  }
-
-  approveExternal(): boolean {
-    // Skipping approving is allowed only in internal request.
-    return !this.skipApprove;
-  }
-
-  route(): string {
-    return ROUTE;
-  }
-
-  type(): string {
-    return RequestTxBuilderConfigMsg.type();
   }
 }
 

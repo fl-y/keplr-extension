@@ -7,7 +7,6 @@ import {
   CoinGeckoPriceStore,
   AccountStore,
   PermissionStore,
-  TxConfigStore,
   SignInteractionStore,
   LedgerInitStore,
   TokensStore,
@@ -28,7 +27,6 @@ export class RootStore {
 
   protected readonly interactionStore: InteractionStore;
   public readonly permissionStore: PermissionStore;
-  public readonly txConfigStore: TxConfigStore;
   public readonly signInteractionStore: SignInteractionStore;
   public readonly ledgerInitStore: LedgerInitStore;
   public readonly chainSuggestStore: ChainSuggestStore;
@@ -62,7 +60,6 @@ export class RootStore {
       this.interactionStore,
       new InExtensionMessageRequester()
     );
-    this.txConfigStore = new TxConfigStore(this.interactionStore);
     this.signInteractionStore = new SignInteractionStore(this.interactionStore);
     this.ledgerInitStore = new LedgerInitStore(
       this.interactionStore,

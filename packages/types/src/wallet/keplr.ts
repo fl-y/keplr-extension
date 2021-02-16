@@ -1,5 +1,4 @@
 import { ChainInfo } from "../chain-info";
-import { TxBuilderConfigPrimitive } from "../tx";
 import {
   BroadcastMode,
   SignResponse,
@@ -22,12 +21,6 @@ export interface Keplr {
   experimentalSuggestChain(chainInfo: ChainInfo): Promise<void>;
   enable(chainId: string): Promise<void>;
   getKey(chainId: string): Promise<KeyHex>;
-  // TODO: Return the cosmjs's config?
-  getTxConfig(
-    chainId: string,
-    config: TxBuilderConfigPrimitive
-  ): Promise<TxBuilderConfigPrimitive>;
-  // TODO: Return the `Uint8Array` instead of hex string.
   sign(
     chainId: string,
     signer: string,

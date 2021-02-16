@@ -29,7 +29,6 @@ import { observer } from "mobx-react";
 import { StoreProvider, useStore } from "./stores";
 import { KeyRingStatus } from "@keplr/background";
 import { SignPage } from "./pages/sign";
-import { FeePage } from "./pages/fee";
 import { ChainSuggestedPage } from "./pages/chain/suggest";
 import Modal from "react-modal";
 import { SettingPage } from "./pages/setting";
@@ -135,7 +134,6 @@ ReactDOM.render(
                   <Route exact path="/access" component={AccessPage} />
                   <Route exact path="/register" component={RegisterPage} />
                   <Route exact path="/send" component={SendPage} />
-                  <Route exact path="/fee" component={FeePage} />
                   <Route exact path="/setting" component={SettingPage} />
                   <Route
                     exact

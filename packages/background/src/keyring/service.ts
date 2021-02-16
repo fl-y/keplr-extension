@@ -9,11 +9,7 @@ import {
 } from "./keyring";
 
 import { Bech32Address } from "@keplr/cosmos";
-import {
-  BIP44HDPath,
-  TxBuilderConfigPrimitive,
-  TxBuilderConfigPrimitiveWithChainId,
-} from "./types";
+import { BIP44HDPath } from "./types";
 
 import { KVStore } from "@keplr/common";
 
@@ -24,11 +20,7 @@ import { Env } from "@keplr/router";
 import { InteractionService } from "../interaction";
 import { PermissionService } from "../permission";
 
-import {
-  EnableKeyRingMsg,
-  RequestSignMsg,
-  RequestTxBuilderConfigMsg,
-} from "./messages";
+import { EnableKeyRingMsg, RequestSignMsg } from "./messages";
 
 import {
   encodeSecp256k1Signature,
@@ -183,28 +175,6 @@ export class KeyRingService {
 
   getKeyStoreMeta(key: string): string {
     return this.keyRing.getKeyStoreMeta(key);
-  }
-
-  async requestTxBuilderConfig(
-    env: Env,
-    config: TxBuilderConfigPrimitiveWithChainId,
-    skipApprove: boolean
-  ): Promise<TxBuilderConfigPrimitive> {
-    if (skipApprove) {
-      return config;
-    }
-
-    const result = await this.interactionService.waitApprove(
-      env,
-      "/fee",
-      RequestTxBuilderConfigMsg.type(),
-      config
-    );
-
-    if (!result) {
-      throw new Error("config is approved, but result config is null");
-    }
-    return result as TxBuilderConfigPrimitive;
   }
 
   getKeyRingType(): string {

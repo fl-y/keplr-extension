@@ -1,9 +1,4 @@
-import {
-  ChainInfo,
-  Keplr as IKeplr,
-  KeyHex,
-  TxBuilderConfigPrimitive,
-} from "@keplr/types";
+import { ChainInfo, Keplr as IKeplr, KeyHex } from "@keplr/types";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 import {
   BroadcastMode,
@@ -15,7 +10,6 @@ import {
   EnableKeyRingMsg,
   SuggestChainInfoMsg,
   GetKeyMsg,
-  RequestTxBuilderConfigMsg,
   RequestSignMsg,
   SuggestTokenMsg,
   SendTxMsg,
@@ -45,20 +39,6 @@ export class Keplr implements IKeplr {
   async getKey(chainId: string): Promise<KeyHex> {
     const msg = new GetKeyMsg(chainId);
     return await this.requester.sendMessage(BACKGROUND_PORT, msg);
-  }
-
-  async getTxConfig(
-    chainId: string,
-    config: TxBuilderConfigPrimitive
-  ): Promise<TxBuilderConfigPrimitive> {
-    const msg = new RequestTxBuilderConfigMsg(
-      {
-        chainId,
-        ...config,
-      },
-      false
-    );
-    return (await this.requester.sendMessage(BACKGROUND_PORT, msg)).config;
   }
 
   async sendTx(

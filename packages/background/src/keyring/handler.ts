@@ -8,7 +8,6 @@ import {
   RequestSignMsg,
   LockKeyRingMsg,
   DeleteKeyRingMsg,
-  RequestTxBuilderConfigMsg,
   ShowKeyRingMsg,
   GetKeyRingTypeMsg,
   AddMnemonicKeyMsg,
@@ -66,11 +65,6 @@ export const getHandler: (service: KeyRingService) => Handler = (
         return handleUnlockKeyRingMsg(service)(env, msg as UnlockKeyRingMsg);
       case GetKeyMsg:
         return handleGetKeyMsg(service)(env, msg as GetKeyMsg);
-      case RequestTxBuilderConfigMsg:
-        return handleRequestTxBuilderConfigMsg(service)(
-          env,
-          msg as RequestTxBuilderConfigMsg
-        );
       case RequestSignMsg:
         return handleRequestSignMsg(service)(env, msg as RequestSignMsg);
       case GetKeyRingTypeMsg:
@@ -258,32 +252,6 @@ const handleGetKeyMsg: (
         (await service.chainsService.getChainInfo(msg.chainId)).bech32Config
           .bech32PrefixAccAddr
       ),
-    };
-  };
-};
-
-const handleRequestTxBuilderConfigMsg: (
-  service: KeyRingService
-) => InternalHandler<RequestTxBuilderConfigMsg> = (service) => {
-  return async (env, msg) => {
-    // `config` in msg can't be null because `validateBasic` ensures that `config` is not null.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await service.permissionService.checkOrGrantBasicAccessPermission(
-      env,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      msg.config!.chainId,
-      msg.origin
-    );
-
-    const config = await service.requestTxBuilderConfig(
-      env,
-      // `config` in msg can't be null because `validateBasic` ensures that `config` is not null.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      msg.config!,
-      msg.skipApprove
-    );
-    return {
-      config,
     };
   };
 };
