@@ -67,6 +67,13 @@ export const SignPage: FunctionComponent = observer(() => {
   const signDoc = signInteractionStore.waitingData?.signDoc;
   const signDocHelper = useSignDocHelper(feeConfig, memoConfig);
 
+  const isSignDocInternalSend =
+    interactionInfo.interaction &&
+    interactionInfo.interactionInternal &&
+    signDoc &&
+    signDoc.msgs.length === 1 &&
+    signDoc.msgs[0].type === "cosmos-sdk/MsgSend";
+
   useEffect(() => {
     if (signInteractionStore.waitingData) {
       const data = signInteractionStore.waitingData;
@@ -74,13 +81,18 @@ export const SignPage: FunctionComponent = observer(() => {
       signDocHelper.setSignDoc(data.signDoc);
       gasConfig.setGas(parseInt(data.signDoc.fee.gas));
       memoConfig.setMemo(data.signDoc.memo);
+      if (isSignDocInternalSend) {
+        feeConfig.setManualFee(data.signDoc.fee.amount[0]);
+      }
     }
   }, [
     chainStore,
     gasConfig,
     memoConfig,
+    feeConfig,
     signDocHelper,
     signInteractionStore.waitingData,
+    isSignDocInternalSend,
   ]);
 
   return (
@@ -125,13 +137,18 @@ export const SignPage: FunctionComponent = observer(() => {
             </li>
           </ul>
         </div>
-        <div className={style.tabContainer}>
+        <div
+          className={classnames(style.tabContainer, {
+            [style.dataTab]: tab === Tab.Data,
+          })}
+        >
           {tab === Tab.Data ? <DataTab signDocHelper={signDocHelper} /> : null}
           {tab === Tab.Details ? (
             <DetailsTab
               signDocHelper={signDocHelper}
               memoConfig={memoConfig}
               feeConfig={feeConfig}
+              hideFeeButtons={isSignDocInternalSend}
             />
           ) : null}
         </div>

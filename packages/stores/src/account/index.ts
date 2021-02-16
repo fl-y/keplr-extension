@@ -1,4 +1,4 @@
-import { HasMapStore } from "../common";
+import { CoinPrimitive, HasMapStore } from "../common";
 import { DenomHelper } from "@keplr/common";
 import { ChainGetter } from "../common";
 import { computed, observable, runInAction } from "mobx";
@@ -245,6 +245,7 @@ export class AccountStoreInner {
     currency: AppCurrency,
     recipient: string,
     memo: string = "",
+    feeAmount: CoinPrimitive[],
     onFulfill?: (tx: any) => void
   ) {
     const denomHelper = new DenomHelper(currency.coinMinimalDenom);
@@ -274,7 +275,7 @@ export class AccountStoreInner {
             },
           ],
           {
-            amount: [],
+            amount: feeAmount,
             gas: this.opts.msgOpts.send.native.gas.toString(),
           },
           memo,

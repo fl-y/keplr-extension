@@ -83,12 +83,15 @@ export const SendPage: FunctionComponent = observer(() => {
 
           if (accountInfo.isReadyToSendMsgs && txStateIsValid) {
             try {
+              const feeAmount = sendConfigs.feeConfig.getFeePrimitive();
+
               await accountInfo.sendToken(
                 sendConfigs.amountConfig.amount,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 sendConfigs.amountConfig.sendCurrency!,
                 sendConfigs.recipientConfig.recipient,
-                sendConfigs.memoConfig.memo
+                sendConfigs.memoConfig.memo,
+                feeAmount ? [feeAmount] : []
               );
               history.replace("/");
             } catch (e) {

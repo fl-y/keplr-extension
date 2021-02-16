@@ -44,7 +44,10 @@
 
 .tab-container {
   height: 400px;
-  overflow: auto;
+
+  &.data-tab {
+    overflow: auto;
+  }
 }
 
 .message {

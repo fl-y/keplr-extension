@@ -10,14 +10,20 @@ import { renderMessage } from "./messages";
 import { useIntl } from "react-intl";
 import { FeeButtons, MemoInput } from "../../components/form";
 import { IFeeConfig, IMemoConfig, SignDocHelper } from "@keplr/hooks";
+import { useLanguage } from "../../languages";
+import { FormGroup, Label } from "reactstrap";
 
 export const DetailsTab: FunctionComponent<{
   signDocHelper: SignDocHelper;
   memoConfig: IMemoConfig;
   feeConfig: IFeeConfig;
-}> = observer(({ signDocHelper, memoConfig, feeConfig }) => {
+
+  hideFeeButtons: boolean | undefined;
+}> = observer(({ signDocHelper, memoConfig, feeConfig, hideFeeButtons }) => {
   const { chainStore, priceStore } = useStore();
   const intl = useIntl();
+
+  const language = useLanguage();
 
   return (
     <div className={styleDetailsTab.container}>
@@ -53,11 +59,37 @@ export const DetailsTab: FunctionComponent<{
         label={intl.formatMessage({ id: "sign.info.memo" })}
         rows={1}
       />
-      <FeeButtons
-        feeConfig={feeConfig}
-        priceStore={priceStore}
-        label={intl.formatMessage({ id: "sign.info.fee" })}
-      />
+      {!hideFeeButtons ? (
+        <FeeButtons
+          feeConfig={feeConfig}
+          priceStore={priceStore}
+          label={intl.formatMessage({ id: "sign.info.fee" })}
+        />
+      ) : feeConfig.fee ? (
+        <FormGroup>
+          <Label for="fee-price" className="form-control-label">
+            Fee
+          </Label>
+          <div id="fee-price">
+            <div>
+              {feeConfig.fee.maxDecimals(6).trim(true).toString()}
+              {priceStore.calculatePrice(
+                language.fiatCurrency,
+                feeConfig.fee
+              ) ? (
+                <div
+                  className="ml-2"
+                  style={{ display: "inline-block", fontSize: "12px" }}
+                >
+                  {priceStore
+                    .calculatePrice(language.fiatCurrency, feeConfig.fee)
+                    ?.toString()}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </FormGroup>
+      ) : null}
     </div>
   );
 });
