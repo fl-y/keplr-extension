@@ -55,11 +55,9 @@ export const CoinInput: FunctionComponent<CoinInputProps> = observer(
     const fee = feeConfig.fee;
     useEffect(() => {
       if (isAllBalanceMode) {
-        console.log(balance.toDec().toString(), fee.toDec().toString());
-        console.log(balance.toDec().sub(fee.toDec()).toString());
         // Get the actual sendable balance with considering the fee.
         const sendableBalance =
-          balance.currency.coinMinimalDenom === fee.currency.coinMinimalDenom
+          balance.currency.coinMinimalDenom === fee?.currency.coinMinimalDenom
             ? new CoinPretty(
                 balance.currency,
                 balance

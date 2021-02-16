@@ -45,7 +45,7 @@ export const SignPage: FunctionComponent = observer(() => {
   const memoConfig = useMemoConfig(chainStore, current.chainId);
 
   const signDoc = signInteractionStore.waitingData?.signDoc;
-  const signDocHelper = useSignDocHelper(gasConfig, feeConfig, memoConfig);
+  const signDocHelper = useSignDocHelper(feeConfig, memoConfig);
 
   useEffect(() => {
     if (signInteractionStore.waitingData) {

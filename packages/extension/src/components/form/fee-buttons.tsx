@@ -36,10 +36,10 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
     feeSelectLabels = { low: "Low", average: "Average", high: "High" },
   }) => {
     useEffect(() => {
-      if (!feeConfig.feeType) {
+      if (feeConfig.feeCurrency && !feeConfig.fee) {
         feeConfig.setFeeType("average");
       }
-    }, [feeConfig, feeConfig.feeType]);
+    }, [feeConfig, feeConfig.feeCurrency, feeConfig.fee]);
 
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);

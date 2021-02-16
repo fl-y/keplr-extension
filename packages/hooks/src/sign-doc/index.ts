@@ -1,14 +1,13 @@
 import { action, computed, observable } from "mobx";
 import { Msg, StdSignDoc } from "@cosmjs/launchpad";
 import { useState } from "react";
-import { IFeeConfig, IGasConfig, IMemoConfig } from "../tx";
+import { IFeeConfig, IMemoConfig } from "../tx";
 
 export class SignDocHelper {
   @observable.ref
   protected _signDoc?: StdSignDoc;
 
   constructor(
-    protected readonly gasConfig: IGasConfig,
     protected readonly feeConfig: IFeeConfig,
     protected readonly memoConfig: IMemoConfig
   ) {}
@@ -18,12 +17,11 @@ export class SignDocHelper {
       return undefined;
     }
 
+    const stdFee = this.feeConfig.toStdFee();
+
     return {
       ...this._signDoc,
-      fee: {
-        gas: this.gasConfig.gas.toString(),
-        amount: [this.feeConfig.getFeePrimitive()],
-      },
+      fee: stdFee,
       memo: this.memoConfig.memo,
     };
   }
@@ -53,13 +51,10 @@ export class SignDocHelper {
 }
 
 export const useSignDocHelper = (
-  gasConfig: IGasConfig,
   feeConfig: IFeeConfig,
   memoConfig: IMemoConfig
 ) => {
-  const [helper] = useState(
-    new SignDocHelper(gasConfig, feeConfig, memoConfig)
-  );
+  const [helper] = useState(new SignDocHelper(feeConfig, memoConfig));
 
   return helper;
 };

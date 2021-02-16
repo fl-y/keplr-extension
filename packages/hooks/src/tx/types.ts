@@ -26,11 +26,11 @@ export interface IFeeConfig extends ITxChainSetter {
   feeType: FeeType | undefined;
   setFeeType(feeType: FeeType | undefined): void;
   feeCurrencies: Currency[];
-  feeCurrency: Currency;
+  feeCurrency: Currency | undefined;
   toStdFee(): StdFee;
-  fee: CoinPretty;
+  fee: CoinPretty | undefined;
   getFeeTypePretty(feeType: FeeType): CoinPretty;
-  getFeePrimitive(): CoinPrimitive;
+  getFeePrimitive(): CoinPrimitive | undefined;
 
   getError(): Error | undefined;
 }

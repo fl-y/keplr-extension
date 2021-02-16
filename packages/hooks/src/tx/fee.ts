@@ -12,64 +12,93 @@ export class FeeConfig extends TxChainSetter implements IFeeConfig {
   @observable
   protected _feeType: FeeType | undefined;
 
+  @observable
+  protected _manualFee: CoinPrimitive | undefined;
+
   constructor(
     chainGetter: ChainGetter,
     initialChainId: string,
     protected readonly gasConfig: IGasConfig
   ) {
     super(chainGetter, initialChainId);
-
-    this.setFeeType("average");
   }
 
   @action
   setFeeType(feeType: FeeType | undefined) {
     this._feeType = feeType;
+    this._manualFee = undefined;
   }
 
   get feeType(): FeeType | undefined {
     return this._feeType;
   }
 
+  @action
+  setManualFee(fee: CoinPrimitive) {
+    this._manualFee = fee;
+    this._feeType = undefined;
+  }
+
   get feeCurrencies(): Currency[] {
     return this.chainInfo.feeCurrencies;
   }
 
-  get feeCurrency(): Currency {
+  get feeCurrency(): Currency | undefined {
     return this.chainInfo.feeCurrencies[0];
   }
 
   toStdFee(): StdFee {
-    if (!this.feeType) {
-      throw new Error("TODO: Implement advanced fee setting");
+    const amount = this.getFeePrimitive();
+    if (!amount) {
+      return {
+        gas: this.gasConfig.gas.toString(),
+        amount: [],
+      };
     }
 
     return {
       gas: this.gasConfig.gas.toString(),
-      amount: [this.getFeeTypePrimitive(this.feeType)],
+      amount: [amount],
     };
   }
 
   @computed
-  get fee(): CoinPretty {
-    if (this.feeCurrencies.length === 0) {
-      throw new Error("Fee currencies are empty");
+  get fee(): CoinPretty | undefined {
+    if (!this.feeCurrency) {
+      return undefined;
     }
 
     const feePrimitive = this.getFeePrimitive();
+    if (!feePrimitive) {
+      return undefined;
+    }
 
     return new CoinPretty(this.feeCurrency, new Int(feePrimitive.amount));
   }
 
-  getFeePrimitive(): CoinPrimitive {
-    if (!this.feeType) {
-      throw new Error("TODO: Implement advanced fee setting");
+  getFeePrimitive(): CoinPrimitive | undefined {
+    // If there is no fee currency, just return with empty fee amount.
+    if (!this.feeCurrency) {
+      return undefined;
     }
 
-    return this.getFeeTypePrimitive(this.feeType);
+    if (this._manualFee) {
+      return this._manualFee;
+    }
+
+    if (this.feeType) {
+      return this.getFeeTypePrimitive(this.feeType);
+    }
+
+    // If fee is not set, just return with empty fee amount.
+    return undefined;
   }
 
   protected getFeeTypePrimitive(feeType: FeeType): CoinPrimitive {
+    if (!this.feeCurrency) {
+      throw new Error("Fee currency not set");
+    }
+
     const gasPriceStep = this.chainInfo.gasPriceStep
       ? this.chainInfo.gasPriceStep
       : DefaultGasPriceStep;
@@ -84,6 +113,10 @@ export class FeeConfig extends TxChainSetter implements IFeeConfig {
   }
 
   readonly getFeeTypePretty = computedFn((feeType: FeeType) => {
+    if (!this.feeCurrency) {
+      throw new Error("Fee currency not set");
+    }
+
     const feeTypePrimitive = this.getFeeTypePrimitive(feeType);
     const feeCurrency = this.feeCurrency;
 
@@ -95,10 +128,6 @@ export class FeeConfig extends TxChainSetter implements IFeeConfig {
   getError(): Error | undefined {
     if (this.gasConfig.getError()) {
       return this.gasConfig.getError();
-    }
-
-    if (this.chainInfo.feeCurrencies.length === 0) {
-      return new Error("Fee currency not set");
     }
   }
 }
