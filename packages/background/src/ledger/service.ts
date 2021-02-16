@@ -135,9 +135,6 @@ export class LedgerService {
       );
     }
 
-    // Wait until the promise rejected or 3 minutes.
-    // This ensures that the ledger connection is not executed concurrently.
-    // Without this, the prior signing request can be delivered to the ledger and possibly make a user take a mistake.
     const aborter = (() => {
       let _reject: (reason?: any) => void | undefined;
 
@@ -145,10 +142,6 @@ export class LedgerService {
         wait: () => {
           return new Promise((_, reject) => {
             _reject = reject;
-            // 3.5 min.
-            setTimeout(() => {
-              reject("Timeout");
-            }, 3.5 * 60 * 1000);
           });
         },
         abort: (e: Error) => {
@@ -159,6 +152,8 @@ export class LedgerService {
       };
     })();
 
+    // This ensures that the ledger connection is not executed concurrently.
+    // Without this, the prior signing request can be delivered to the ledger and possibly make a user take a mistake.
     this.previousInitAborter = aborter.abort;
 
     while (true) {
@@ -183,8 +178,8 @@ export class LedgerService {
             }
           ),
           (async () => {
-            // If ledger is not initied in 3 minutes, abort it.
-            await delay(3 * 60 * 1000);
+            // If ledger is not inited in 5 minutes, abort it.
+            await delay(5 * 60 * 1000);
             await this.interactionService.dispatchData(
               env,
               "/ledger-grant",
