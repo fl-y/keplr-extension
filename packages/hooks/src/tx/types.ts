@@ -45,6 +45,7 @@ export interface IRecipientConfig extends ITxChainSetter {
 export interface IAmountConfig extends ITxChainSetter {
   amount: string;
   setAmount(amount: string): void;
+  getAmountPrimitive(): CoinPrimitive;
   sendCurrency: AppCurrency;
   setSendCurrency(currency: AppCurrency | undefined): void;
   sendableCurrencies: AppCurrency[];

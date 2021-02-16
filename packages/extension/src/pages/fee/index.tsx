@@ -19,18 +19,34 @@ import {
   useMemoConfig,
 } from "@keplr/hooks";
 import { CoinPrimitive } from "@keplr/stores";
+import { useAmountConfig } from "@keplr/hooks/build/tx/amount";
 
 export const FeePage: FunctionComponent = observer(() => {
   const history = useHistory();
 
   const intl = useIntl();
 
-  const { chainStore, txConfigStore, priceStore } = useStore();
+  const {
+    chainStore,
+    txConfigStore,
+    priceStore,
+    queriesStore,
+    accountStore,
+  } = useStore();
   const gasConfig = useGasConfig(chainStore, chainStore.current.chainId);
   const memoConfig = useMemoConfig(chainStore, chainStore.current.chainId);
+  const amountConfig = useAmountConfig(
+    chainStore,
+    chainStore.current.chainId,
+    accountStore.getAccount(chainStore.current.chainId).bech32Address,
+    queriesStore.get(chainStore.current.chainId).getQueryBalances()
+  );
   const feeConfig = useFeeConfig(
     chainStore,
     chainStore.current.chainId,
+    accountStore.getAccount(chainStore.current.chainId).bech32Address,
+    queriesStore.get(chainStore.current.chainId).getQueryBalances(),
+    amountConfig,
     gasConfig
   );
 

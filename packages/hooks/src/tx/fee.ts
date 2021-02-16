@@ -1,14 +1,28 @@
-import { DefaultGasPriceStep, FeeType, IFeeConfig, IGasConfig } from "./types";
+import {
+  DefaultGasPriceStep,
+  FeeType,
+  IAmountConfig,
+  IFeeConfig,
+  IGasConfig,
+} from "./types";
 import { TxChainSetter } from "./chain";
 import { ChainGetter, CoinPrimitive } from "@keplr/stores";
 import { action, computed, observable } from "mobx";
-import { CoinPretty, Dec, Int } from "@keplr/unit";
+import { Coin, CoinPretty, Dec, DecUtils, Int } from "@keplr/unit";
 import { Currency } from "@keplr/types";
 import { computedFn } from "mobx-utils";
 import { StdFee } from "@cosmjs/launchpad";
 import { useState } from "react";
+import { ObservableQueryBalances } from "@keplr/stores/build/query/balances";
+import { InsufficientFeeError } from "./errors";
 
 export class FeeConfig extends TxChainSetter implements IFeeConfig {
+  @observable.ref
+  protected queryBalances!: ObservableQueryBalances;
+
+  @observable
+  protected _sender!: string;
+
   @observable
   protected _feeType: FeeType | undefined;
 
@@ -18,9 +32,25 @@ export class FeeConfig extends TxChainSetter implements IFeeConfig {
   constructor(
     chainGetter: ChainGetter,
     initialChainId: string,
+    sender: string,
+    queryBalances: ObservableQueryBalances,
+    protected readonly amountConfig: IAmountConfig,
     protected readonly gasConfig: IGasConfig
   ) {
     super(chainGetter, initialChainId);
+
+    this.setSender(sender);
+    this.setQueryBalances(queryBalances);
+  }
+
+  @action
+  setQueryBalances(queryBalances: ObservableQueryBalances) {
+    this.queryBalances = queryBalances;
+  }
+
+  @action
+  setSender(sender: string) {
+    this._sender = sender;
   }
 
   @action
@@ -129,16 +159,67 @@ export class FeeConfig extends TxChainSetter implements IFeeConfig {
     if (this.gasConfig.getError()) {
       return this.gasConfig.getError();
     }
+
+    const fee = this.getFeePrimitive();
+    if (!fee) {
+      return undefined;
+    }
+
+    const amount = this.amountConfig.getAmountPrimitive();
+
+    let need: Coin;
+    if (fee && fee.denom === amount.denom) {
+      need = new Coin(
+        fee.denom,
+        new Int(fee.amount).add(new Int(amount.amount))
+      );
+    } else {
+      need = new Coin(fee.denom, new Int(fee.amount));
+    }
+
+    if (need.amount.gt(new Int(0))) {
+      const bal = this.queryBalances
+        .getQueryBech32Address(this._sender)
+        .balances.find((bal) => {
+          return bal.currency.coinMinimalDenom === need.denom;
+        });
+
+      if (!bal) {
+        return new InsufficientFeeError("insufficient fee");
+      } else if (
+        bal.balance
+          .toDec()
+          .mul(DecUtils.getPrecisionDec(bal.currency.coinDecimals))
+          .truncate()
+          .lt(need.amount)
+      ) {
+        return new InsufficientFeeError("insufficient fee");
+      }
+    }
   }
 }
 
 export const useFeeConfig = (
   chainGetter: ChainGetter,
   chainId: string,
+  sender: string,
+  queryBalances: ObservableQueryBalances,
+  amountConfig: IAmountConfig,
   gasConfig: IGasConfig
 ) => {
-  const [config] = useState(new FeeConfig(chainGetter, chainId, gasConfig));
+  const [config] = useState(
+    new FeeConfig(
+      chainGetter,
+      chainId,
+      sender,
+      queryBalances,
+      amountConfig,
+      gasConfig
+    )
+  );
   config.setChain(chainId);
+  config.setQueryBalances(queryBalances);
+  config.setSender(sender);
 
   return config;
 };

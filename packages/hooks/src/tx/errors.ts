@@ -53,3 +53,11 @@ export class InsufficientAmountError extends Error {
     Object.setPrototypeOf(this, InsufficientAmountError.prototype);
   }
 }
+
+export class InsufficientFeeError extends Error {
+  constructor(m: string) {
+    super(m);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, InsufficientFeeError.prototype);
+  }
+}

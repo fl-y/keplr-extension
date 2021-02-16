@@ -19,7 +19,14 @@ export const useSendTxConfig = (
 
   const memoConfig = useMemoConfig(chainGetter, chainId);
   const gasConfig = useSendGasConfig(chainGetter, chainId, amountConfig);
-  const feeConfig = useFeeConfig(chainGetter, chainId, gasConfig);
+  const feeConfig = useFeeConfig(
+    chainGetter,
+    chainId,
+    sender,
+    queryBalances,
+    amountConfig,
+    gasConfig
+  );
   const recipientConfig = useRecipientConfig(chainGetter, chainId);
 
   return {

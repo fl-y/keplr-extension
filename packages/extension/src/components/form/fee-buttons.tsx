@@ -2,18 +2,26 @@ import React, {
   FunctionComponent,
   MouseEvent,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
 import styleFeeButtons from "./fee-buttons.module.scss";
 
-import { Button, ButtonGroup, FormGroup, Label } from "reactstrap";
+import {
+  Button,
+  ButtonGroup,
+  FormFeedback,
+  FormGroup,
+  Label,
+} from "reactstrap";
 
 import classnames from "classnames";
 import { observer } from "mobx-react";
-import { IFeeConfig } from "@keplr/hooks";
+import { IFeeConfig, InsufficientFeeError } from "@keplr/hooks";
 import { CoinGeckoPriceStore } from "@keplr/stores";
 import { useLanguage } from "../../languages";
+import { useIntl } from "react-intl";
 
 export interface FeeButtonsProps {
   feeConfig: IFeeConfig;
@@ -41,6 +49,8 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
       }
     }, [feeConfig, feeConfig.feeCurrency, feeConfig.fee]);
 
+    const intl = useIntl();
+
     const [inputId] = useState(() => {
       const bytes = new Uint8Array(4);
       crypto.getRandomValues(bytes);
@@ -59,6 +69,20 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
 
     const highFee = feeConfig.getFeeTypePretty("high");
     const highFeePrice = priceStore.calculatePrice(fiatCurrency, highFee);
+
+    const error = feeConfig.getError();
+    const errorText: string | undefined = useMemo(() => {
+      if (error) {
+        switch (error.constructor) {
+          case InsufficientFeeError:
+            return intl.formatMessage({
+              id: "input.fee.error.insufficient",
+            });
+          default:
+            return intl.formatMessage({ id: "input.fee.error.unknown" });
+        }
+      }
+    }, [intl, error]);
 
     return (
       <FormGroup>
@@ -152,6 +176,9 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
             </div>
           </Button>
         </ButtonGroup>
+        {errorText != null ? (
+          <FormFeedback style={{ display: "block" }}>{errorText}</FormFeedback>
+        ) : null}
       </FormGroup>
     );
   }

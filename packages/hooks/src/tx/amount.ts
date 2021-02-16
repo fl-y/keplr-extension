@@ -1,6 +1,6 @@
 import { IAmountConfig } from "./types";
 import { TxChainSetter } from "./chain";
-import { ChainGetter } from "@keplr/stores";
+import { ChainGetter, CoinPrimitive } from "@keplr/stores";
 import { action, computed, observable } from "mobx";
 import { ObservableQueryBalances } from "@keplr/stores/build/query/balances";
 import { AppCurrency } from "@keplr/types";
@@ -11,7 +11,7 @@ import {
   NagativeAmountError,
   ZeroAmountError,
 } from "./errors";
-import { Dec } from "@keplr/unit";
+import { Dec, DecUtils } from "@keplr/unit";
 import { useState } from "react";
 
 export class AmountConfig extends TxChainSetter implements IAmountConfig {
@@ -70,6 +70,26 @@ export class AmountConfig extends TxChainSetter implements IAmountConfig {
 
   get amount(): string {
     return this._amount;
+  }
+
+  getAmountPrimitive(): CoinPrimitive {
+    const amountStr = this.amount;
+    const sendCurrency = this.sendCurrency;
+
+    if (!amountStr) {
+      return {
+        denom: sendCurrency.coinMinimalDenom,
+        amount: "0",
+      };
+    }
+
+    return {
+      denom: sendCurrency.coinMinimalDenom,
+      amount: new Dec(amountStr)
+        .mul(DecUtils.getPrecisionDec(sendCurrency.coinDecimals))
+        .truncate()
+        .toString(),
+    };
   }
 
   @computed

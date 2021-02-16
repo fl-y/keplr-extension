@@ -21,6 +21,7 @@ import {
   useFeeConfig,
   useMemoConfig,
 } from "@keplr/hooks";
+import { useAmountConfig } from "@keplr/hooks/build/tx/amount";
 
 enum Tab {
   Details,
@@ -34,14 +35,33 @@ export const SignPage: FunctionComponent = observer(() => {
 
   const intl = useIntl();
 
-  const { chainStore, keyRingStore, signInteractionStore } = useStore();
+  const {
+    chainStore,
+    keyRingStore,
+    signInteractionStore,
+    accountStore,
+    queriesStore,
+  } = useStore();
   const interactionInfo = useInteractionInfo(() => {
     signInteractionStore.rejectAll();
   });
 
   const current = chainStore.current;
   const gasConfig = useGasConfig(chainStore, current.chainId);
-  const feeConfig = useFeeConfig(chainStore, current.chainId, gasConfig);
+  const amountConfig = useAmountConfig(
+    chainStore,
+    current.chainId,
+    accountStore.getAccount(current.chainId).bech32Address,
+    queriesStore.get(current.chainId).getQueryBalances()
+  );
+  const feeConfig = useFeeConfig(
+    chainStore,
+    current.chainId,
+    accountStore.getAccount(current.chainId).bech32Address,
+    queriesStore.get(current.chainId).getQueryBalances(),
+    amountConfig,
+    gasConfig
+  );
   const memoConfig = useMemoConfig(chainStore, current.chainId);
 
   const signDoc = signInteractionStore.waitingData?.signDoc;
