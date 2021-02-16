@@ -35,7 +35,7 @@ export const DetailsTab: FunctionComponent<{
         {signDocHelper.msgs.map((msg, i) => {
           const msgContent = renderMessage(
             msg,
-            chainStore.current.feeCurrencies,
+            chainStore.current.currencies,
             intl
           );
           return (
