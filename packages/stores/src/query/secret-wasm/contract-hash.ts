@@ -1,7 +1,7 @@
 import { SecretContractCodeHash } from "./types";
 import { KVStore } from "@keplr/common";
 import { ObservableChainQuery, ObservableChainQueryMap } from "../chain-query";
-import { ChainGetter } from "../../common/types";
+import { ChainGetter } from "../../common";
 
 export class ObservableQuerySecretContractCodeHash extends ObservableChainQueryMap<SecretContractCodeHash> {
   constructor(

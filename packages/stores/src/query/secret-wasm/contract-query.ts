@@ -38,14 +38,6 @@ export class ObservableSecretContractChainQuery<
       this._isIniting = false;
     });
 
-    if (!this.contractAddress) {
-      this.setError({
-        status: 0,
-        statusText: "Contract address is empty",
-        message: "Contract address is empty",
-      });
-    }
-
     // Try to get the keplr API.
     this.initKeplr();
 
