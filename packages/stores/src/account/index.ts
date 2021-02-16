@@ -229,10 +229,17 @@ export class AccountStoreInner {
       });
 
       // After sending tx, the balances is probably changed due to the fee.
-      this.queries
-        .getQueryBalances()
-        .getQueryBech32Address(this.bech32Address)
-        .fetch();
+      for (const feeAmount of fee.amount) {
+        const bal = this.queries
+          .getQueryBalances()
+          .getQueryBech32Address(this.bech32Address)
+          .balances.find(
+            (bal) => bal.currency.coinMinimalDenom === feeAmount.denom
+          );
+        if (bal) {
+          bal.fetch();
+        }
+      }
 
       if (onFulfill) {
         onFulfill(tx);
