@@ -175,6 +175,13 @@ export const SignPage: FunctionComponent = observer(() => {
                   e.preventDefault();
 
                   signInteractionStore.reject();
+
+                  if (
+                    interactionInfo.interaction &&
+                    !interactionInfo.interactionInternal
+                  ) {
+                    window.close();
+                  }
                 }}
                 outline
               >
