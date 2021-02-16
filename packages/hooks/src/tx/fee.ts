@@ -14,7 +14,7 @@ import { computedFn } from "mobx-utils";
 import { StdFee } from "@cosmjs/launchpad";
 import { useState } from "react";
 import { ObservableQueryBalances } from "@keplr/stores/build/query/balances";
-import { InsufficientFeeError } from "./errors";
+import { InsufficientFeeError, NotLoadedFeeError } from "./errors";
 
 export class FeeConfig extends TxChainSetter implements IFeeConfig {
   @observable.ref
@@ -186,6 +186,12 @@ export class FeeConfig extends TxChainSetter implements IFeeConfig {
 
       if (!bal) {
         return new InsufficientFeeError("insufficient fee");
+      } else if (!bal.response && !bal.error) {
+        // If fetching balance doesn't have the response nor error,
+        // assume it is not loaded from KVStore(cache).
+        return new NotLoadedFeeError(
+          `${bal.currency.coinDenom} is not loaded yet`
+        );
       } else if (
         bal.balance
           .toDec()

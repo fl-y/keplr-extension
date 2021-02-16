@@ -8,10 +8,14 @@ export class GasConfig extends TxChainSetter implements IGasConfig {
   @observable
   protected _gas!: number;
 
-  constructor(chainGetter: ChainGetter, initialChainId: string) {
+  constructor(
+    chainGetter: ChainGetter,
+    initialChainId: string,
+    initialGas: number = 0
+  ) {
     super(chainGetter, initialChainId);
 
-    this.setGas(0);
+    this.setGas(initialGas);
   }
 
   get gas(): number {
@@ -31,9 +35,13 @@ export class GasConfig extends TxChainSetter implements IGasConfig {
   }
 }
 
-export const useGasConfig = (chainGetter: ChainGetter, chainId: string) => {
+export const useGasConfig = (
+  chainGetter: ChainGetter,
+  chainId: string,
+  initialGas: number = 0
+) => {
   // TODO: Replace this with `useLocalObservable` of `mobx-react` after updating the version for mobx.
-  const [txConfig] = useState(new GasConfig(chainGetter, chainId));
+  const [txConfig] = useState(new GasConfig(chainGetter, chainId, initialGas));
   txConfig.setChain(chainId);
 
   return txConfig;

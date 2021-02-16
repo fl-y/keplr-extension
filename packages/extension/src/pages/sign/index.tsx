@@ -47,7 +47,8 @@ export const SignPage: FunctionComponent = observer(() => {
   });
 
   const current = chainStore.current;
-  const gasConfig = useGasConfig(chainStore, current.chainId);
+  // Make the gas config with 1 gas initially to prevent the temporary 0 gas error at the beginning.
+  const gasConfig = useGasConfig(chainStore, current.chainId, 1);
   const amountConfig = useAmountConfig(
     chainStore,
     current.chainId,

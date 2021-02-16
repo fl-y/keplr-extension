@@ -2,7 +2,6 @@ import React, {
   FunctionComponent,
   MouseEvent,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -18,7 +17,11 @@ import {
 
 import classnames from "classnames";
 import { observer } from "mobx-react";
-import { IFeeConfig, InsufficientFeeError } from "@keplr/hooks";
+import {
+  IFeeConfig,
+  InsufficientFeeError,
+  NotLoadedFeeError,
+} from "@keplr/hooks";
 import { CoinGeckoPriceStore } from "@keplr/stores";
 import { useLanguage } from "../../languages";
 import { useIntl } from "react-intl";
@@ -92,19 +95,24 @@ export const FeeButtonsInner: FunctionComponent<FeeButtonsProps> = observer(
     const highFee = feeConfig.getFeeTypePretty("high");
     const highFeePrice = priceStore.calculatePrice(fiatCurrency, highFee);
 
+    let isFeeLoading = false;
+
     const error = feeConfig.getError();
-    const errorText: string | undefined = useMemo(() => {
+    const errorText: string | undefined = (() => {
       if (error) {
         switch (error.constructor) {
           case InsufficientFeeError:
             return intl.formatMessage({
               id: "input.fee.error.insufficient",
             });
+          case NotLoadedFeeError:
+            isFeeLoading = true;
+            return undefined;
           default:
             return intl.formatMessage({ id: "input.fee.error.unknown" });
         }
       }
-    }, [intl, error]);
+    })();
 
     return (
       <FormGroup>
@@ -198,6 +206,11 @@ export const FeeButtonsInner: FunctionComponent<FeeButtonsProps> = observer(
             </div>
           </Button>
         </ButtonGroup>
+        {isFeeLoading ? (
+          <FormFeedback style={{ display: "block" }}>
+            <i className="fa fa-spinner fa-spin fa-fw text-gray" />
+          </FormFeedback>
+        ) : null}
         {errorText != null ? (
           <FormFeedback style={{ display: "block" }}>{errorText}</FormFeedback>
         ) : null}
