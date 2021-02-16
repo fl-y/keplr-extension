@@ -6,6 +6,8 @@ import { useStore } from "../../stores";
 import { useHistory } from "react-router";
 import { Hash } from "@keplr/crypto";
 import { ObservableQueryBalanceInner } from "@keplr/stores/build/query/balances";
+import classmames from "classnames";
+import { UncontrolledTooltip } from "reactstrap";
 
 const TokenView: FunctionComponent<{
   balance: ObservableQueryBalanceInner;
@@ -30,6 +32,16 @@ const TokenView: FunctionComponent<{
       return backgroundColors[0];
     }
   }, [backgroundColors, minimalDenom]);
+
+  const error = balance.error;
+
+  // It needs to create the id deterministically according to the currency.
+  // But, it is hard to ensure that the id is valid selector because the currency can be suggested from the webpages.
+  // So, just hash the minimal denom and encode it to the hex and remove the numbers.
+  const validSelector = Buffer.from(Hash.sha256(Buffer.from(minimalDenom)))
+    .toString("hex")
+    .replace(/\d+/g, "")
+    .slice(0, 20);
 
   return (
     <div
@@ -69,7 +81,19 @@ const TokenView: FunctionComponent<{
             ) : null}
           </div>
         </div>
-        <div className={styleToken.arrow}>
+        <div style={{ flex: 1 }} />
+        {error ? (
+          <div className={classmames(styleToken.rightIcon, "mr-2")}>
+            <i
+              className="fas fa-exclamation-circle text-danger"
+              id={validSelector}
+            />
+            <UncontrolledTooltip target={validSelector}>
+              {error.message}
+            </UncontrolledTooltip>
+          </div>
+        ) : null}
+        <div className={styleToken.rightIcon}>
           <i className="fas fa-angle-right" />
         </div>
       </div>

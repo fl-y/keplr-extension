@@ -1,12 +1,12 @@
 import { ObservableChainQuery } from "../chain-query";
 import { KVStore } from "@keplr/common";
-import { ChainGetter } from "../../common/types";
+import { ChainGetter } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
 import { autorun, computed, observable } from "mobx";
 import { actionAsync, task } from "mobx-utils";
 import { AccountStore } from "../../account";
 import { Keplr } from "@keplr/types";
-import { CancelToken } from "axios";
+import Axios, { CancelToken } from "axios";
 import { QueryResponse } from "../../common";
 
 import { Buffer } from "buffer/";
@@ -89,7 +89,34 @@ export class ObservableSecretContractChainQuery<
   protected async fetchResponse(
     cancelToken: CancelToken
   ): Promise<QueryResponse<T>> {
-    const response = await super.fetchResponse(cancelToken);
+    let response: QueryResponse<T>;
+    try {
+      response = await super.fetchResponse(cancelToken);
+    } catch (e) {
+      if (!Axios.isCancel(e) && e.response?.data?.error) {
+        const encryptedError = e.response.data.error;
+
+        const errorMessageRgx = /query contract failed: encrypted: (.+)/g;
+
+        const rgxMatches = errorMessageRgx.exec(encryptedError);
+        if (rgxMatches != null && rgxMatches.length === 2) {
+          const errorCipherB64 = rgxMatches[1];
+          const errorCipherBz = Buffer.from(errorCipherB64, "base64");
+
+          if (this.keplr && this.nonce) {
+            const decrypted = await this.keplr
+              .getEnigmaUtils(this.chainId)
+              .decrypt(errorCipherBz, this.nonce);
+
+            const errorStr = Buffer.from(decrypted).toString();
+
+            // If error is from secret wasm chain itself, decrypt the error message and throw it.
+            throw new Error(errorStr);
+          }
+        }
+      }
+      throw e;
+    }
 
     const encResult = (response.data as unknown) as
       | {

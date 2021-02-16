@@ -41,7 +41,7 @@ export class ObservableQuerySecret20Balance extends ObservableSecretContractChai
 
   protected canFetch(): boolean {
     return (
-      super.canFetch && this.bech32Address !== "" && this.viewingKey !== ""
+      super.canFetch() && this.bech32Address !== "" && this.viewingKey !== ""
     );
   }
 
