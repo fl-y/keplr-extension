@@ -498,7 +498,7 @@ export const WasmExecutionMsgView: FunctionComponent<{
         }
       })();
     }
-  }, [chainStore.current.chainId, intl, msg]);
+  }, [chainStore, chainStore.current.chainId, intl, msg]);
 
   return (
     <div>

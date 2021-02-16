@@ -60,16 +60,12 @@ export const SendPage: FunctionComponent = observer(() => {
     }
   }, [current.currencies, query.defaultDenom, sendConfigs.amountConfig]);
 
-  // Cyber chain (eular-6) doesn't require the fees to send tx.
-  // So, don't need to show the fee input.
-  // This is temporary hardcoding.
-  const isCyberNetwork = /^(euler-)(\d)+/.test(current.chainId);
   const sendConfigError =
     sendConfigs.recipientConfig.getError() ??
     sendConfigs.amountConfig.getError() ??
     sendConfigs.memoConfig.getError() ??
     sendConfigs.gasConfig.getError() ??
-    (!isCyberNetwork ? sendConfigs.feeConfig.getError() : undefined);
+    sendConfigs.feeConfig.getError();
   const txStateIsValid = sendConfigError == null;
 
   return (
@@ -130,20 +126,18 @@ export const SendPage: FunctionComponent = observer(() => {
               memoConfig={sendConfigs.memoConfig}
               label={intl.formatMessage({ id: "send.input.memo" })}
             />
-            {isCyberNetwork ? null : (
-              <FeeButtons
-                feeConfig={sendConfigs.feeConfig}
-                priceStore={priceStore}
-                label={intl.formatMessage({ id: "send.input.fee" })}
-                feeSelectLabels={{
-                  low: intl.formatMessage({ id: "fee-buttons.select.low" }),
-                  average: intl.formatMessage({
-                    id: "fee-buttons.select.average",
-                  }),
-                  high: intl.formatMessage({ id: "fee-buttons.select.high" }),
-                }}
-              />
-            )}
+            <FeeButtons
+              feeConfig={sendConfigs.feeConfig}
+              priceStore={priceStore}
+              label={intl.formatMessage({ id: "send.input.fee" })}
+              feeSelectLabels={{
+                low: intl.formatMessage({ id: "fee-buttons.select.low" }),
+                average: intl.formatMessage({
+                  id: "fee-buttons.select.average",
+                }),
+                high: intl.formatMessage({ id: "fee-buttons.select.high" }),
+              }}
+            />
           </div>
           <div style={{ flex: 1 }} />
           <Button

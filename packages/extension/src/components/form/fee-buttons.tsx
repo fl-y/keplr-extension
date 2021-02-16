@@ -43,6 +43,28 @@ export const FeeButtons: FunctionComponent<FeeButtonsProps> = observer(
     label,
     feeSelectLabels = { low: "Low", average: "Average", high: "High" },
   }) => {
+    return (
+      <React.Fragment>
+        {feeConfig.feeCurrency ? (
+          <FeeButtonsInner
+            feeConfig={feeConfig}
+            priceStore={priceStore}
+            label={label}
+            feeSelectLabels={feeSelectLabels}
+          />
+        ) : null}
+      </React.Fragment>
+    );
+  }
+);
+
+export const FeeButtonsInner: FunctionComponent<FeeButtonsProps> = observer(
+  ({
+    feeConfig,
+    priceStore,
+    label,
+    feeSelectLabels = { low: "Low", average: "Average", high: "High" },
+  }) => {
     useEffect(() => {
       if (feeConfig.feeCurrency && !feeConfig.fee) {
         feeConfig.setFeeType("average");
