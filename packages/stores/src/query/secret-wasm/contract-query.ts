@@ -2,7 +2,7 @@ import { ObservableChainQuery } from "../chain-query";
 import { KVStore } from "@keplr/common";
 import { ChainGetter } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
-import { autorun, computed, observable } from "mobx";
+import { autorun, computed, observable, runInAction } from "mobx";
 import { actionAsync, task } from "mobx-utils";
 import { AccountStore } from "../../account";
 import { Keplr } from "@keplr/types";
@@ -19,6 +19,9 @@ export class ObservableSecretContractChainQuery<
 
   protected nonce?: Uint8Array;
 
+  @observable
+  protected _isIniting!: boolean;
+
   constructor(
     kvStore: KVStore,
     chainId: string,
@@ -30,6 +33,10 @@ export class ObservableSecretContractChainQuery<
   ) {
     // Don't need to set the url initially because it can't request without encyption.
     super(kvStore, chainId, chainGetter, ``);
+
+    runInAction(() => {
+      this._isIniting = false;
+    });
 
     if (!this.contractAddress) {
       this.setError({
@@ -57,6 +64,16 @@ export class ObservableSecretContractChainQuery<
     this.init();
   }
 
+  get isFetching(): boolean {
+    return (
+      this.querySecretContractCodeHash.getQueryContract(this.contractAddress)
+        .isFetching ||
+      this.keplr == null ||
+      this._isIniting ||
+      super.isFetching
+    );
+  }
+
   protected canFetch(): boolean {
     if (
       !this.querySecretContractCodeHash.getQueryContract(this.contractAddress)
@@ -75,6 +92,8 @@ export class ObservableSecretContractChainQuery<
 
   @actionAsync
   protected async init() {
+    this._isIniting = true;
+
     if (this.keplr && this.contractCodeHash) {
       const enigmaUtils = this.keplr.getEnigmaUtils(this.chainId);
       const encrypted = await task(
@@ -90,6 +109,8 @@ export class ObservableSecretContractChainQuery<
         `/wasm/contract/${this.contractAddress}/query/${encoded}?encoding=hex`
       );
     }
+
+    this._isIniting = false;
   }
 
   protected async fetchResponse(

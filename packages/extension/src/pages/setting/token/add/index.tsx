@@ -78,7 +78,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
   const loadingIndicator = useLoadingIndicator();
 
   const createViewingKey = async (): Promise<string> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       accountInfo
         .createSecret20ViewingKey(contractAddress, "", (_, viewingKey) => {
           loadingIndicator.setIsLoading("create-veiwing-key", false);
@@ -87,7 +87,8 @@ export const AddTokenPage: FunctionComponent = observer(() => {
         })
         .then(() => {
           loadingIndicator.setIsLoading("create-veiwing-key", true);
-        });
+        })
+        .catch(reject);
     });
   };
 
@@ -130,7 +131,40 @@ export const AddTokenPage: FunctionComponent = observer(() => {
             } else {
               let viewingKey = data.viewingKey;
               if (!viewingKey && !isOpenSecret20ViewingKey) {
-                viewingKey = await createViewingKey();
+                try {
+                  viewingKey = await createViewingKey();
+                } catch (e) {
+                  notification.push({
+                    placement: "top-center",
+                    type: "danger",
+                    duration: 2,
+                    content: `Failed to create the viewing key: ${e.message}`,
+                    canDelete: true,
+                    transition: {
+                      duration: 0.25,
+                    },
+                  });
+
+                  if (
+                    interactionInfo.interaction &&
+                    tokensStore.waitingSuggestedToken
+                  ) {
+                    await tokensStore.rejectAllSuggestedTokens();
+                  }
+
+                  if (
+                    interactionInfo.interaction &&
+                    !interactionInfo.interactionInternal
+                  ) {
+                    window.close();
+                  } else {
+                    history.push({
+                      pathname: "/",
+                    });
+                  }
+
+                  return;
+                }
               }
 
               if (!viewingKey) {
