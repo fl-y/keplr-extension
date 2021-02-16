@@ -1,9 +1,7 @@
-import { computed } from "mobx";
+import { autorun, computed } from "mobx";
 import { DenomHelper, KVStore } from "@keplr/common";
 import { ChainGetter, QueryResponse } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
-import { actionAsync, task } from "mobx-utils";
-import { AccountStore } from "../../account";
 import { QueryError } from "../../common";
 import { CoinPretty, Int } from "@keplr/unit";
 import { BalanceRegistry, ObservableQueryBalanceInner } from "../balances";
@@ -23,7 +21,7 @@ export class ObservableQuerySecret20Balance extends ObservableSecretContractChai
     chainGetter: ChainGetter,
     protected readonly contractAddress: string,
     protected readonly bech32Address: string,
-    protected readonly viewingKey: string,
+    protected readonly parent: ObservableQuerySecret20BalanceInner,
     protected readonly querySecretContractCodeHash: ObservableQuerySecretContractCodeHash
   ) {
     super(
@@ -31,17 +29,36 @@ export class ObservableQuerySecret20Balance extends ObservableSecretContractChai
       chainId,
       chainGetter,
       contractAddress,
-      { balance: { address: bech32Address, key: viewingKey } },
+      {},
       querySecretContractCodeHash
     );
 
-    if (!this.viewingKey) {
-      this.setError({
-        status: 0,
-        statusText: "Viewing key is empty",
-        message: "Viewing key is empty",
-      });
+    autorun(() => {
+      // The viewing key of the registered secret20 currency can be changed,
+      // because it permits the changing of the viewing key if the viewing key is invalid.
+      // So, should observe the viewing key changed.
+      if (!this.viewingKey) {
+        this.setError({
+          status: 0,
+          statusText: "Viewing key is empty",
+          message: "Viewing key is empty",
+        });
+      } else {
+        this.setObj({
+          balance: { address: bech32Address, key: this.viewingKey },
+        });
+      }
+    });
+  }
+
+  @computed
+  get viewingKey(): string {
+    const currency = this.parent.currency;
+    if ("type" in currency && currency.type === "secret20") {
+      return currency.viewingKey;
     }
+
+    return "";
   }
 
   protected canFetch(): boolean {
@@ -60,32 +77,6 @@ export class ObservableQuerySecret20Balance extends ObservableSecretContractChai
     }
 
     return result;
-  }
-
-  @actionAsync
-  protected async initKeplr() {
-    this.keplr = await task(AccountStore.getKeplr());
-  }
-
-  @actionAsync
-  protected async init() {
-    if (this.keplr && this.contractCodeHash && this.viewingKey) {
-      const enigmaUtils = this.keplr.getEnigmaUtils(this.chainId);
-      const encrypted = await task(
-        enigmaUtils.encrypt(this.contractCodeHash, {
-          balance: { address: this.bech32Address, key: this.viewingKey },
-        })
-      );
-      this.nonce = encrypted.slice(0, 32);
-
-      const encoded = Buffer.from(
-        Buffer.from(encrypted).toString("base64")
-      ).toString("hex");
-
-      this.setUrl(
-        `/wasm/contract/${this.contractAddress}/query/${encoded}?encoding=hex`
-      );
-    }
   }
 }
 
@@ -109,17 +100,13 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
       denomHelper
     );
 
-    const viewingKey =
-      "type" in this.currency && this.currency.type === "secret20"
-        ? this.currency.viewingKey
-        : "";
     this.querySecret20Balance = new ObservableQuerySecret20Balance(
       kvStore,
       chainId,
       chainGetter,
       denomHelper.contractAddress,
       bech32Address,
-      viewingKey,
+      this,
       this.querySecretContractCodeHash
     );
   }

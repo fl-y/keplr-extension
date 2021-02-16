@@ -25,7 +25,7 @@ export class ObservableSecretContractChainQuery<
     chainGetter: ChainGetter,
     protected readonly contractAddress: string,
     // eslint-disable-next-line @typescript-eslint/ban-types
-    protected readonly obj: object,
+    protected obj: object,
     protected readonly querySecretContractCodeHash: ObservableQuerySecretContractCodeHash
   ) {
     // Don't need to set the url initially because it can't request without encyption.
@@ -49,6 +49,12 @@ export class ObservableSecretContractChainQuery<
         disposer();
       }
     });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  protected setObj(obj: object) {
+    this.obj = obj;
+    this.init();
   }
 
   protected canFetch(): boolean {
