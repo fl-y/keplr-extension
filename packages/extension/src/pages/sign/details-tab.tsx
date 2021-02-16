@@ -4,14 +4,13 @@ import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 
 import styleDetailsTab from "./details-tab.module.scss";
-import classnames from "classnames";
 
 import { renderMessage } from "./messages";
-import { useIntl } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import { FeeButtons, MemoInput } from "../../components/form";
 import { IFeeConfig, IMemoConfig, SignDocHelper } from "@keplr/hooks";
 import { useLanguage } from "../../languages";
-import { FormGroup, Label } from "reactstrap";
+import { Label } from "reactstrap";
 
 export const DetailsTab: FunctionComponent<{
   signDocHelper: SignDocHelper;
@@ -27,17 +26,10 @@ export const DetailsTab: FunctionComponent<{
 
   return (
     <div className={styleDetailsTab.container}>
-      <div
-        className={classnames(
-          styleDetailsTab.section,
-          styleDetailsTab.messages
-        )}
-      >
-        <div className={styleDetailsTab.title}>
-          {intl.formatMessage({
-            id: "sign.list.messages.label",
-          })}
-        </div>
+      <Label for="signing-messages" className="form-control-label">
+        <FormattedMessage id="sign.list.messages.label" />
+      </Label>
+      <div id="signing-messages" className={styleDetailsTab.msgContainer}>
         {signDocHelper.msgs.map((msg, i) => {
           const msgContent = renderMessage(
             msg,
@@ -66,9 +58,9 @@ export const DetailsTab: FunctionComponent<{
           label={intl.formatMessage({ id: "sign.info.fee" })}
         />
       ) : feeConfig.fee ? (
-        <FormGroup>
+        <React.Fragment>
           <Label for="fee-price" className="form-control-label">
-            Fee
+            <FormattedMessage id="sign.info.fee" />
           </Label>
           <div id="fee-price">
             <div>
@@ -88,7 +80,7 @@ export const DetailsTab: FunctionComponent<{
               ) : null}
             </div>
           </div>
-        </FormGroup>
+        </React.Fragment>
       ) : null}
     </div>
   );

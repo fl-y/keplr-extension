@@ -389,7 +389,11 @@ export function renderMessage(
           {isSecretWasm ? (
             <React.Fragment>
               <br />
-              <Badge color="primary" pill style={{ marginTop: "6px" }}>
+              <Badge
+                color="primary"
+                pill
+                style={{ marginTop: "6px", marginBottom: "6px" }}
+              >
                 <FormattedMessage id="sign.list.message.wasm/MsgExecuteContract.content.badge.secret-wasm" />
               </Badge>
             </React.Fragment>
@@ -510,7 +514,7 @@ export const WasmExecutionMsgView: FunctionComponent<{
       ) : null}
       <Button
         size="sm"
-        style={{ position: "absolute", right: "20px" }}
+        style={{ float: "right", marginRight: "6px" }}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -526,7 +530,6 @@ export const WasmExecutionMsgView: FunctionComponent<{
               id: "sign.list.message.wasm.button.details",
             })}
       </Button>
-      <div style={{ height: "36px" }} />
     </div>
   );
 });
