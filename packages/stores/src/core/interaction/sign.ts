@@ -42,8 +42,40 @@ export class SignInteractionStore {
     return datas[0].data;
   }
 
+  protected isEnded(): boolean {
+    return (
+      this.interactionStore.getDatas<void>(`${RequestSignMsg.type()}-end`)
+        .length > 0
+    );
+  }
+
+  protected clearEnded() {
+    const datas = this.interactionStore.getDatas<void>(
+      `${RequestSignMsg.type()}-end`
+    );
+    for (const data of datas) {
+      this.interactionStore.removeData(data.type, data.id);
+    }
+  }
+
+  protected waitEnd(): Promise<void> {
+    if (this.isEnded()) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      const disposer = autorun(() => {
+        if (this.isEnded()) {
+          resolve();
+          this.clearEnded();
+          disposer();
+        }
+      });
+    });
+  }
+
   @actionAsync
-  async approve(newSignDoc: StdSignDoc) {
+  async approveAndWaitEnd(newSignDoc: StdSignDoc) {
     if (this.waitingDatas.length === 0) {
       return;
     }
@@ -58,6 +90,8 @@ export class SignInteractionStore {
         )
       );
     } finally {
+      await this.waitEnd();
+
       this._isLoading = false;
     }
   }

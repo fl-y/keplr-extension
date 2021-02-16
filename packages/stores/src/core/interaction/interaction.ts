@@ -76,7 +76,7 @@ export class InteractionStore implements InteractionForegroundHandler {
   }
 
   @action
-  protected removeData(type: string, id: string) {
+  removeData(type: string, id: string) {
     if (this.datas.has(type)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const find = this.datas.get(type)!.find((data) => {

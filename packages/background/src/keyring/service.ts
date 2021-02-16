@@ -228,19 +228,28 @@ export class KeyRingService {
 
     const coinType = await this.chainsService.getChainCoinType(chainId);
 
-    const signature = await this.keyRing.sign(
-      env,
-      chainId,
-      coinType,
-      serializeSignDoc(newSignDoc)
-    );
+    try {
+      const signature = await this.keyRing.sign(
+        env,
+        chainId,
+        coinType,
+        serializeSignDoc(newSignDoc)
+      );
 
-    const key = await this.keyRing.getKey(chainId, coinType);
+      const key = await this.keyRing.getKey(chainId, coinType);
 
-    return {
-      signed: newSignDoc,
-      signature: encodeSecp256k1Signature(key.pubKey, signature),
-    };
+      return {
+        signed: newSignDoc,
+        signature: encodeSecp256k1Signature(key.pubKey, signature),
+      };
+    } finally {
+      await this.interactionService.dispatchData(
+        env,
+        "/sign",
+        `${RequestSignMsg.type()}-end`,
+        {}
+      );
+    }
   }
 
   async sign(

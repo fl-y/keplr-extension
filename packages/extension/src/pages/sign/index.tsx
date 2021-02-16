@@ -154,7 +154,8 @@ export const SignPage: FunctionComponent = observer(() => {
         </div>
         <div style={{ flex: 1 }} />
         <div className={style.buttons}>
-          {keyRingStore.keyRingType === "ledger" ? (
+          {keyRingStore.keyRingType === "ledger" &&
+          signInteractionStore.isLoading ? (
             <Button
               className={style.button}
               color="primary"
@@ -171,10 +172,10 @@ export const SignPage: FunctionComponent = observer(() => {
                 color="danger"
                 disabled={signDoc == null || signDocHelper.signDoc == null}
                 data-loading={signInteractionStore.isLoading}
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.preventDefault();
 
-                  signInteractionStore.reject();
+                  await signInteractionStore.reject();
 
                   if (
                     interactionInfo.interaction &&
@@ -203,7 +204,9 @@ export const SignPage: FunctionComponent = observer(() => {
                   e.preventDefault();
 
                   if (signDocHelper.signDoc) {
-                    await signInteractionStore.approve(signDocHelper.signDoc);
+                    await signInteractionStore.approveAndWaitEnd(
+                      signDocHelper.signDoc
+                    );
                   }
 
                   if (
