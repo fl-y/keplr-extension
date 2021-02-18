@@ -8,6 +8,7 @@ import { observer } from "mobx-react";
 import { useStore } from "../../stores";
 import { useNotification } from "../../components/notification";
 import { useIntl } from "react-intl";
+import { WalletStatus } from "@keplr/stores";
 
 export const AccountView: FunctionComponent = observer(() => {
   const { accountStore, chainStore } = useStore();
@@ -39,10 +40,12 @@ export const AccountView: FunctionComponent = observer(() => {
       <div className={styleAccount.containerName}>
         <div style={{ flex: 1 }} />
         <div className={styleAccount.name}>
-          {accountInfo.name ||
-            intl.formatMessage({
-              id: "setting.keyring.unnamed-account",
-            })}
+          {accountInfo.walletStatus === WalletStatus.Loaded
+            ? accountInfo.name ||
+              intl.formatMessage({
+                id: "setting.keyring.unnamed-account",
+              })
+            : "Loading..."}
         </div>
         <div style={{ flex: 1 }} />
       </div>
@@ -50,7 +53,10 @@ export const AccountView: FunctionComponent = observer(() => {
         <div style={{ flex: 1 }} />
         <div className={styleAccount.address} onClick={copyAddress}>
           <Address maxCharacters={22} lineBreakBeforePrefix={false}>
-            {accountInfo.bech32Address ? accountInfo.bech32Address : "..."}
+            {accountInfo.walletStatus === WalletStatus.Loaded &&
+            accountInfo.bech32Address
+              ? accountInfo.bech32Address
+              : "..."}
           </Address>
         </div>
         <div style={{ flex: 1 }} />
