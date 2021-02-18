@@ -90,7 +90,7 @@ export class SignInteractionStore {
         )
       );
     } finally {
-      await this.waitEnd();
+      await task(this.waitEnd());
 
       this._isLoading = false;
     }
