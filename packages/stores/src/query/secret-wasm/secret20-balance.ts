@@ -111,9 +111,14 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
     );
   }
 
+  // This method doesn't have the role because the fetching is actually exeucnted in the `ObservableQuerySecret20Balance`.
   protected canFetch(): boolean {
     return false;
   }
+
+  readonly fetch = async (): Promise<void> => {
+    return this.querySecret20Balance.fetch();
+  };
 
   get isFetching(): boolean {
     return (
