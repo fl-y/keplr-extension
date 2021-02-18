@@ -19,21 +19,22 @@ export const AccountView: FunctionComponent = observer(() => {
   const notification = useNotification();
 
   const copyAddress = useCallback(async () => {
-    await navigator.clipboard.writeText(accountInfo.bech32Address);
-    // TODO: Show success tooltip.
-    notification.push({
-      placement: "top-center",
-      type: "success",
-      duration: 2,
-      content: intl.formatMessage({
-        id: "main.address.copied",
-      }),
-      canDelete: true,
-      transition: {
-        duration: 0.25,
-      },
-    });
-  }, [accountInfo.bech32Address, notification, intl]);
+    if (accountInfo.walletStatus === WalletStatus.Loaded) {
+      await navigator.clipboard.writeText(accountInfo.bech32Address);
+      notification.push({
+        placement: "top-center",
+        type: "success",
+        duration: 2,
+        content: intl.formatMessage({
+          id: "main.address.copied",
+        }),
+        canDelete: true,
+        transition: {
+          duration: 0.25,
+        },
+      });
+    }
+  }, [accountInfo.walletStatus, accountInfo.bech32Address, notification, intl]);
 
   return (
     <div>
