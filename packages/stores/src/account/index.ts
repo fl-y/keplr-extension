@@ -75,7 +75,7 @@ export class AccountStoreInner {
   protected _bech32Address!: string;
 
   @observable
-  protected _isSendingMsg!: boolean;
+  protected _isSendingMsg!: keyof MsgOpts | "unknown" | false;
 
   public broadcastMode: "sync" | "async" | "block" = "sync";
 
@@ -197,13 +197,14 @@ export class AccountStoreInner {
   }
 
   async sendMsgs(
+    type: keyof MsgOpts | "unknown",
     msgs: Msg[],
     fee: StdFee,
     memo: string = "",
     onFulfill?: (tx: any) => void
   ) {
     runInAction(() => {
-      this._isSendingMsg = true;
+      this._isSendingMsg = type;
     });
 
     let txHash: Uint8Array | undefined;
@@ -266,6 +267,7 @@ export class AccountStoreInner {
     switch (denomHelper.type) {
       case "native":
         await this.sendMsgs(
+          "send",
           [
             {
               type: this.opts.msgOpts.send.native.type,
@@ -314,6 +316,7 @@ export class AccountStoreInner {
           throw new Error("Currency is not secret20");
         }
         await this.sendExecuteSecretContractMsg(
+          "send",
           currency.contractAddress,
           {
             transfer: {
@@ -386,6 +389,7 @@ export class AccountStoreInner {
     };
 
     await this.sendMsgs(
+      "delegate",
       [msg],
       {
         amount: [],
@@ -448,6 +452,7 @@ export class AccountStoreInner {
     };
 
     await this.sendMsgs(
+      "undelegate",
       [msg],
       {
         amount: [],
@@ -517,6 +522,7 @@ export class AccountStoreInner {
     };
 
     await this.sendMsgs(
+      "redelegate",
       [msg],
       {
         amount: [],
@@ -563,6 +569,7 @@ export class AccountStoreInner {
     });
 
     await this.sendMsgs(
+      "withdrawRewards",
       msgs,
       {
         amount: [],
@@ -603,6 +610,7 @@ export class AccountStoreInner {
     };
 
     await this.sendMsgs(
+      "govVote",
       [msg],
       {
         amount: [],
@@ -637,6 +645,7 @@ export class AccountStoreInner {
     const entropy = Buffer.from(random).toString("hex");
 
     const encrypted = await this.sendExecuteSecretContractMsg(
+      "createSecret20ViewingKey",
       contractAddress,
       {
         create_viewing_key: { entropy },
@@ -682,6 +691,8 @@ export class AccountStoreInner {
   }
 
   async sendExecuteSecretContractMsg(
+    // This arg can be used to override the type of sending tx if needed.
+    type: keyof MsgOpts | "unknown" = "executeSecretWasm",
     contractAddress: string,
     // eslint-disable-next-line @typescript-eslint/ban-types
     obj: object,
@@ -692,7 +703,7 @@ export class AccountStoreInner {
   ): Promise<Uint8Array> {
     const encryptedMsg = await (async () => {
       runInAction(() => {
-        this._isSendingMsg = true;
+        this._isSendingMsg = type;
       });
       try {
         return await this.encryptSecretContractMsg(contractAddress, obj);
@@ -715,7 +726,7 @@ export class AccountStoreInner {
       },
     };
 
-    await this.sendMsgs([msg], fee, memo, onFulfill);
+    await this.sendMsgs(type, [msg], fee, memo, onFulfill);
 
     return encryptedMsg;
   }
@@ -812,7 +823,7 @@ export class AccountStoreInner {
     return this._bech32Address;
   }
 
-  get isSendingMsg(): boolean {
+  get isSendingMsg(): keyof MsgOpts | "unknown" | false {
     return this._isSendingMsg;
   }
 }

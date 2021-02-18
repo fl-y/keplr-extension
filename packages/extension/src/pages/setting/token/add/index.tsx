@@ -312,7 +312,7 @@ export const AddTokenPage: FunctionComponent = observer(() => {
           type="submit"
           color="primary"
           disabled={tokenInfo == null || !accountInfo.isReadyToSendMsgs}
-          data-loading={accountInfo.isSendingMsg}
+          data-loading={accountInfo.isSendingMsg === "createSecret20ViewingKey"}
         >
           <FormattedMessage id="setting.token.add.button.submit" />
         </Button>

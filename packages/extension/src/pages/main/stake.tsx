@@ -109,7 +109,7 @@ export const StakeView: FunctionComponent = observer(() => {
                 size="sm"
                 disabled={!accountInfo.isReadyToSendMsgs}
                 onClick={withdrawAllRewards}
-                data-loading={accountInfo.isSendingMsg}
+                data-loading={accountInfo.isSendingMsg === "withdrawRewards"}
               >
                 <FormattedMessage id="main.stake.button.claim-rewards" />
               </Button>

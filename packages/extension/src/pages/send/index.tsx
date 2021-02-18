@@ -147,7 +147,7 @@ export const SendPage: FunctionComponent = observer(() => {
             type="submit"
             color="primary"
             block
-            data-loading={accountInfo.isSendingMsg}
+            data-loading={accountInfo.isSendingMsg === "send"}
             disabled={!accountInfo.isReadyToSendMsgs || !txStateIsValid}
           >
             {intl.formatMessage({

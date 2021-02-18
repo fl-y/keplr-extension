@@ -140,6 +140,7 @@ export const TxButtonView: FunctionComponent = observer(() => {
         })}
         color="primary"
         outline
+        data-loading={accountInfo.isSendingMsg === "send"}
         onClick={(e) => {
           e.preventDefault();
 

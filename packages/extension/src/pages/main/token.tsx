@@ -163,10 +163,10 @@ const TokenView: FunctionComponent<{
               }
             }}
           >
-            {!accountInfo.isSendingMsg ? (
-              <i className="fas fa-wrench" />
-            ) : (
+            {accountInfo.isSendingMsg === "createSecret20ViewingKey" ? (
               <i className="fa fa-spinner fa-spin fa-fw" />
+            ) : (
+              <i className="fas fa-wrench" />
             )}
           </div>
         ) : null}
