@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
 import { NotificationProperty } from "./index";
-import { action, observable, IObservableArray } from "mobx";
+import { action, observable, IObservableArray, makeObservable } from "mobx";
 
 export const NotificationStoreContext = React.createContext<NotificationStore | null>(
   null
@@ -22,16 +22,14 @@ export const useNotificationStore = () => {
 
 export class NotificationStore {
   @observable
-  public topLeftProperties!: NotificationProperty[];
+  public topLeftProperties: NotificationProperty[] = [];
   @observable
-  public topCenterProperties!: NotificationProperty[];
+  public topCenterProperties: NotificationProperty[] = [];
   @observable
-  public topRightProperties!: NotificationProperty[];
+  public topRightProperties: NotificationProperty[] = [];
 
   constructor() {
-    this.setTopLeftProperties([]);
-    this.setTopCenterProperties([]);
-    this.setTopRightProperties([]);
+    makeObservable(this);
   }
 
   @action
