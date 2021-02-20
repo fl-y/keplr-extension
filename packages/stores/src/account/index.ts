@@ -11,6 +11,7 @@ import {
   makeStdTx,
   Msg,
   StdFee,
+  StdSignDoc,
 } from "@cosmjs/launchpad";
 import { fromHex } from "@cosmjs/encoding";
 import { Dec, DecUtils } from "@keplr/unit";
@@ -201,9 +202,17 @@ export class AccountStoreInner {
       this._isSendingMsg = type;
     });
 
-    let txHash: Uint8Array | undefined;
+    let txHash: Uint8Array;
+    let signDoc: StdSignDoc;
     try {
-      txHash = await this.broadcastMsgs(msgs, fee, memo, this.broadcastMode);
+      const result = await this.broadcastMsgs(
+        msgs,
+        fee,
+        memo,
+        this.broadcastMode
+      );
+      txHash = result.txHash;
+      signDoc = result.signDoc;
     } catch (e) {
       runInAction(() => {
         this._isSendingMsg = false;
@@ -224,13 +233,14 @@ export class AccountStoreInner {
       });
 
       // After sending tx, the balances is probably changed due to the fee.
-      for (const feeAmount of fee.amount) {
+      for (const feeAmount of signDoc.fee.amount) {
         const bal = this.queries
           .getQueryBalances()
           .getQueryBech32Address(this.bech32Address)
           .balances.find(
             (bal) => bal.currency.coinMinimalDenom === feeAmount.denom
           );
+
         if (bal) {
           bal.fetch();
         }
@@ -758,7 +768,10 @@ export class AccountStoreInner {
     fee: StdFee,
     memo: string = "",
     mode: "block" | "async" | "sync" = "async"
-  ): Promise<Uint8Array> {
+  ): Promise<{
+    txHash: Uint8Array;
+    signDoc: StdSignDoc;
+  }> {
     if (this.walletStatus !== WalletStatus.Loaded) {
       throw new Error(`Wallet is not loaded: ${this.walletStatus}`);
     }
@@ -792,7 +805,10 @@ export class AccountStoreInner {
 
     const signedTx = makeStdTx(signResponse.signed, signResponse.signature);
 
-    return await keplr.sendTx(this.chainId, signedTx, mode as BroadcastMode);
+    return {
+      txHash: await keplr.sendTx(this.chainId, signedTx, mode as BroadcastMode),
+      signDoc: signResponse.signed,
+    };
   }
 
   get instance(): AxiosInstance {
