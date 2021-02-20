@@ -22,9 +22,10 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
   const intl = useIntl();
 
   const { chainStore, permissionStore } = useStore();
-  const basicAccessInfo = permissionStore.getBasicAccessInfo(
+  const [selectedChainId, setSelectedChainId] = useState(
     chainStore.current.chainId
   );
+  const basicAccessInfo = permissionStore.getBasicAccessInfo(selectedChainId);
 
   const [dropdownOpen, setOpen] = useState(false);
   const toggle = () => setOpen(!dropdownOpen);
@@ -54,7 +55,7 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
           className={styleConnections.dropdown}
         >
           <DropdownToggle caret style={{ boxShadow: "none" }}>
-            {chainStore.current.chainName}
+            {chainStore.getChain(selectedChainId).chainName}
           </DropdownToggle>
           <DropdownMenu>
             {chainStore.chainInfos.map((chainInfo) => {
@@ -64,7 +65,7 @@ export const SettingConnectionsPage: FunctionComponent = observer(() => {
                   onClick={(e) => {
                     e.preventDefault();
 
-                    chainStore.selectChain(chainInfo.chainId);
+                    setSelectedChainId(chainInfo.chainId);
                   }}
                 >
                   {chainInfo.chainName}
