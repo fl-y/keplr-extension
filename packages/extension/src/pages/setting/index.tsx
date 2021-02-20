@@ -6,7 +6,7 @@ import { PageButton } from "./page-button";
 import style from "./style.module.scss";
 import { useLanguage } from "../../languages";
 import { useIntl } from "react-intl";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 export const SettingPage: FunctionComponent = observer(() => {
   const language = useLanguage();

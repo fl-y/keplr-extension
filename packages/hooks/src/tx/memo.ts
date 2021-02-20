@@ -1,17 +1,16 @@
 import { IMemoConfig } from "./types";
-import { action, observable } from "mobx";
+import { action, makeObservable, observable } from "mobx";
 import { ChainGetter } from "@keplr/stores";
 import { TxChainSetter } from "./chain";
 import { useState } from "react";
 
 export class MemoConfig extends TxChainSetter implements IMemoConfig {
   @observable
-  protected _memo!: string;
+  protected _memo: string = "";
 
   constructor(chainGetter: ChainGetter, initialChainId: string) {
     super(chainGetter, initialChainId);
-
-    this.setMemo("");
+    makeObservable(this);
   }
 
   get memo(): string {

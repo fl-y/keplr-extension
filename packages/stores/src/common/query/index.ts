@@ -2,14 +2,14 @@ import {
   action,
   autorun,
   computed,
+  flow,
+  makeObservable,
   observable,
   onBecomeObserved,
   onBecomeUnobserved,
-  runInAction,
 } from "mobx";
 import Axios, { AxiosInstance, CancelToken, CancelTokenSource } from "axios";
-import { actionAsync, task } from "mobx-utils";
-import { KVStore } from "@keplr/common";
+import { KVStore, toGenerator } from "@keplr/common";
 import { DeepReadonly } from "utility-types";
 import { HasMapStore } from "../map";
 
@@ -44,17 +44,17 @@ export type QueryResponse<T> = {
  * This recommends to use the Axios to query the response.
  */
 export abstract class ObservableQueryBase<T = unknown, E = unknown> {
-  protected options!: QueryOptions;
+  protected options: QueryOptions;
 
   // Just use the oberable ref because the response is immutable and not directly adjusted.
   @observable.ref
-  private _response?: Readonly<QueryResponse<T>>;
+  private _response?: Readonly<QueryResponse<T>> = undefined;
 
   @observable
-  protected _isFetching!: boolean;
+  protected _isFetching: boolean = false;
 
   @observable.ref
-  private _error?: Readonly<QueryError<E>>;
+  private _error?: Readonly<QueryError<E>> = undefined;
 
   private _isStarted: boolean = false;
 
@@ -65,7 +65,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
   private intervalId: number = -1;
 
   @observable.ref
-  protected _instance!: AxiosInstance;
+  protected _instance: AxiosInstance;
 
   protected constructor(
     instance: AxiosInstance,
@@ -76,10 +76,9 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
       ...defaultOptions,
     };
 
-    runInAction(() => {
-      this._isFetching = false;
-      this._instance = instance;
-    });
+    this._instance = instance;
+
+    makeObservable(this);
 
     onBecomeObserved(this, "_response", this.becomeObserved);
     onBecomeObserved(this, "_isFetching", this.becomeObserved);
@@ -168,8 +167,8 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     return this._instance;
   }
 
-  @actionAsync
-  async fetch(): Promise<void> {
+  @flow
+  *fetch(): Generator<unknown, any, any> {
     // If not started, do nothing.
     if (!this.isStarted) {
       return;
@@ -189,7 +188,7 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
 
     // If there is no existing response, try to load saved reponse.
     if (!this._response) {
-      const staledResponse = await task(this.loadStaledResponse());
+      const staledResponse = yield* toGenerator(this.loadStaledResponse());
       if (staledResponse) {
         if (staledResponse.timestamp > Date.now() - this.options.cacheMaxAge) {
           this.setResponse(staledResponse);
@@ -204,11 +203,13 @@ export abstract class ObservableQueryBase<T = unknown, E = unknown> {
     }
 
     try {
-      const response = await task(this.fetchResponse(this.cancelToken.token));
+      const response = yield* toGenerator(
+        this.fetchResponse(this.cancelToken.token)
+      );
       this.setResponse(response);
       // Clear the error if fetching succeeds.
       this.setError(undefined);
-      await task(this.saveResponse(response));
+      yield this.saveResponse(response);
     } catch (e) {
       // If canceld, do nothing.
       if (Axios.isCancel(e)) {
@@ -332,7 +333,7 @@ export class ObservableQuery<
   E = unknown
 > extends ObservableQueryBase<T, E> {
   @observable
-  protected _url!: string;
+  protected _url: string = "";
 
   constructor(
     protected readonly kvStore: KVStore,
@@ -341,6 +342,7 @@ export class ObservableQuery<
     options: Partial<QueryOptions> = {}
   ) {
     super(instance, options);
+    makeObservable(this);
 
     this.setUrl(url);
   }

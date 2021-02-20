@@ -1,7 +1,7 @@
 import { ObservableChainQuery } from "./chain-query";
 import { DenomHelper, KVStore } from "@keplr/common";
 import { ChainGetter } from "../common";
-import { computed, observable, runInAction } from "mobx";
+import { computed, makeObservable, observable, runInAction } from "mobx";
 import { CoinPretty } from "@keplr/unit";
 import { AppCurrency } from "@keplr/types";
 import { HasMapStore } from "../common";
@@ -18,6 +18,7 @@ export abstract class ObservableQueryBalanceInner<
     protected readonly denomHelper: DenomHelper
   ) {
     super(kvStore, chainId, chainGetter, url);
+    makeObservable(this);
   }
 
   abstract get balance(): CoinPretty;
@@ -53,7 +54,7 @@ export class ObservableQueryBalancesInner {
   protected bech32Address: string;
 
   @observable.shallow
-  protected balanceMap!: Map<string, ObservableQueryBalanceInner>;
+  protected balanceMap: Map<string, ObservableQueryBalanceInner> = new Map();
 
   constructor(
     protected readonly kvStore: KVStore,
@@ -62,9 +63,7 @@ export class ObservableQueryBalancesInner {
     protected readonly balanceRegistries: BalanceRegistry[],
     bech32Address: string
   ) {
-    runInAction(() => {
-      this.balanceMap = new Map();
-    });
+    makeObservable(this);
 
     this.bech32Address = bech32Address;
   }

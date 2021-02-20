@@ -3,7 +3,7 @@ import { HeaderLayout } from "../../../layouts";
 import { AddressInput, Input, MemoInput } from "../../../components/form";
 import { Button } from "reactstrap";
 import { FormattedMessage, useIntl } from "react-intl";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { AddressBookConfig, MemoConfig, RecipientConfig } from "@keplr/hooks";
 
 /**

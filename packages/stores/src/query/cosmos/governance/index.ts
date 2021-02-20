@@ -1,8 +1,8 @@
 import { ObservableChainQuery } from "../../chain-query";
 import { GovProposals, Proposal, ProposalTally } from "./types";
 import { KVStore } from "@keplr/common";
-import { ChainGetter } from "../../../common/types";
-import { computed, observable, runInAction } from "mobx";
+import { ChainGetter } from "../../../common";
+import { computed, makeObservable, observable, runInAction } from "mobx";
 import { CoinPretty, Dec, DecUtils, Int, IntPretty } from "@keplr/unit";
 import { DeepReadonly } from "utility-types";
 import {
@@ -22,6 +22,7 @@ export class ObservableQueryProposal extends ObservableChainQuery<ProposalTally>
     protected readonly governance: ObservableQueryGovernance
   ) {
     super(kvStore, chainId, chainGetter, `/gov/proposals/${_raw.id}/tally`);
+    makeObservable(this);
   }
 
   protected canFetch(): boolean {
@@ -208,11 +209,11 @@ export class ObservableQueryProposal extends ObservableChainQuery<ProposalTally>
 
 export class ObservableQueryGovernance extends ObservableChainQuery<GovProposals> {
   @observable.ref
-  protected paramDeposit?: ObservableQueryGovParamDeposit;
+  protected paramDeposit?: ObservableQueryGovParamDeposit = undefined;
   @observable.ref
-  protected paramVoting?: ObservableQueryGovParamVoting;
+  protected paramVoting?: ObservableQueryGovParamVoting = undefined;
   @observable.ref
-  protected paramTally?: ObservableQueryGovParamTally;
+  protected paramTally?: ObservableQueryGovParamTally = undefined;
 
   constructor(
     kvStore: KVStore,
@@ -221,6 +222,7 @@ export class ObservableQueryGovernance extends ObservableChainQuery<GovProposals
     protected readonly _queryPool: ObservableChainQuery<StakingPool>
   ) {
     super(kvStore, chainId, chainGetter, "/gov/proposals");
+    makeObservable(this);
   }
 
   getQueryPool(): DeepReadonly<ObservableChainQuery<StakingPool>> {

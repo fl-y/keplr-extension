@@ -1,8 +1,8 @@
 import { ObservableQuery } from "../common";
 import { KVStore } from "@keplr/common";
 import Axios, { AxiosInstance } from "axios";
-import { computed } from "mobx";
-import { ChainGetter } from "../common/types";
+import { override } from "mobx";
+import { ChainGetter } from "../common";
 import { HasMapStore } from "../common";
 
 export class ObservableChainQuery<
@@ -34,7 +34,7 @@ export class ObservableChainQuery<
     this.chainGetter = chainGetter;
   }
 
-  @computed
+  @override
   protected get instance(): AxiosInstance {
     const chainInfo = this.chainGetter.getChain(this.chainId);
 

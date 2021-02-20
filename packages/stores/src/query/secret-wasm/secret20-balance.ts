@@ -1,4 +1,4 @@
-import { autorun, computed } from "mobx";
+import { autorun, computed, makeObservable } from "mobx";
 import { DenomHelper, KVStore } from "@keplr/common";
 import { ChainGetter, QueryResponse } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
@@ -32,6 +32,7 @@ export class ObservableQuerySecret20Balance extends ObservableSecretContractChai
       {},
       querySecretContractCodeHash
     );
+    makeObservable(this);
 
     autorun(() => {
       // The viewing key of the registered secret20 currency can be changed,
@@ -99,6 +100,7 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
       "",
       denomHelper
     );
+    makeObservable(this);
 
     this.querySecret20Balance = new ObservableQuerySecret20Balance(
       kvStore,
@@ -116,9 +118,9 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
     return false;
   }
 
-  readonly fetch = async (): Promise<void> => {
-    return this.querySecret20Balance.fetch();
-  };
+  *fetch() {
+    yield* this.querySecret20Balance.fetch();
+  }
 
   get isFetching(): boolean {
     return (

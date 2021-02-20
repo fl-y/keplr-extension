@@ -4,7 +4,7 @@ import classnames from "classnames";
 import styleCoinInput from "./coin-input.module.scss";
 
 import { FormFeedback, FormGroup, Input, InputGroup, Label } from "reactstrap";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import {
   EmptyAmountError,
   InvalidNumberAmountError,

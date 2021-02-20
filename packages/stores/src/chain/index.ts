@@ -1,4 +1,4 @@
-import { action, computed, observable, runInAction } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import { ChainInfo } from "@keplr/types";
 import { ChainGetter } from "../common";
 import { ChainIdHelper } from "@keplr/cosmos";
@@ -11,16 +11,15 @@ export type ChainInfoOverrider<C extends ChainInfo = ChainInfo> = (
 export class ChainStore<C extends ChainInfo = ChainInfo>
   implements ChainGetter {
   @observable.ref
-  protected _chainInfos!: C[];
+  protected _chainInfos: C[];
 
   @observable.shallow
-  protected _chainInfoOverriders!: ChainInfoOverrider<C>[];
+  protected _chainInfoOverriders: ChainInfoOverrider<C>[] = [];
 
   constructor(embedChainInfos: C[]) {
-    runInAction(() => {
-      this._chainInfos = embedChainInfos;
-      this._chainInfoOverriders = [];
-    });
+    this._chainInfos = embedChainInfos;
+
+    makeObservable(this);
   }
 
   @computed

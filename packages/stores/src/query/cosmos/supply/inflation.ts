@@ -1,4 +1,4 @@
-import { computed } from "mobx";
+import { computed, makeObservable } from "mobx";
 import { Dec, DecUtils, Int, IntPretty } from "@keplr/unit";
 import { ObservableQuerySupplyTotal } from "./supply";
 import { MintingInflation } from "./types";
@@ -10,7 +10,9 @@ export class ObservableQueryInflation {
     private readonly _queryMint: ObservableChainQuery<MintingInflation>,
     private readonly _queryPool: ObservableChainQuery<StakingPool>,
     private readonly _querySupplyTotal: ObservableQuerySupplyTotal
-  ) {}
+  ) {
+    makeObservable(this);
+  }
 
   get error() {
     return (

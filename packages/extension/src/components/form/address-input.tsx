@@ -19,7 +19,7 @@ import {
   IRecipientConfig,
   IMemoConfig,
 } from "@keplr/hooks";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useIntl } from "react-intl";
 
 export interface AddressInputProps {

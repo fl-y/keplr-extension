@@ -17,8 +17,9 @@ import classnames from "classnames";
 import queryString from "query-string";
 
 import style from "./style.module.scss";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../../stores";
+import { flowResult } from "mobx";
 
 interface FormData {
   password: string;
@@ -80,9 +81,11 @@ export const ExportPage: FunctionComponent = observer(() => {
                 setLoading(true);
                 try {
                   setKeyRing(
-                    await keyRingStore.showKeyRing(
-                      parseInt(match.params.index),
-                      data.password
+                    await flowResult(
+                      keyRingStore.showKeyRing(
+                        parseInt(match.params.index),
+                        data.password
+                      )
                     )
                   );
                 } catch (e) {

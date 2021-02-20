@@ -4,7 +4,7 @@ import { Button, Tooltip } from "reactstrap";
 
 import { useStore } from "../../stores";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 import styleStake from "./stake.module.scss";
 import classnames from "classnames";

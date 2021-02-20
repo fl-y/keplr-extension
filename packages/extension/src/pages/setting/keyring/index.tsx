@@ -2,7 +2,7 @@ import React, { FunctionComponent, useState } from "react";
 
 import { HeaderLayout } from "../../../layouts";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../../stores";
 
 import { useHistory } from "react-router";

@@ -6,7 +6,7 @@ import style from "./style.module.scss";
 import { EmptyLayout } from "../../../layouts/empty-layout";
 import { FormattedMessage } from "react-intl";
 import { useInteractionInfo } from "@keplr/hooks";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../../stores";
 
 export const ChainSuggestedPage: FunctionComponent = observer(() => {

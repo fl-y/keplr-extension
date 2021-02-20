@@ -1,6 +1,5 @@
-import { observable, runInAction, toJS } from "mobx";
-import { KVStore } from "@keplr/common";
-import { actionAsync, task } from "mobx-utils";
+import { flow, makeObservable, observable, toJS } from "mobx";
+import { KVStore, toGenerator } from "@keplr/common";
 import { ChainInfo } from "@keplr/types";
 import { ChainGetter, HasMapStore } from "@keplr/stores";
 import { DeepReadonly } from "utility-types";
@@ -19,7 +18,7 @@ export interface AddressBookData {
 
 export class AddressBookConfig {
   @observable
-  protected _addressBookDatas!: AddressBookData[];
+  protected _addressBookDatas: AddressBookData[] = [];
 
   protected _selectHandler?: AddressBookSelectHandler;
 
@@ -28,9 +27,7 @@ export class AddressBookConfig {
     protected readonly chainGetter: ChainGetter,
     protected readonly chainId: string
   ) {
-    runInAction(() => {
-      this._addressBookDatas = [];
-    });
+    makeObservable(this);
 
     this.loadAddressBookDatas();
   }
@@ -52,31 +49,31 @@ export class AddressBookConfig {
     }
   }
 
-  @actionAsync
-  async addAddressBook(data: AddressBookData) {
-    await task(this.loadAddressBookDatas());
+  @flow
+  *addAddressBook(data: AddressBookData) {
+    yield this.loadAddressBookDatas();
 
     this._addressBookDatas.push(data);
 
-    await task(this.saveAddressBookDatas());
+    yield this.saveAddressBookDatas();
   }
 
-  @actionAsync
-  async removeAddressBook(index: number) {
-    await task(this.loadAddressBookDatas());
+  @flow
+  *removeAddressBook(index: number) {
+    yield this.loadAddressBookDatas();
 
     this._addressBookDatas.splice(index, 1);
 
-    await task(this.saveAddressBookDatas());
+    yield this.saveAddressBookDatas();
   }
 
-  @actionAsync
-  async editAddressBookAt(index: number, data: AddressBookData) {
-    await task(this.loadAddressBookDatas());
+  @flow
+  *editAddressBookAt(index: number, data: AddressBookData) {
+    yield this.loadAddressBookDatas();
 
     this._addressBookDatas[index] = data;
 
-    await task(this.saveAddressBookDatas());
+    yield this.saveAddressBookDatas();
   }
 
   async saveAddressBookDatas() {
@@ -88,11 +85,11 @@ export class AddressBookConfig {
     );
   }
 
-  @actionAsync
-  async loadAddressBookDatas() {
+  @flow
+  *loadAddressBookDatas() {
     const chainInfo = this.chainGetter.getChain(this.chainId);
 
-    const datas = await task(
+    const datas = yield* toGenerator(
       this.kvStore.get<AddressBookData[]>(
         AddressBookConfig.keyForChainInfo(chainInfo)
       )

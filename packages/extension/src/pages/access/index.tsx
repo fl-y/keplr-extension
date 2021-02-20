@@ -5,7 +5,7 @@ import { Button } from "reactstrap";
 
 import { ChainIdHelper } from "@keplr/cosmos";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 
 import style from "./style.module.scss";

@@ -1,17 +1,14 @@
 import { InteractionStore } from "./interaction";
 import { RequestSignMsg } from "@keplr/background";
-import { autorun, observable, runInAction } from "mobx";
-import { actionAsync, task } from "mobx-utils";
+import { autorun, flow, makeObservable, observable } from "mobx";
 import { StdSignDoc } from "@cosmjs/launchpad";
 
 export class SignInteractionStore {
   @observable
-  protected _isLoading!: boolean;
+  protected _isLoading: boolean = false;
 
   constructor(protected readonly interactionStore: InteractionStore) {
-    runInAction(() => {
-      this._isLoading = false;
-    });
+    makeObservable(this);
 
     autorun(() => {
       // Reject all interactions that is not first one.
@@ -74,59 +71,56 @@ export class SignInteractionStore {
     });
   }
 
-  @actionAsync
-  async approveAndWaitEnd(newSignDoc: StdSignDoc) {
+  @flow
+  *approveAndWaitEnd(newSignDoc: StdSignDoc) {
     if (this.waitingDatas.length === 0) {
       return;
     }
 
     this._isLoading = true;
     try {
-      await task(
-        this.interactionStore.approve(
-          RequestSignMsg.type(),
-          this.waitingDatas[0].id,
-          newSignDoc
-        )
+      yield this.interactionStore.approve(
+        RequestSignMsg.type(),
+        this.waitingDatas[0].id,
+        newSignDoc
       );
     } finally {
-      await task(this.waitEnd());
+      yield this.waitEnd();
 
       this._isLoading = false;
     }
   }
 
-  @actionAsync
-  async reject() {
+  @flow
+  *reject() {
     if (this.waitingDatas.length === 0) {
       return;
     }
 
     this._isLoading = true;
     try {
-      await task(
-        this.interactionStore.reject(
-          RequestSignMsg.type(),
-          this.waitingDatas[0].id
-        )
+      yield this.interactionStore.reject(
+        RequestSignMsg.type(),
+        this.waitingDatas[0].id
       );
     } finally {
       this._isLoading = false;
     }
   }
 
-  @actionAsync
-  async rejectAll() {
+  @flow
+  *rejectAll() {
     this._isLoading = true;
     try {
-      await task(this.interactionStore.rejectAll(RequestSignMsg.type()));
+      yield this.interactionStore.rejectAll(RequestSignMsg.type());
     } finally {
       this._isLoading = false;
     }
   }
 
-  protected async rejectWithId(id: string) {
-    await task(this.interactionStore.reject(RequestSignMsg.type(), id));
+  @flow
+  protected *rejectWithId(id: string) {
+    yield this.interactionStore.reject(RequestSignMsg.type(), id);
   }
 
   get isLoading(): boolean {

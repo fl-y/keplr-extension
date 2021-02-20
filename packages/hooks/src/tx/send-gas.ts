@@ -40,7 +40,6 @@ export const useSendGasConfig = (
   chainId: string,
   amountConfig: IAmountConfig
 ) => {
-  // TODO: Replace this with `useLocalObservable` of `mobx-react` after updating the version for mobx.
   const [txConfig] = useState(
     new SendGasConfig(chainGetter, chainId, amountConfig)
   );

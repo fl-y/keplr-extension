@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from "react";
 import classnames from "classnames";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 
 import style from "./chain-list.module.scss";

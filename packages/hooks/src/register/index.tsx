@@ -1,8 +1,7 @@
 import React, { FunctionComponent, useState } from "react";
 import { KeyRingStore } from "@keplr/stores";
-import { action, computed, observable, runInAction } from "mobx";
+import { action, computed, flow, makeObservable, observable } from "mobx";
 import { Mnemonic, RNG } from "@keplr/crypto";
-import { actionAsync, task } from "mobx-utils";
 import { BIP44HDPath } from "@keplr/background";
 
 export type RegisterMode = "create" | "add";
@@ -22,16 +21,16 @@ export class RegisterConfig {
 
   // Indicate wether the account is creating or not.
   @observable
-  protected _isLoading!: boolean;
+  protected _isLoading: boolean = false;
 
   @observable.shallow
-  protected options!: RegisterOption[];
+  protected options: RegisterOption[] = [];
 
   @observable
-  protected _type!: string;
+  protected _type: string = "";
 
   @observable
-  protected _isFinalized!: boolean;
+  protected _isFinalized: boolean = false;
 
   constructor(
     keyRingStore: KeyRingStore,
@@ -39,12 +38,7 @@ export class RegisterConfig {
     protected readonly rng: RNG
   ) {
     this.keyRingStore = keyRingStore;
-    runInAction(() => {
-      this._isLoading = false;
-      this.options = [];
-      this._type = "";
-      this._isFinalized = false;
-    });
+    makeObservable(this);
 
     for (const option of options) {
       this.addRegisterOption(option.type, option.intro, option.page);
@@ -97,8 +91,8 @@ export class RegisterConfig {
 
   // Create or add the mnemonic account.
   // If the mode is "add", password will be ignored.
-  @actionAsync
-  async createMnemonic(
+  @flow
+  *createMnemonic(
     name: string,
     mnemonic: string,
     password: string,
@@ -107,25 +101,21 @@ export class RegisterConfig {
     this._isLoading = true;
     try {
       if (this.mode === "create") {
-        await task(
-          this.keyRingStore.createMnemonicKey(
-            mnemonic,
-            password,
-            {
-              name,
-            },
-            bip44HDPath
-          )
+        yield this.keyRingStore.createMnemonicKey(
+          mnemonic,
+          password,
+          {
+            name,
+          },
+          bip44HDPath
         );
       } else {
-        await task(
-          this.keyRingStore.addMnemonicKey(
-            mnemonic,
-            {
-              name,
-            },
-            bip44HDPath
-          )
+        yield this.keyRingStore.addMnemonicKey(
+          mnemonic,
+          {
+            name,
+          },
+          bip44HDPath
         );
       }
       this._isFinalized = true;
@@ -136,28 +126,24 @@ export class RegisterConfig {
 
   // Create or add the ledger account.
   // If the mode is "add", password will be ignored.
-  @actionAsync
-  async createLedger(name: string, password: string, bip44HDPath: BIP44HDPath) {
+  @flow
+  *createLedger(name: string, password: string, bip44HDPath: BIP44HDPath) {
     this._isLoading = true;
     try {
       if (this.mode === "create") {
-        await task(
-          this.keyRingStore.createLedgerKey(
-            password,
-            {
-              name,
-            },
-            bip44HDPath
-          )
+        yield this.keyRingStore.createLedgerKey(
+          password,
+          {
+            name,
+          },
+          bip44HDPath
         );
       } else {
-        await task(
-          this.keyRingStore.addLedgerKey(
-            {
-              name,
-            },
-            bip44HDPath
-          )
+        yield this.keyRingStore.addLedgerKey(
+          {
+            name,
+          },
+          bip44HDPath
         );
       }
       this._isFinalized = true;
@@ -168,26 +154,18 @@ export class RegisterConfig {
 
   // Create or add the account based on the private key.
   // If the mode is "add", password will be ignored.
-  @actionAsync
-  async createPrivateKey(
-    name: string,
-    privateKey: Uint8Array,
-    password: string
-  ) {
+  @flow
+  *createPrivateKey(name: string, privateKey: Uint8Array, password: string) {
     this._isLoading = true;
     try {
       if (this.mode === "create") {
-        await task(
-          this.keyRingStore.createPrivateKey(privateKey, password, {
-            name,
-          })
-        );
+        yield this.keyRingStore.createPrivateKey(privateKey, password, {
+          name,
+        });
       } else {
-        await task(
-          this.keyRingStore.addPrivateKey(privateKey, {
-            name,
-          })
-        );
+        yield this.keyRingStore.addPrivateKey(privateKey, {
+          name,
+        });
       }
       this._isFinalized = true;
     } finally {
@@ -234,7 +212,6 @@ export const useRegisterConfig = (
     return Promise.resolve(crypto.getRandomValues(array));
   }
 ) => {
-  // TODO: Replace this with `useLocalObservable` of `mobx-react` after updating the version for mobx.
   const [txConfig] = useState(
     new RegisterConfig(keyRingStore, initialOptions, rng)
   );

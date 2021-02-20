@@ -5,7 +5,7 @@ import { CoinUtils, Coin } from "@keplr/unit";
 import { IntlShape, FormattedMessage, useIntl } from "react-intl";
 import { Currency } from "@keplr/types";
 import { Button, Badge } from "reactstrap";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 
 import { Buffer } from "buffer/";

@@ -7,7 +7,7 @@ import style from "../style.module.scss";
 import { Input } from "../../../components/form";
 import { AdvancedBIP44Option, useBIP44Option } from "../advanced-bip44";
 import { BackButton } from "../index";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 export const TypeImportLedger = "import-ledger";
 

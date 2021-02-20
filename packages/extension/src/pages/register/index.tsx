@@ -2,7 +2,7 @@ import React, { FunctionComponent, useEffect } from "react";
 
 import { EmptyLayout } from "../../layouts/empty-layout";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 import style from "./style.module.scss";
 

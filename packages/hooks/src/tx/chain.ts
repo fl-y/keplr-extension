@@ -1,17 +1,19 @@
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import { ChainGetter } from "@keplr/stores";
 import { ChainInfo } from "@keplr/types";
 import { ITxChainSetter } from "./types";
 
 export class TxChainSetter implements ITxChainSetter {
   @observable
-  protected _chainId!: string;
+  protected _chainId: string;
 
   constructor(
     protected readonly chainGetter: ChainGetter,
     initialChainId: string
   ) {
-    this.setChain(initialChainId);
+    this._chainId = initialChainId;
+
+    makeObservable(this);
   }
 
   @computed

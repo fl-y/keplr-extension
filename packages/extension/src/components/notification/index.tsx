@@ -6,7 +6,7 @@ import "./style.scss";
 import { NotificationElementProps } from "./element";
 import { NotificationContainer } from "./container";
 import { useNotificationStore } from "./store";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 import { Buffer } from "buffer/";
 

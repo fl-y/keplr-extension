@@ -1,4 +1,4 @@
-import { observable, runInAction } from "mobx";
+import { makeObservable, observable, runInAction } from "mobx";
 import { KVStore } from "@keplr/common";
 import { DeepReadonly } from "utility-types";
 import { ObservableQueryBalances } from "./balances";
@@ -186,15 +186,13 @@ export class Queries {
 
 export class QueriesStore {
   @observable.shallow
-  protected queriesMap!: Map<string, Queries>;
+  protected queriesMap: Map<string, Queries> = new Map();
 
   constructor(
     protected readonly kvStore: KVStore,
     protected readonly chainGetter: ChainGetter
   ) {
-    runInAction(() => {
-      this.queriesMap = new Map();
-    });
+    makeObservable(this);
   }
 
   get(chainId: string): DeepReadonly<Queries> {

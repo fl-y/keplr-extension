@@ -5,7 +5,13 @@ import {
 import { BondStatus, Validators, Validator } from "./types";
 import { KVStore } from "@keplr/common";
 import { ChainGetter } from "../../../common";
-import { autorun, computed, observable, runInAction } from "mobx";
+import {
+  autorun,
+  computed,
+  makeObservable,
+  observable,
+  runInAction,
+} from "mobx";
 import { ObservableQuery, QueryResponse } from "../../../common";
 import Axios, { CancelToken } from "axios";
 import PQueue from "p-queue";
@@ -54,6 +60,7 @@ export class ObservableQueryValidatorThumbnail extends ObservableQuery<KeybaseRe
       instance,
       `_/api/1.0/user/lookup.json?fields=pictures&key_suffix=${validator.description.identity}`
     );
+    makeObservable(this);
 
     this.validator = validator;
   }
@@ -86,7 +93,10 @@ export class ObservableQueryValidatorThumbnail extends ObservableQuery<KeybaseRe
 
 export class ObservableQueryValidatorsInner extends ObservableChainQuery<Validators> {
   @observable.shallow
-  protected thumbnailMap!: Map<string, ObservableQueryValidatorThumbnail>;
+  protected thumbnailMap: Map<
+    string,
+    ObservableQueryValidatorThumbnail
+  > = new Map();
 
   constructor(
     kvStore: KVStore,
@@ -100,10 +110,7 @@ export class ObservableQueryValidatorsInner extends ObservableChainQuery<Validat
       chainGetter,
       `/staking/validators?status=${status}`
     );
-
-    runInAction(() => {
-      this.thumbnailMap = new Map();
-    });
+    makeObservable(this);
 
     autorun(() => {
       const chainInfo = this.chainGetter.getChain(this.chainId);

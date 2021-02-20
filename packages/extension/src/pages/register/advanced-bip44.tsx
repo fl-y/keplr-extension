@@ -3,7 +3,7 @@ import { Button, FormGroup, Input, Label } from "reactstrap";
 import { useConfirm } from "../../components/confirm";
 import { FormattedMessage, useIntl } from "react-intl";
 import { action, computed, observable, runInAction } from "mobx";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { BIP44HDPath } from "@keplr/background";
 
 export class BIP44Option {

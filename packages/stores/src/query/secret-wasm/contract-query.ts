@@ -1,9 +1,8 @@
 import { ObservableChainQuery } from "../chain-query";
-import { KVStore } from "@keplr/common";
+import { KVStore, toGenerator } from "@keplr/common";
 import { ChainGetter } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
-import { autorun, computed, observable, runInAction } from "mobx";
-import { actionAsync, task } from "mobx-utils";
+import { autorun, computed, flow, makeObservable, observable } from "mobx";
 import { AccountStore } from "../../account";
 import { Keplr } from "@keplr/types";
 import Axios, { CancelToken } from "axios";
@@ -15,12 +14,12 @@ export class ObservableSecretContractChainQuery<
   T
 > extends ObservableChainQuery<T> {
   @observable.ref
-  protected keplr?: Keplr;
+  protected keplr?: Keplr = undefined;
 
   protected nonce?: Uint8Array;
 
   @observable
-  protected _isIniting!: boolean;
+  protected _isIniting: boolean = false;
 
   constructor(
     kvStore: KVStore,
@@ -33,10 +32,7 @@ export class ObservableSecretContractChainQuery<
   ) {
     // Don't need to set the url initially because it can't request without encyption.
     super(kvStore, chainId, chainGetter, ``);
-
-    runInAction(() => {
-      this._isIniting = false;
-    });
+    makeObservable(this);
 
     // Try to get the keplr API.
     this.initKeplr();
@@ -77,18 +73,18 @@ export class ObservableSecretContractChainQuery<
     return this.contractAddress.length !== 0 && this.nonce != null;
   }
 
-  @actionAsync
-  protected async initKeplr() {
-    this.keplr = await task(AccountStore.getKeplr());
+  @flow
+  protected *initKeplr() {
+    this.keplr = yield* toGenerator(AccountStore.getKeplr());
   }
 
-  @actionAsync
-  protected async init() {
+  @flow
+  protected *init() {
     this._isIniting = true;
 
     if (this.keplr && this.contractCodeHash) {
       const enigmaUtils = this.keplr.getEnigmaUtils(this.chainId);
-      const encrypted = await task(
+      const encrypted = yield* toGenerator(
         enigmaUtils.encrypt(this.contractCodeHash, this.obj)
       );
       this.nonce = encrypted.slice(0, 32);

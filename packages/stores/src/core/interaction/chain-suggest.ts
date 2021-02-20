@@ -1,17 +1,14 @@
 import { InteractionStore } from "./interaction";
 import { ChainInfo } from "@keplr/types";
-import { actionAsync, task } from "mobx-utils";
 import { SuggestChainInfoMsg } from "@keplr/background";
-import { observable, runInAction } from "mobx";
+import { flow, makeObservable, observable } from "mobx";
 
 export class ChainSuggestStore {
   @observable
-  protected _isLoading!: boolean;
+  protected _isLoading: boolean = false;
 
   constructor(protected readonly interactionStore: InteractionStore) {
-    runInAction(() => {
-      this._isLoading = false;
-    });
+    makeObservable(this);
   }
 
   get waitingSuggestedChainInfo() {
@@ -24,39 +21,39 @@ export class ChainSuggestStore {
     }
   }
 
-  @actionAsync
-  async approve() {
+  @flow
+  *approve() {
     this._isLoading = true;
 
     try {
       const data = this.waitingSuggestedChainInfo;
       if (data) {
-        await task(this.interactionStore.approve(data.type, data.id, {}));
+        yield this.interactionStore.approve(data.type, data.id, {});
       }
     } finally {
       this._isLoading = false;
     }
   }
 
-  @actionAsync
-  async reject() {
+  @flow
+  *reject() {
     this._isLoading = true;
 
     try {
       const data = this.waitingSuggestedChainInfo;
       if (data) {
-        await task(this.interactionStore.reject(data.type, data.id));
+        yield this.interactionStore.reject(data.type, data.id);
       }
     } finally {
       this._isLoading = false;
     }
   }
 
-  @actionAsync
-  async rejectAll() {
+  @flow
+  *rejectAll() {
     this._isLoading = true;
     try {
-      await task(this.interactionStore.rejectAll(SuggestChainInfoMsg.type()));
+      yield this.interactionStore.rejectAll(SuggestChainInfoMsg.type());
     } finally {
       this._isLoading = false;
     }

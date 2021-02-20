@@ -9,7 +9,7 @@ import { useStore } from "../../stores";
 
 import { HeaderLayout } from "../../layouts";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 import style from "./style.module.scss";
 import { useNotification } from "../../components/notification";

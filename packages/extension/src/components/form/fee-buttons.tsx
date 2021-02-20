@@ -16,7 +16,7 @@ import {
 } from "reactstrap";
 
 import classnames from "classnames";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import {
   IFeeConfig,
   InsufficientFeeError,

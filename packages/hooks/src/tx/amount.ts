@@ -1,7 +1,7 @@
 import { IAmountConfig } from "./types";
 import { TxChainSetter } from "./chain";
 import { ChainGetter, CoinPrimitive } from "@keplr/stores";
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import { ObservableQueryBalances } from "@keplr/stores/build/query/balances";
 import { AppCurrency } from "@keplr/types";
 import {
@@ -16,16 +16,16 @@ import { useState } from "react";
 
 export class AmountConfig extends TxChainSetter implements IAmountConfig {
   @observable.ref
-  protected queryBalances!: ObservableQueryBalances;
+  protected queryBalances: ObservableQueryBalances;
 
   @observable
-  protected _sender!: string;
+  protected _sender: string;
 
   @observable.ref
-  protected _sendCurrency?: AppCurrency;
+  protected _sendCurrency?: AppCurrency = undefined;
 
   @observable
-  protected _amount!: string;
+  protected _amount: string;
 
   constructor(
     chainGetter: ChainGetter,
@@ -35,9 +35,11 @@ export class AmountConfig extends TxChainSetter implements IAmountConfig {
   ) {
     super(chainGetter, initialChainId);
 
-    this.setSender(sender);
-    this.setQueryBalances(queryBalances);
-    this.setAmount("");
+    this._sender = sender;
+    this.queryBalances = queryBalances;
+    this._amount = "";
+
+    makeObservable(this);
   }
 
   @action
@@ -161,7 +163,6 @@ export const useAmountConfig = (
   sender: string,
   queryBalances: ObservableQueryBalances
 ) => {
-  // TODO: Replace this with `useLocalObservable` of `mobx-react` after updating the version for mobx.
   const [txConfig] = useState(
     new AmountConfig(chainGetter, chainId, sender, queryBalances)
   );

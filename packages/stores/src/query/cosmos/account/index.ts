@@ -5,7 +5,7 @@ import {
 import { KVStore } from "@keplr/common";
 import { ChainGetter } from "../../../common";
 import { AuthAccount } from "./types";
-import { computed } from "mobx";
+import { computed, makeObservable } from "mobx";
 import { BaseAccount } from "@keplr/cosmos";
 
 export class ObservableQueryAccountInner extends ObservableChainQuery<AuthAccount> {
@@ -16,6 +16,8 @@ export class ObservableQueryAccountInner extends ObservableChainQuery<AuthAccoun
     protected readonly bech32Address: string
   ) {
     super(kvStore, chainId, chainGetter, `/auth/accounts/${bech32Address}`);
+
+    makeObservable(this);
   }
 
   @computed

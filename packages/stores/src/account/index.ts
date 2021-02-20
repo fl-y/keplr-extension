@@ -1,8 +1,7 @@
 import { CoinPrimitive, HasMapStore } from "../common";
-import { DenomHelper } from "@keplr/common";
+import { DenomHelper, toGenerator } from "@keplr/common";
 import { ChainGetter } from "../common";
-import { computed, observable, runInAction } from "mobx";
-import { actionAsync, task } from "mobx-utils";
+import { computed, flow, makeObservable, observable, runInAction } from "mobx";
 import { AppCurrency, Keplr } from "@keplr/types";
 import { BaseAccount, TendermintTxTracer } from "@keplr/cosmos";
 import Axios, { AxiosInstance } from "axios";
@@ -66,16 +65,16 @@ export interface AccountStoreOpts {
 
 export class AccountStoreInner {
   @observable
-  protected _walletStatus!: WalletStatus;
+  protected _walletStatus: WalletStatus = WalletStatus.Loading;
 
   @observable
-  protected _name!: string;
+  protected _name: string = "";
 
   @observable
-  protected _bech32Address!: string;
+  protected _bech32Address: string = "";
 
   @observable
-  protected _isSendingMsg!: keyof MsgOpts | "unknown" | false;
+  protected _isSendingMsg: keyof MsgOpts | "unknown" | false = false;
 
   public broadcastMode: "sync" | "async" | "block" = "sync";
 
@@ -135,12 +134,7 @@ export class AccountStoreInner {
     protected readonly queries: Queries,
     protected readonly opts: AccountStoreInnerOpts
   ) {
-    runInAction(() => {
-      this._walletStatus = WalletStatus.Loading;
-      this._name = "";
-      this._bech32Address = "";
-      this._isSendingMsg = false;
-    });
+    makeObservable(this);
 
     this.pubKey = new Uint8Array();
 
@@ -156,38 +150,38 @@ export class AccountStoreInner {
     await keplr.enable(chainId);
   }
 
-  @actionAsync
-  protected readonly init = async () => {
+  @flow
+  protected *init() {
     // If wallet status is not exist, there is no need to try to init because it always fails.
     if (this.walletStatus === WalletStatus.NotExist) {
       return;
     }
 
     // If key store in the keplr extension is changed, this event will be dispatched.
-    window.addEventListener("keplr_keystorechange", this.init, {
+    window.addEventListener("keplr_keystorechange", () => this.init(), {
       once: true,
     });
 
     // Set wallet status as loading whenever try to init.
     this._walletStatus = WalletStatus.Loading;
 
-    const keplr = await task(AccountStore.getKeplr());
+    const keplr = yield* toGenerator(AccountStore.getKeplr());
     if (!keplr) {
       this._walletStatus = WalletStatus.NotExist;
       return;
     }
 
     // TODO: Handle not approved.
-    await task(this.enable(keplr, this.chainId));
+    yield this.enable(keplr, this.chainId);
 
-    const key = await task(keplr.getKey(this.chainId));
+    const key = yield* toGenerator(keplr.getKey(this.chainId));
     this._bech32Address = key.bech32Address;
     this._name = key.name;
     this.pubKey = fromHex(key.pubKeyHex);
 
     // Set the wallet status as loaded after getting all necessary infos.
     this._walletStatus = WalletStatus.Loaded;
-  };
+  }
 
   @computed
   get isReadyToSendMsgs(): boolean {

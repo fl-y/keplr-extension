@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 
 import styleDetailsTab from "./details-tab.module.scss";

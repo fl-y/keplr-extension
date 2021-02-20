@@ -1,19 +1,18 @@
 import { IRecipientConfig } from "./types";
 import { TxChainSetter } from "./chain";
 import { ChainGetter } from "@keplr/stores";
-import { action, observable } from "mobx";
+import { action, makeObservable, observable } from "mobx";
 import { EmptyAddressError, InvalidBech32Error } from "./errors";
 import { Bech32Address } from "@keplr/cosmos";
 import { useState } from "react";
 
 export class RecipientConfig extends TxChainSetter implements IRecipientConfig {
   @observable
-  protected _recipient!: string;
+  protected _recipient: string = "";
 
   constructor(chainGetter: ChainGetter, initialChainId: string) {
     super(chainGetter, initialChainId);
-
-    this.setRecipient("");
+    makeObservable(this);
   }
 
   get recipient(): string {

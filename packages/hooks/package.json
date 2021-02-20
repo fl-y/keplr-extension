@@ -14,7 +14,7 @@
     "lint-fix": "eslint --fix \"src/**/*\" && prettier --write \"src/**/*\""
   },
   "devDependencies": {
-    "@types/react": "^16.9.2",
+    "@types/react": "^16.14.4",
     "mocha": "^8.2.1"
   },
   "dependencies": {
@@ -27,9 +27,9 @@
     "@keplr/stores": "0.0.1-alpha.0",
     "@keplr/types": "0.0.1-alpha.0",
     "@keplr/unit": "0.0.1-alpha.0",
-    "mobx": "^5.15.7",
-    "mobx-utils": "^5.5.2",
-    "react": "^16.9.0",
+    "mobx": "^6.1.7",
+    "mobx-utils": "^6.0.3",
+    "react": "^16.14.0",
     "react-router": "^5.1.2",
     "utility-types": "^3.10.0"
   }

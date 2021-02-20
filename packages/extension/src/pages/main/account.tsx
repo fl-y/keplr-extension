@@ -4,7 +4,7 @@ import { Address } from "../../components/address";
 
 import styleAccount from "./account.module.scss";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 import { useNotification } from "../../components/notification";
 import { useIntl } from "react-intl";

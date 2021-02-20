@@ -13,7 +13,7 @@ import { DetailsTab } from "./details-tab";
 import { FormattedMessage, useIntl } from "react-intl";
 
 import { useHistory } from "react-router";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import {
   useInteractionInfo,
   useSignDocHelper,

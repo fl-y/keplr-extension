@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useState } from "react";
 import { FormGroup, Input, Label } from "reactstrap";
 import { IMemoConfig } from "@keplr/hooks";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 export interface MemoInputProps {
   memoConfig: IMemoConfig;

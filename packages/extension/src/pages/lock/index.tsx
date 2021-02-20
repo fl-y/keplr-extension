@@ -4,7 +4,7 @@ import { Input } from "../../components/form";
 
 import { Button, Form } from "reactstrap";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 import { Banner } from "../../components/banner";
 import useForm from "react-hook-form";

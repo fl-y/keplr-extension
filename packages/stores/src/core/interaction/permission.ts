@@ -7,22 +7,20 @@ import {
   RemovePermissionOrigin,
   splitBasicAccessPermissionType,
 } from "@keplr/background";
-import { computed, observable, runInAction } from "mobx";
-import { actionAsync, task } from "mobx-utils";
+import { computed, flow, makeObservable, observable } from "mobx";
 import { HasMapStore } from "../../common";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
+import { toGenerator } from "@keplr/common";
 
 export class BasicAccessPermissionInnerStore {
   @observable.ref
-  protected _origins!: string[];
+  protected _origins: string[] = [];
 
   constructor(
     protected readonly chainId: string,
     protected readonly requester: MessageRequester
   ) {
-    runInAction(() => {
-      this._origins = [];
-    });
+    makeObservable(this);
 
     this.refreshOrigins();
   }
@@ -31,23 +29,21 @@ export class BasicAccessPermissionInnerStore {
     return this._origins;
   }
 
-  @actionAsync
-  async removeOrigin(origin: string) {
-    await task(
-      this.requester.sendMessage(
-        BACKGROUND_PORT,
-        new RemovePermissionOrigin(
-          getBasicAccessPermissionType(this.chainId),
-          origin
-        )
+  @flow
+  *removeOrigin(origin: string) {
+    yield this.requester.sendMessage(
+      BACKGROUND_PORT,
+      new RemovePermissionOrigin(
+        getBasicAccessPermissionType(this.chainId),
+        origin
       )
     );
-    await task(this.refreshOrigins());
+    yield this.refreshOrigins();
   }
 
-  @actionAsync
-  protected async refreshOrigins() {
-    this._origins = await task(
+  @flow
+  protected *refreshOrigins() {
+    this._origins = yield* toGenerator(
       this.requester.sendMessage(
         BACKGROUND_PORT,
         new GetPermissionOriginsMsg(getBasicAccessPermissionType(this.chainId))
@@ -58,7 +54,7 @@ export class BasicAccessPermissionInnerStore {
 
 export class PermissionStore extends HasMapStore<any> {
   @observable
-  protected _isLoading!: boolean;
+  protected _isLoading: boolean = false;
 
   constructor(
     protected readonly interactionStore: InteractionStore,
@@ -67,10 +63,7 @@ export class PermissionStore extends HasMapStore<any> {
     super((chainId: string) => {
       return new BasicAccessPermissionInnerStore(chainId, this.requester);
     });
-
-    runInAction(() => {
-      this._isLoading = false;
-    });
+    makeObservable(this);
   }
 
   getBasicAccessInfo(chainId: string): BasicAccessPermissionInnerStore {
@@ -107,33 +100,31 @@ export class PermissionStore extends HasMapStore<any> {
     );
   }
 
-  @actionAsync
-  async approve(id: string) {
+  @flow
+  *approve(id: string) {
     this._isLoading = true;
     try {
-      await task(
-        this.interactionStore.approve(INTERACTION_TYPE_PERMISSION, id, {})
-      );
+      yield this.interactionStore.approve(INTERACTION_TYPE_PERMISSION, id, {});
     } finally {
       this._isLoading = false;
     }
   }
 
-  @actionAsync
-  async reject(id: string) {
+  @flow
+  *reject(id: string) {
     this._isLoading = true;
     try {
-      await task(this.interactionStore.reject(INTERACTION_TYPE_PERMISSION, id));
+      yield this.interactionStore.reject(INTERACTION_TYPE_PERMISSION, id);
     } finally {
       this._isLoading = false;
     }
   }
 
-  @actionAsync
-  async rejectAll() {
+  @flow
+  *rejectAll() {
     this._isLoading = true;
     try {
-      await task(this.interactionStore.rejectAll(INTERACTION_TYPE_PERMISSION));
+      yield this.interactionStore.rejectAll(INTERACTION_TYPE_PERMISSION);
     } finally {
       this._isLoading = false;
     }

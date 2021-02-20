@@ -22,27 +22,27 @@ import {
   UnlockKeyRingMsg,
 } from "@keplr/background";
 
-import { computed, observable, runInAction } from "mobx";
-import { actionAsync, task } from "mobx-utils";
+import { computed, flow, makeObservable, observable, runInAction } from "mobx";
 
 import { Buffer } from "buffer/";
 import { InteractionStore } from "./interaction";
 import { ChainGetter } from "../common";
 import { BIP44 } from "@keplr/types";
 import { DeepReadonly } from "utility-types";
+import { toGenerator } from "@keplr/common";
 
 export class KeyRingSelectablesStore {
   @observable
-  isInitializing!: boolean;
+  isInitializing: boolean = false;
 
   @observable
-  protected _isKeyStoreCoinTypeSet!: boolean;
+  protected _isKeyStoreCoinTypeSet: boolean = false;
 
   @observable.ref
-  _selectables!: {
+  _selectables: {
     path: BIP44;
     bech32Address: string;
-  }[];
+  }[] = [];
 
   constructor(
     protected readonly chainGetter: ChainGetter,
@@ -50,11 +50,7 @@ export class KeyRingSelectablesStore {
     protected readonly chainId: string,
     protected readonly keyRingStore: KeyRingStore
   ) {
-    runInAction(() => {
-      this.isInitializing = false;
-      this._isKeyStoreCoinTypeSet = false;
-      this._selectables = [];
-    });
+    makeObservable(this);
 
     this.refresh();
   }
@@ -80,8 +76,8 @@ export class KeyRingSelectablesStore {
     return this._selectables;
   }
 
-  @actionAsync
-  async refresh() {
+  @flow
+  *refresh() {
     // No need to set the coin type if the key store type is not mnemonic.
     if (this.keyRingStore.keyRingType !== "mnemonic") {
       this.isInitializing = false;
@@ -99,18 +95,16 @@ export class KeyRingSelectablesStore {
       chainInfo.bip44,
       ...(chainInfo.alternativeBIP44s ?? []),
     ]);
-    const seletables = await task(
+    const seletables = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, msg)
     );
 
     if (seletables.length === 0) {
       this._isKeyStoreCoinTypeSet = true;
     } else if (seletables.length === 1) {
-      await task(
-        this.keyRingStore.setKeyStoreCoinType(
-          this.chainId,
-          seletables[0].path.coinType
-        )
+      yield this.keyRingStore.setKeyStoreCoinType(
+        this.chainId,
+        seletables[0].path.coinType
       );
       this._isKeyStoreCoinTypeSet = true;
     } else {
@@ -128,50 +122,47 @@ export class KeyRingSelectablesStore {
  */
 export class KeyRingStore {
   @observable
-  status!: KeyRingStatus;
+  status: KeyRingStatus = KeyRingStatus.NOTLOADED;
 
   @observable
-  keyRingType!: string;
+  keyRingType: string = "none";
 
   @observable
-  multiKeyStoreInfo!: MultiKeyStoreInfoWithSelected;
+  multiKeyStoreInfo: MultiKeyStoreInfoWithSelected = [];
 
   @observable.shallow
-  protected selectablesMap!: Map<string, KeyRingSelectablesStore>;
+  protected selectablesMap: Map<string, KeyRingSelectablesStore> = new Map();
 
   constructor(
     protected readonly chainGetter: ChainGetter,
     protected readonly requester: MessageRequester,
     protected readonly interactionStore: InteractionStore
   ) {
-    runInAction(() => {
-      this.keyRingType = "none";
-      this.status = KeyRingStatus.NOTLOADED;
-      this.multiKeyStoreInfo = [];
-      this.selectablesMap = new Map();
-    });
+    makeObservable(this);
 
     this.restore();
   }
 
-  @actionAsync
-  async createMnemonicKey(
+  @flow
+  *createMnemonicKey(
     mnemonic: string,
     password: string,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
   ) {
     const msg = new CreateMnemonicKeyMsg(mnemonic, password, meta, bip44HDPath);
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
     this.status = result.status;
 
-    this.keyRingType = await task(
+    this.keyRingType = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
   }
 
-  @actionAsync
-  async createPrivateKey(
+  @flow
+  *createPrivateKey(
     privateKey: Uint8Array,
     password: string,
     meta: Record<string, string>
@@ -181,68 +172,72 @@ export class KeyRingStore {
       password,
       meta
     );
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
     this.status = result.status;
 
-    this.keyRingType = await task(
+    this.keyRingType = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
   }
 
-  @actionAsync
-  async createLedgerKey(
+  @flow
+  *createLedgerKey(
     password: string,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
   ) {
     const msg = new CreateLedgerKeyMsg(password, meta, bip44HDPath);
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
     this.status = result.status;
 
-    this.keyRingType = await task(
+    this.keyRingType = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
   }
 
-  @actionAsync
-  async addMnemonicKey(
+  @flow
+  *addMnemonicKey(
     mnemonic: string,
     meta: Record<string, string>,
     bip44HDPath: BIP44HDPath
   ) {
     const msg = new AddMnemonicKeyMsg(mnemonic, meta, bip44HDPath);
-    this.multiKeyStoreInfo = await task(
+    this.multiKeyStoreInfo = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, msg)
     );
   }
 
-  @actionAsync
-  async addPrivateKey(privateKey: Uint8Array, meta: Record<string, string>) {
+  @flow
+  *addPrivateKey(privateKey: Uint8Array, meta: Record<string, string>) {
     const msg = new AddPrivateKeyMsg(
       Buffer.from(privateKey).toString("hex"),
       meta
     );
-    this.multiKeyStoreInfo = await task(
+    this.multiKeyStoreInfo = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, msg)
     );
   }
 
-  @actionAsync
-  async addLedgerKey(meta: Record<string, string>, bip44HDPath: BIP44HDPath) {
+  @flow
+  *addLedgerKey(meta: Record<string, string>, bip44HDPath: BIP44HDPath) {
     const msg = new AddLedgerKeyMsg(meta, bip44HDPath);
-    this.multiKeyStoreInfo = await task(
+    this.multiKeyStoreInfo = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, msg)
     );
   }
 
-  @actionAsync
-  async changeKeyRing(index: number) {
+  @flow
+  *changeKeyRing(index: number) {
     const msg = new ChangeKeyRingMsg(index);
-    this.multiKeyStoreInfo = await task(
+    this.multiKeyStoreInfo = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, msg)
     );
 
-    this.keyRingType = await task(
+    this.keyRingType = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
 
@@ -251,24 +246,28 @@ export class KeyRingStore {
     this.selectablesMap.forEach((selectables) => selectables.refresh());
   }
 
-  @actionAsync
-  async lock() {
+  @flow
+  *lock() {
     const msg = new LockKeyRingMsg();
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
     this.status = result.status;
   }
 
-  @actionAsync
-  async unlock(password: string) {
+  @flow
+  *unlock(password: string) {
     const msg = new UnlockKeyRingMsg(password);
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
     this.status = result.status;
 
     // Approve all waiting interaction for the enabling key ring.
     for (const interaction of this.interactionStore.getDatas(
       EnableKeyRingMsg.type()
     )) {
-      await this.interactionStore.approve(
+      yield this.interactionStore.approve(
         EnableKeyRingMsg.type(),
         interaction.id,
         {}
@@ -278,29 +277,34 @@ export class KeyRingStore {
     window.dispatchEvent(new Event("keplr_keystoreunlock"));
   }
 
-  @actionAsync
-  protected async restore() {
+  @flow
+  protected *restore() {
     const msg = new RestoreKeyRingMsg();
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
     this.status = result.status;
     this.keyRingType = result.type;
     this.multiKeyStoreInfo = result.multiKeyStoreInfo;
   }
 
-  async showKeyRing(index: number, password: string): Promise<string> {
+  @flow
+  *showKeyRing(index: number, password: string) {
     const msg = new ShowKeyRingMsg(index, password);
-    return await this.requester.sendMessage(BACKGROUND_PORT, msg);
+    return yield this.requester.sendMessage(BACKGROUND_PORT, msg);
   }
 
-  @actionAsync
-  async deleteKeyRing(index: number, password: string) {
+  @flow
+  *deleteKeyRing(index: number, password: string) {
     const msg = new DeleteKeyRingMsg(index, password);
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
     this.status = result.status;
     this.multiKeyStoreInfo = result.multiKeyStoreInfo;
 
     // Possibly, key ring can be changed if deleting key store was selected one.
-    this.keyRingType = await task(
+    this.keyRingType = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, new GetKeyRingTypeMsg())
     );
   }
@@ -326,16 +330,16 @@ export class KeyRingStore {
 
   // Set the coin type to current key store.
   // And, save it, refresh the key store.
-  @actionAsync
-  async setKeyStoreCoinType(chainId: string, coinType: number) {
-    const status = await task(
+  @flow
+  *setKeyStoreCoinType(chainId: string, coinType: number) {
+    const status = yield* toGenerator(
       this.requester.sendMessage(
         BACKGROUND_PORT,
         new SetKeyStoreCoinTypeMsg(chainId, coinType)
       )
     );
 
-    this.multiKeyStoreInfo = await task(
+    this.multiKeyStoreInfo = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, new GetMultiKeyStoreInfoMsg())
     );
 

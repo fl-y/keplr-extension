@@ -13,7 +13,7 @@ import { Input } from "../../../components/form";
 import { Button, Form } from "reactstrap";
 import useForm from "react-hook-form";
 import { useStore } from "../../../stores";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 import style from "./style.module.scss";
 import { WarningView } from "./warning-view";

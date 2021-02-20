@@ -1,5 +1,4 @@
-import { observable, action, runInAction, computed } from "mobx";
-import { actionAsync, task } from "mobx-utils";
+import { observable, action, computed, makeObservable, flow } from "mobx";
 
 import { ChainStore as BaseChainStore } from "@keplr/stores";
 
@@ -14,10 +13,11 @@ import {
 import { BACKGROUND_PORT } from "@keplr/router";
 
 import { MessageRequester } from "@keplr/router";
+import { toGenerator } from "@keplr/common";
 
 export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
   @observable
-  protected selectedChainId!: string;
+  protected selectedChainId: string;
 
   protected isInitializing: boolean = false;
   protected deferChainIdSelect: string = "";
@@ -37,9 +37,9 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
       })
     );
 
-    runInAction(() => {
-      this.selectedChainId = embedChainInfos[0].chainId;
-    });
+    this.selectedChainId = embedChainInfos[0].chainId;
+
+    makeObservable(this);
 
     this.init();
   }
@@ -61,23 +61,25 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
     return this.chainInfos[0];
   }
 
-  @actionAsync
-  async saveLastViewChainId() {
+  @flow
+  *saveLastViewChainId() {
     // Save last view chain id to persistent background
     const msg = new SetPersistentMemoryMsg({
       lastViewChainId: this.selectedChainId,
     });
-    await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    yield this.requester.sendMessage(BACKGROUND_PORT, msg);
   }
 
-  @actionAsync
-  protected async init() {
+  @flow
+  protected *init() {
     this.isInitializing = true;
-    await task(this.getChainInfosFromBackground());
+    yield this.getChainInfosFromBackground();
 
     // Get last view chain id to persistent background
     const msg = new GetPersistentMemoryMsg();
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
 
     if (!this.deferChainIdSelect) {
       if (result && result.lastViewChainId) {
@@ -92,25 +94,27 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
     }
   }
 
-  @actionAsync
-  protected async getChainInfosFromBackground() {
+  @flow
+  protected *getChainInfosFromBackground() {
     const msg = new GetChainInfosMsg();
-    const result = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    const result = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
     this.setChainInfos(result.chainInfos);
   }
 
-  @actionAsync
-  public async removeChainInfo(chainId: string) {
+  @flow
+  *removeChainInfo(chainId: string) {
     const msg = new RemoveSuggestedChainInfoMsg(chainId);
-    const chainInfos = await task(
+    const chainInfos = yield* toGenerator(
       this.requester.sendMessage(BACKGROUND_PORT, msg)
     );
 
     this.setChainInfos(chainInfos);
   }
 
-  @actionAsync
-  public async tryUpdateChain(_chainId: string) {
+  @flow
+  *tryUpdateChain(_chainId: string) {
     // TODO
     /*
     const selected = chainId === this.chainInfo.chainId;

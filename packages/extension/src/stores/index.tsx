@@ -1,5 +1,4 @@
 import React, { FunctionComponent, useState } from "react";
-import { Observer } from "mobx-react";
 
 import { createRootStore, RootStore } from "./root";
 
@@ -10,28 +9,6 @@ export const StoreProvider: FunctionComponent = ({ children }) => {
 
   return (
     <storeContext.Provider value={stores}>{children}</storeContext.Provider>
-  );
-};
-
-export const StoreConsumer: FunctionComponent<{
-  children: (rootStore: RootStore) => React.ReactNode;
-}> = ({ children }) => {
-  return (
-    <storeContext.Consumer>
-      {(rootStore) => {
-        if (!rootStore) {
-          throw new Error("You have forgot to use StoreProvider");
-        }
-
-        return (
-          <Observer>
-            {() => {
-              return children(rootStore) as any;
-            }}
-          </Observer>
-        );
-      }}
-    </storeContext.Consumer>
   );
 };
 

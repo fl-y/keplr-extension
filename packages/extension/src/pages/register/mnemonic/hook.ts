@@ -1,7 +1,7 @@
-import { action, observable, runInAction } from "mobx";
+import { action, flow, makeObservable, observable } from "mobx";
 import { RegisterConfig } from "@keplr/hooks";
 import { useState } from "react";
-import { actionAsync, task } from "mobx-utils";
+import { toGenerator } from "@keplr/common";
 
 export type NewMnemonicMode = "generate" | "verify";
 
@@ -12,28 +12,22 @@ export enum NumWords {
 
 export class NewMnemonicConfig {
   @observable
-  protected _mode!: NewMnemonicMode;
+  protected _mode: NewMnemonicMode = "generate";
 
   @observable
-  protected _numWords!: NumWords;
+  protected _numWords: NumWords = NumWords.WORDS12;
 
   @observable
-  protected _mnemonic!: string;
+  protected _mnemonic: string = "";
 
   @observable
-  protected _name!: string;
+  protected _name: string = "";
 
   @observable
-  protected _password!: string;
+  protected _password: string = "";
 
   constructor(protected readonly registerConfig: RegisterConfig) {
-    runInAction(() => {
-      this._mode = "generate";
-      this._numWords = NumWords.WORDS12;
-      this._mnemonic = "";
-      this._name = "";
-      this._password = "";
-    });
+    makeObservable(this);
 
     this.setNumWords(this.numWords);
   }
@@ -51,13 +45,17 @@ export class NewMnemonicConfig {
     return this._numWords;
   }
 
-  @actionAsync
-  async setNumWords(numWords: NumWords) {
+  @flow
+  *setNumWords(numWords: NumWords) {
     this._numWords = numWords;
     if (numWords === NumWords.WORDS12) {
-      this._mnemonic = await task(this.registerConfig.generateMnemonic(128));
+      this._mnemonic = yield* toGenerator(
+        this.registerConfig.generateMnemonic(128)
+      );
     } else if (numWords === NumWords.WORDS24) {
-      this._mnemonic = await task(this.registerConfig.generateMnemonic(256));
+      this._mnemonic = yield* toGenerator(
+        this.registerConfig.generateMnemonic(256)
+      );
     }
   }
 

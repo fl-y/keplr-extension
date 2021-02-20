@@ -4,7 +4,7 @@ import {
   ObservableChainQuery,
   ObservableChainQueryMap,
 } from "../../chain-query";
-import { ChainGetter } from "../../../common/types";
+import { ChainGetter } from "../../../common";
 
 export class ObservableQuerySupplyTotal extends ObservableChainQueryMap<SupplyTotal> {
   constructor(

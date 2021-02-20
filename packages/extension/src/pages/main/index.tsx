@@ -13,7 +13,7 @@ import { StakeView } from "./stake";
 
 import classnames from "classnames";
 import { useHistory } from "react-router";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 import { TokensView } from "./token";
 import { BIP44SelectModal } from "./bip44-select-modal";

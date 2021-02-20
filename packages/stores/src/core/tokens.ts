@@ -1,29 +1,27 @@
 import { HasMapStore } from "../common";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
-import { actionAsync, task } from "mobx-utils";
 import {
   AddTokenMsg,
   GetTokensMsg,
   RemoveTokenMsg,
   SuggestTokenMsg,
 } from "@keplr/background";
-import { observable, runInAction } from "mobx";
+import { flow, makeObservable, observable } from "mobx";
 import { AppCurrency, ChainInfo } from "@keplr/types";
 import { DeepReadonly } from "utility-types";
 import { ChainStore } from "../chain";
 import { InteractionStore } from "./interaction";
+import { toGenerator } from "@keplr/common";
 
 export class TokensStoreInner {
   @observable.ref
-  protected _tokens!: AppCurrency[];
+  protected _tokens: AppCurrency[] = [];
 
   constructor(
     protected readonly chainId: string,
     protected readonly requester: MessageRequester
   ) {
-    runInAction(() => {
-      this._tokens = [];
-    });
+    makeObservable(this);
 
     this.refreshTokens();
 
@@ -44,24 +42,26 @@ export class TokensStoreInner {
     return this._tokens;
   }
 
-  @actionAsync
-  async refreshTokens() {
+  @flow
+  *refreshTokens() {
     const msg = new GetTokensMsg(this.chainId);
-    this._tokens = await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
+    this._tokens = yield* toGenerator(
+      this.requester.sendMessage(BACKGROUND_PORT, msg)
+    );
   }
 
-  @actionAsync
-  async addToken(currency: AppCurrency) {
+  @flow
+  *addToken(currency: AppCurrency) {
     const msg = new AddTokenMsg(this.chainId, currency);
-    await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    await task(this.refreshTokens());
+    yield this.requester.sendMessage(BACKGROUND_PORT, msg);
+    yield this.refreshTokens();
   }
 
-  @actionAsync
-  async removeToken(currency: AppCurrency) {
+  @flow
+  *removeToken(currency: AppCurrency) {
     const msg = new RemoveTokenMsg(this.chainId, currency);
-    await task(this.requester.sendMessage(BACKGROUND_PORT, msg));
-    await task(this.refreshTokens());
+    yield this.requester.sendMessage(BACKGROUND_PORT, msg);
+    yield this.refreshTokens();
   }
 }
 
@@ -76,6 +76,7 @@ export class TokensStore<
     super((chainId: string) => {
       return new TokensStoreInner(chainId, this.requester);
     });
+    makeObservable(this);
 
     this.chainStore.registerChainInfoOverrider(this.overrideChainInfo);
   }
@@ -115,30 +116,30 @@ export class TokensStore<
     }
   }
 
-  @actionAsync
-  async approveSuggestedToken(appCurrency: AppCurrency) {
+  @flow
+  *approveSuggestedToken(appCurrency: AppCurrency) {
     const data = this.waitingSuggestedToken;
     if (data) {
-      await this.interactionStore.approve(
+      yield this.interactionStore.approve(
         SuggestTokenMsg.type(),
         data.id,
         appCurrency
       );
 
-      await this.getTokensOf(data.data.chainId).refreshTokens();
+      yield this.getTokensOf(data.data.chainId).refreshTokens();
     }
   }
 
-  @actionAsync
-  async rejectSuggestedToken() {
+  @flow
+  *rejectSuggestedToken() {
     const data = this.waitingSuggestedToken;
     if (data) {
-      await this.interactionStore.reject(SuggestTokenMsg.type(), data.id);
+      yield this.interactionStore.reject(SuggestTokenMsg.type(), data.id);
     }
   }
 
-  @actionAsync
-  async rejectAllSuggestedTokens() {
-    await this.interactionStore.rejectAll(SuggestTokenMsg.type());
+  @flow
+  *rejectAllSuggestedTokens() {
+    yield this.interactionStore.rejectAll(SuggestTokenMsg.type());
   }
 }

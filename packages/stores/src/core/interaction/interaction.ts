@@ -7,20 +7,23 @@ import {
   ApproveInteractionMsg,
   RejectInteractionMsg,
 } from "@keplr/background";
-import { runInAction, action, observable, IObservableArray } from "mobx";
-import { actionAsync, task } from "mobx-utils";
+import {
+  action,
+  observable,
+  IObservableArray,
+  makeObservable,
+  flow,
+} from "mobx";
 
 export class InteractionStore implements InteractionForegroundHandler {
   @observable.shallow
-  protected datas!: Map<string, InteractionWaitingData[]>;
+  protected datas: Map<string, InteractionWaitingData[]> = new Map();
 
   constructor(
     protected readonly router: Router,
     protected readonly msgRequester: MessageRequester
   ) {
-    runInAction(() => {
-      this.datas = new Map();
-    });
+    makeObservable(this);
 
     const service = new InteractionForegroundService(this);
     interactionForegroundInit(router, service);
@@ -45,33 +48,29 @@ export class InteractionStore implements InteractionForegroundHandler {
     this.datas.get(data.type)!.push(data);
   }
 
-  @actionAsync
-  async approve(type: string, id: string, result: unknown) {
+  @flow
+  *approve(type: string, id: string, result: unknown) {
     this.removeData(type, id);
-    await task(
-      this.msgRequester.sendMessage(
-        BACKGROUND_PORT,
-        new ApproveInteractionMsg(id, result)
-      )
+    yield this.msgRequester.sendMessage(
+      BACKGROUND_PORT,
+      new ApproveInteractionMsg(id, result)
     );
   }
 
-  @actionAsync
-  async reject(type: string, id: string) {
+  @flow
+  *reject(type: string, id: string) {
     this.removeData(type, id);
-    await task(
-      this.msgRequester.sendMessage(
-        BACKGROUND_PORT,
-        new RejectInteractionMsg(id)
-      )
+    yield this.msgRequester.sendMessage(
+      BACKGROUND_PORT,
+      new RejectInteractionMsg(id)
     );
   }
 
-  @actionAsync
-  async rejectAll(type: string) {
+  @flow
+  *rejectAll(type: string) {
     const datas = this.getDatas(type);
     for (const data of datas) {
-      await task(this.reject(data.type, data.id));
+      yield this.reject(data.type, data.id);
     }
   }
 

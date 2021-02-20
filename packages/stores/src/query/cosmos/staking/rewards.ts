@@ -4,8 +4,8 @@ import {
   ObservableChainQuery,
   ObservableChainQueryMap,
 } from "../../chain-query";
-import { ChainGetter } from "../../../common/types";
-import { computed } from "mobx";
+import { ChainGetter } from "../../../common";
+import { computed, makeObservable } from "mobx";
 import { CoinPretty, Dec, Int } from "@keplr/unit";
 import { Currency } from "@keplr/types";
 import { StoreUtils } from "../../../common";
@@ -26,6 +26,7 @@ export class ObservableQueryRewardsInner extends ObservableChainQuery<Rewards> {
       chainGetter,
       `/distribution/delegators/${bech32Address}/rewards`
     );
+    makeObservable(this);
 
     this.bech32Address = bech32Address;
   }

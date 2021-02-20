@@ -1,16 +1,18 @@
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import { Msg, StdSignDoc } from "@cosmjs/launchpad";
 import { useState } from "react";
 import { IFeeConfig, IMemoConfig } from "../tx";
 
 export class SignDocHelper {
   @observable.ref
-  protected _signDoc?: StdSignDoc;
+  protected _signDoc?: StdSignDoc = undefined;
 
   constructor(
     protected readonly feeConfig: IFeeConfig,
     protected readonly memoConfig: IMemoConfig
-  ) {}
+  ) {
+    makeObservable(this);
+  }
 
   get signDoc(): StdSignDoc | undefined {
     if (!this._signDoc) {

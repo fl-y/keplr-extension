@@ -4,7 +4,7 @@ import { Bech32Address } from "@keplr/cosmos";
 
 import style from "./bip44-select-modal.module.scss";
 import { useStore } from "../../stores";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { FormattedMessage } from "react-intl";
 import { BIP44 } from "@keplr/types";
 import { useLoadingIndicator } from "../../components/loading-indicator";

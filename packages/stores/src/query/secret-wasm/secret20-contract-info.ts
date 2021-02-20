@@ -3,14 +3,10 @@ import { KVStore } from "@keplr/common";
 import { ObservableChainQueryMap } from "../chain-query";
 import { ChainGetter, QueryError } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
-import { computed, observable } from "mobx";
-import { Keplr } from "@keplr/types";
+import { computed, makeObservable } from "mobx";
 import { ObservableSecretContractChainQuery } from "./contract-query";
 
 export class ObservableQuerySecret20ContactInfoInner extends ObservableSecretContractChainQuery<Secret20ContractTokenInfo> {
-  @observable.ref
-  protected keplr?: Keplr;
-
   protected nonce?: Uint8Array;
 
   constructor(
@@ -29,6 +25,7 @@ export class ObservableQuerySecret20ContactInfoInner extends ObservableSecretCon
       { token_info: {} },
       querySecretContractCodeHash
     );
+    makeObservable(this);
   }
 
   get error(): Readonly<QueryError<unknown>> | undefined {
@@ -41,8 +38,6 @@ export class ObservableQuerySecret20ContactInfoInner extends ObservableSecretCon
 
   @computed
   get tokenInfo(): Secret20ContractTokenInfo["token_info"] | undefined {
-    console.log(this.response, this.error);
-
     if (!this.response) {
       return undefined;
     }

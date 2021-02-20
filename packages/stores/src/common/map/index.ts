@@ -1,13 +1,11 @@
-import { observable, runInAction } from "mobx";
+import { makeObservable, observable, runInAction } from "mobx";
 
 export class HasMapStore<T> {
   @observable.shallow
-  protected map!: Map<string, T>;
+  protected map: Map<string, T> = new Map();
 
   constructor(protected readonly creater: (key: string) => T) {
-    runInAction(() => {
-      this.map = new Map();
-    });
+    makeObservable(this);
   }
 
   protected get(key: string): T {

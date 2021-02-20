@@ -6,7 +6,7 @@ import { Delegation, Delegations, DelegationsStargate } from "./types";
 import { KVStore } from "@keplr/common";
 import { ChainGetter } from "../../../common";
 import { CoinPretty, Int } from "@keplr/unit";
-import { computed } from "mobx";
+import { computed, makeObservable } from "mobx";
 import { computedFn } from "mobx-utils";
 
 export class ObservableQueryDelegationsInner extends ObservableChainQuery<
@@ -26,6 +26,7 @@ export class ObservableQueryDelegationsInner extends ObservableChainQuery<
       chainGetter,
       `/staking/delegators/${bech32Address}/delegations`
     );
+    makeObservable(this);
 
     this.bech32Address = bech32Address;
   }

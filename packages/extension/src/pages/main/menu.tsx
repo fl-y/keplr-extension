@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from "react";
 
 import styleMenu from "./menu.module.scss";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 
 import { FormattedMessage } from "react-intl";

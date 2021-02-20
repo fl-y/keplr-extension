@@ -2,7 +2,7 @@ import React, { FunctionComponent } from "react";
 
 import { Dec, DecUtils } from "@keplr/unit";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 import styleAsset from "./asset.module.scss";
 import { ToolTip } from "../../components/tooltip";

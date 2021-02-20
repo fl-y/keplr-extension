@@ -12,7 +12,7 @@ import styleTxButton from "./tx-button.module.scss";
 import { Button, Tooltip } from "reactstrap";
 import { Address } from "../../components/address";
 
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 import { useStore } from "../../stores";
 

@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useMemo, useState } from "react";
 
 import styleToken from "./token.module.scss";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 import { useHistory } from "react-router";
 import { Hash } from "@keplr/crypto";

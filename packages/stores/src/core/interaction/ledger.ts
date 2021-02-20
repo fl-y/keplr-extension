@@ -1,11 +1,11 @@
 import { InteractionStore } from "./interaction";
-import { computed, observable, runInAction } from "mobx";
-import { actionAsync, task } from "mobx-utils";
+import { computed, flow, makeObservable, observable } from "mobx";
 import { BACKGROUND_PORT, MessageRequester } from "@keplr/router";
 import {
   LedgerGetWebHIDFlagMsg,
   LedgerSetWebHIDFlagMsg,
 } from "@keplr/background";
+import { toGenerator } from "@keplr/common";
 
 export type LedgerInitDataType =
   | {
@@ -26,26 +26,23 @@ export type LedgerInitDataType =
 
 export class LedgerInitStore {
   @observable
-  protected _isLoading!: boolean;
+  protected _isLoading: boolean = false;
 
   @observable
-  protected _isWebHID!: boolean;
+  protected _isWebHID: boolean = false;
 
   constructor(
     protected readonly interactionStore: InteractionStore,
     protected readonly msgRequester: MessageRequester
   ) {
-    runInAction(() => {
-      this._isLoading = false;
-      this._isWebHID = false;
-    });
+    makeObservable(this);
 
     this.fetchIsWebHID();
   }
 
-  @actionAsync
-  protected async fetchIsWebHID() {
-    this._isWebHID = await task(
+  @flow
+  *fetchIsWebHID() {
+    this._isWebHID = yield* toGenerator(
       this.msgRequester.sendMessage(
         BACKGROUND_PORT,
         new LedgerGetWebHIDFlagMsg()
@@ -53,15 +50,13 @@ export class LedgerInitStore {
     );
   }
 
-  @actionAsync
-  async setWebHID(flag: boolean) {
-    await task(
-      this.msgRequester.sendMessage(
-        BACKGROUND_PORT,
-        new LedgerSetWebHIDFlagMsg(flag)
-      )
+  @flow
+  *setWebHID(flag: boolean) {
+    yield this.msgRequester.sendMessage(
+      BACKGROUND_PORT,
+      new LedgerSetWebHIDFlagMsg(flag)
     );
-    await task(this.fetchIsWebHID());
+    yield this.fetchIsWebHID();
   }
 
   get isWebHID(): boolean {
@@ -133,8 +128,8 @@ export class LedgerInitStore {
     return false;
   }
 
-  @actionAsync
-  async resume() {
+  @flow
+  *resume() {
     this._isLoading = true;
 
     try {
@@ -145,7 +140,7 @@ export class LedgerInitStore {
       for (const data of datas) {
         if (data.data.event === "init-failed") {
           // Approve resuming the initing ledger.
-          await task(this.interactionStore.approve("ledger-init", data.id, {}));
+          yield this.interactionStore.approve("ledger-init", data.id, {});
           break;
         }
       }

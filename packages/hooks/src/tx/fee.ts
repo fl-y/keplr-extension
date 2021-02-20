@@ -7,7 +7,7 @@ import {
 } from "./types";
 import { TxChainSetter } from "./chain";
 import { ChainGetter, CoinPrimitive } from "@keplr/stores";
-import { action, computed, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import { Coin, CoinPretty, Dec, DecUtils, Int } from "@keplr/unit";
 import { Currency } from "@keplr/types";
 import { computedFn } from "mobx-utils";
@@ -18,16 +18,16 @@ import { InsufficientFeeError, NotLoadedFeeError } from "./errors";
 
 export class FeeConfig extends TxChainSetter implements IFeeConfig {
   @observable.ref
-  protected queryBalances!: ObservableQueryBalances;
+  protected queryBalances: ObservableQueryBalances;
 
   @observable
-  protected _sender!: string;
+  protected _sender: string;
 
   @observable
-  protected _feeType: FeeType | undefined;
+  protected _feeType: FeeType | undefined = undefined;
 
   @observable
-  protected _manualFee: CoinPrimitive | undefined;
+  protected _manualFee: CoinPrimitive | undefined = undefined;
 
   constructor(
     chainGetter: ChainGetter,
@@ -39,8 +39,10 @@ export class FeeConfig extends TxChainSetter implements IFeeConfig {
   ) {
     super(chainGetter, initialChainId);
 
-    this.setSender(sender);
-    this.setQueryBalances(queryBalances);
+    this._sender = sender;
+    this.queryBalances = queryBalances;
+
+    makeObservable(this);
   }
 
   @action

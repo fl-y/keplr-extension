@@ -6,7 +6,7 @@ import { useIntl, FormattedMessage } from "react-intl";
 import style from "./style.module.scss";
 import { Button, Form } from "reactstrap";
 import { Input } from "../../../../components/form";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../../../stores";
 import useForm from "react-hook-form";
 import { Bech32Address } from "@keplr/cosmos";

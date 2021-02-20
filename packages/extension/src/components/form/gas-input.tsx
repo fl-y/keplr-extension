@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useState } from "react";
 import { FormGroup, Input, Label } from "reactstrap";
 import { IGasConfig } from "@keplr/hooks";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 
 export interface GasInputProps {
   gasConfig: IGasConfig;

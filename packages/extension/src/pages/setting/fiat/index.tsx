@@ -5,7 +5,7 @@ import { PageButton } from "../page-button";
 import style from "../style.module.scss";
 import { useHistory } from "react-router";
 import { useIntl } from "react-intl";
-import { observer } from "mobx-react";
+import { observer } from "mobx-react-lite";
 import { useStore } from "../../../stores";
 import { useLanguage } from "../../../languages";
 
