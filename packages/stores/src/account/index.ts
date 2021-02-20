@@ -782,7 +782,8 @@ export class AccountStoreInner {
 
     const account = await BaseAccount.fetchFromRest(
       this.instance,
-      this.bech32Address
+      this.bech32Address,
+      true
     );
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

@@ -11,11 +11,17 @@ export interface Account {
 export class BaseAccount implements Account {
   public static async fetchFromRest(
     instance: AxiosInstance,
-    address: string
+    address: string,
+    // If the account doesn't exist, the result from `auth/accounts` would not have the address.
+    // In this case, if `defaultBech32Address` param is provided, this will use it instead of the result from rest.
+    defaultBech32Address: boolean = false
   ): Promise<BaseAccount> {
     const result = await instance.get(`auth/accounts/${address}`);
 
-    return BaseAccount.fromAminoJSON(result.data);
+    return BaseAccount.fromAminoJSON(
+      result.data,
+      defaultBech32Address ? address : ""
+    );
   }
 
   public static fromAminoJSON(
