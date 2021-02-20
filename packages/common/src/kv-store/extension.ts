@@ -1,7 +1,7 @@
 import { BaseKVStore } from "./base";
 import { KVStoreProvider } from "./interface";
 
-const BrowserKVStoreProvider: KVStoreProvider = {
+const ExtensionKVStoreProvider: KVStoreProvider = {
   get:
     typeof browser !== "undefined"
       ? browser.storage.local.get
@@ -12,8 +12,8 @@ const BrowserKVStoreProvider: KVStoreProvider = {
       : (undefined as any),
 };
 
-export class BrowserKVStore extends BaseKVStore {
+export class ExtensionKVStore extends BaseKVStore {
   constructor(prefix: string) {
-    super(BrowserKVStoreProvider, prefix);
+    super(ExtensionKVStoreProvider, prefix);
   }
 }

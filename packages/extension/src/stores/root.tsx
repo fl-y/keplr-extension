@@ -12,7 +12,7 @@ import {
   TokensStore,
   ChainSuggestStore,
 } from "@keplr/stores";
-import { BrowserKVStore } from "@keplr/common";
+import { ExtensionKVStore } from "@keplr/common";
 import {
   Router,
   ExtensionEnv,
@@ -68,7 +68,7 @@ export class RootStore {
     this.chainSuggestStore = new ChainSuggestStore(this.interactionStore);
 
     this.queriesStore = new QueriesStore(
-      new BrowserKVStore("store_queries"),
+      new ExtensionKVStore("store_queries"),
       this.chainStore
     );
 
@@ -89,7 +89,7 @@ export class RootStore {
     });
 
     this.priceStore = new CoinGeckoPriceStore(
-      new BrowserKVStore("store_prices"),
+      new ExtensionKVStore("store_prices"),
       {
         usd: {
           currency: "usd",

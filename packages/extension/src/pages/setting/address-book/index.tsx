@@ -17,7 +17,7 @@ import styleAddressBook from "./style.module.scss";
 import { useStore } from "../../../stores";
 import { PageButton } from "../page-button";
 import { AddAddressModal } from "./add-address-modal";
-import { BrowserKVStore } from "@keplr/common";
+import { ExtensionKVStore } from "@keplr/common";
 import { Bech32Address } from "@keplr/cosmos";
 import { useConfirm } from "../../../components/confirm";
 import {
@@ -44,7 +44,7 @@ export const AddressBookPage: FunctionComponent<{
   const memoConfig = useMemoConfig(chainStore, selectedChainId);
 
   const addressBookConfig = useAddressBookConfig(
-    new BrowserKVStore("address-book"),
+    new ExtensionKVStore("address-book"),
     chainStore,
     selectedChainId,
     selectHandler
