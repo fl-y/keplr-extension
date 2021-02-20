@@ -35,6 +35,8 @@ export function init(
   router: Router,
   storeCreator: (prefix: string) => KVStore,
   embedChainInfos: ChainInfo[],
+  // The origins that are able to pass any permission.
+  privilegedOrigins: string[],
   rng: RNG
 ) {
   container.register(TYPES.ChainsEmbedChainInfos, {
@@ -51,6 +53,9 @@ export function init(
   container.register(TYPES.LedgerStore, { useValue: storeCreator("ledger") });
   container.register(TYPES.PermissionStore, {
     useValue: storeCreator("permission"),
+  });
+  container.register(TYPES.PermissionServicePrivilegedOrigins, {
+    useValue: privilegedOrigins,
   });
   container.register(TYPES.PersistentMemoryStore, {
     useValue: storeCreator("persistent-memory"),

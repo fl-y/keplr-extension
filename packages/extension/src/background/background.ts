@@ -7,7 +7,7 @@ import {
 import { ExtensionKVStore } from "@keplr/common";
 import { init } from "@keplr/background";
 
-import { EmbedChainInfos } from "../config";
+import { EmbedChainInfos, PrivilegedOrigins } from "../config";
 
 const router = new Router(ExtensionEnv.produceEnv);
 router.addGuard(ExtensionGuards.checkOriginIsValid);
@@ -17,6 +17,7 @@ init(
   router,
   (prefix: string) => new ExtensionKVStore(prefix),
   EmbedChainInfos,
+  PrivilegedOrigins,
   (array) => {
     return Promise.resolve(crypto.getRandomValues(array));
   }

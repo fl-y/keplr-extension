@@ -22,6 +22,8 @@ export class PermissionService {
       | undefined;
   } = {};
 
+  protected privilegedOrigins: Map<string, boolean> = new Map();
+
   constructor(
     @inject(TYPES.PermissionStore)
     protected readonly kvStore: KVStore,
@@ -30,8 +32,14 @@ export class PermissionService {
     @inject(ChainsService)
     protected readonly chainsService: ChainsService,
     @inject(delay(() => KeyRingService))
-    protected readonly keyRingService: KeyRingService
+    protected readonly keyRingService: KeyRingService,
+    @inject(TYPES.PermissionServicePrivilegedOrigins)
+    privilegedOrigins: string[]
   ) {
+    for (const origin of privilegedOrigins) {
+      this.privilegedOrigins.set(origin, true);
+    }
+
     this.restore();
 
     this.chainsService.addChainRemovedHandler(this.onChainRemoved);
@@ -115,6 +123,11 @@ export class PermissionService {
   }
 
   hasPermisson(type: string, origin: string): boolean {
+    // Privileged origin can pass the any permission.
+    if (this.privilegedOrigins.get(origin)) {
+      return true;
+    }
+
     const innerMap = this.permissionMap[type];
     return !(!innerMap || !innerMap[origin]);
   }

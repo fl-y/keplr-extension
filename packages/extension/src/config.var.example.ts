@@ -45,4 +45,6 @@ export const ADDITIONAL_SIGN_IN_PREPEND:
   | RegisterOption[]
   | undefined = undefined;
 
+export const PRIVILEGED_ORIGINS: string[] = [];
+
 export const ADDITIONAL_INTL_MESSAGES: IntlMessages = {};
