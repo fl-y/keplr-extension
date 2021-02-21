@@ -142,6 +142,10 @@ export class AccountStoreInner {
     this.init();
   }
 
+  get msgOpts(): MsgOpts {
+    return this.opts.msgOpts;
+  }
+
   protected async enable(keplr: Keplr, chainId: string): Promise<void> {
     const chainInfo = this.chainGetter.getChain(chainId);
 

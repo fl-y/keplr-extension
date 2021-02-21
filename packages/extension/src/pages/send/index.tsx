@@ -44,6 +44,7 @@ export const SendPage: FunctionComponent = observer(() => {
   const sendConfigs = useSendTxConfig(
     chainStore,
     current.chainId,
+    accountInfo.msgOpts.send,
     accountInfo.bech32Address,
     queriesStore.get(current.chainId).getQueryBalances()
   );

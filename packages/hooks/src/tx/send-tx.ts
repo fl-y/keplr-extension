@@ -1,4 +1,4 @@
-import { ChainGetter } from "@keplr/stores";
+import { ChainGetter, MsgOpts } from "@keplr/stores";
 import { ObservableQueryBalances } from "@keplr/stores/build/query/balances";
 import { useFeeConfig, useMemoConfig, useRecipientConfig } from "./index";
 import { useSendGasConfig } from "./send-gas";
@@ -7,6 +7,7 @@ import { useAmountConfig } from "./amount";
 export const useSendTxConfig = (
   chainGetter: ChainGetter,
   chainId: string,
+  sendMsgOpts: MsgOpts["send"],
   sender: string,
   queryBalances: ObservableQueryBalances
 ) => {
@@ -18,7 +19,12 @@ export const useSendTxConfig = (
   );
 
   const memoConfig = useMemoConfig(chainGetter, chainId);
-  const gasConfig = useSendGasConfig(chainGetter, chainId, amountConfig);
+  const gasConfig = useSendGasConfig(
+    chainGetter,
+    chainId,
+    amountConfig,
+    sendMsgOpts
+  );
   const feeConfig = useFeeConfig(
     chainGetter,
     chainId,
