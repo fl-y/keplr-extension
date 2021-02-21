@@ -40,13 +40,17 @@ export class Router {
 
     this.port = port;
     browser.runtime.onMessage.addListener(this.onMessage);
-    browser.runtime.onMessageExternal.addListener(this.onMessage);
+    if (browser.runtime.onMessageExternal) {
+      browser.runtime.onMessageExternal.addListener(this.onMessage);
+    }
   }
 
   public unlisten(): void {
     this.port = "";
     browser.runtime.onMessage.removeListener(this.onMessage);
-    browser.runtime.onMessageExternal.removeListener(this.onMessage);
+    if (browser.runtime.onMessageExternal) {
+      browser.runtime.onMessageExternal.removeListener(this.onMessage);
+    }
   }
 
   // You shouldn't set this handler as async funtion,

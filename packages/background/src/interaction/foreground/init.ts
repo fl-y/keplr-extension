@@ -6,9 +6,9 @@ import { InteractionForegroundService } from "./service";
 
 export function interactionForegroundInit(
   router: Router,
-  keeper: InteractionForegroundService
+  service: InteractionForegroundService
 ): void {
   router.registerMessage(PushInteractionDataMsg);
 
-  router.addHandler(ROUTE, getHandler(keeper));
+  router.addHandler(ROUTE, getHandler(service));
 }

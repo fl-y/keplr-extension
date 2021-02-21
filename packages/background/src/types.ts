@@ -24,5 +24,7 @@ export const TYPES = {
 
   UpdaterStore: Symbol("UpdaterStore"),
 
+  MsgRequesterToWebPage: Symbol("MsgRequesterToWebPage"),
+
   RNG: Symbol("RandomNumberGenerator"),
 };

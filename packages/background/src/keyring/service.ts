@@ -16,7 +16,7 @@ import { KVStore } from "@keplr/common";
 import { ChainsService } from "../chains";
 import { LedgerService } from "../ledger";
 import { BIP44, ChainInfo } from "@keplr/types";
-import { Env } from "@keplr/router";
+import { Env, MessageRequester, WEBPAGE_PORT } from "@keplr/router";
 import { InteractionService } from "../interaction";
 import { PermissionService } from "../permission";
 
@@ -30,6 +30,7 @@ import {
 } from "@cosmjs/launchpad";
 
 import { RNG } from "@keplr/crypto";
+import { KeyStoreChangedEventMsg } from "./webpage";
 
 @singleton()
 export class KeyRingService {
@@ -48,6 +49,8 @@ export class KeyRingService {
     public readonly permissionService: PermissionService,
     @inject(LedgerService)
     ledgerService: LedgerService,
+    @inject(TYPES.MsgRequesterToWebPage)
+    protected readonly msgRequester: MessageRequester,
     @inject(TYPES.RNG)
     protected readonly rng: RNG
   ) {
@@ -261,7 +264,17 @@ export class KeyRingService {
   public async changeKeyStoreFromMultiKeyStore(
     index: number
   ): Promise<MultiKeyStoreInfoWithSelected> {
-    return this.keyRing.changeKeyStoreFromMultiKeyStore(index);
+    try {
+      return await this.keyRing.changeKeyStoreFromMultiKeyStore(index);
+    } finally {
+      this.msgRequester
+        .sendMessage(WEBPAGE_PORT, new KeyStoreChangedEventMsg())
+        .catch((e) => {
+          // No need to handle the error case.
+          // Just ignore.
+          console.log(e);
+        });
+    }
   }
 
   getMultiKeyStoreInfo(): MultiKeyStoreInfoWithSelected {

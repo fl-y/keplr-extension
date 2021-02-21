@@ -3,7 +3,7 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { TYPES } from "./types";
 
-import { Router } from "@keplr/router";
+import { MessageRequester, Router } from "@keplr/router";
 
 import * as PersistentMemory from "./persistent-memory/internal";
 import * as Chains from "./chains/internal";
@@ -34,6 +34,8 @@ import { RNG } from "@keplr/crypto";
 export function init(
   router: Router,
   storeCreator: (prefix: string) => KVStore,
+  // Message requester to the content script.
+  msgRequesterToWebPage: MessageRequester,
   embedChainInfos: ChainInfo[],
   // The origins that are able to pass any permission.
   privilegedOrigins: string[],
@@ -43,6 +45,9 @@ export function init(
     useValue: embedChainInfos,
   });
 
+  container.register(TYPES.MsgRequesterToWebPage, {
+    useValue: msgRequesterToWebPage,
+  });
   container.register(TYPES.RNG, { useValue: rng });
 
   container.register(TYPES.ChainsStore, { useValue: storeCreator("chains") });
