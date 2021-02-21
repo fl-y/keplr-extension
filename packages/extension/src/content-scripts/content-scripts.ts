@@ -1,6 +1,16 @@
-import { InjectedMessageRequester } from "@keplr/router";
+import {
+  ExtensionEnv,
+  InjectedMessageRequester,
+  Router,
+  WEBPAGE_PORT,
+} from "@keplr/router";
+import { initEvents } from "./events";
 
 InjectedMessageRequester.startProxy();
+
+const router = new Router(ExtensionEnv.produceEnv);
+initEvents(router);
+router.listen(WEBPAGE_PORT);
 
 const container = document.head || document.documentElement;
 const scriptElement = document.createElement("script");
