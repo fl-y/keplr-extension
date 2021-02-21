@@ -62,8 +62,14 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
     }, [intl, error]);
 
     const selectAddressFromAddressBook = {
-      setRecipient: recipientConfig.setRecipient,
-      setMemo: memoConfig ? memoConfig.setMemo : () => {},
+      setRecipient: (recipient: string) => {
+        recipientConfig.setRecipient(recipient);
+      },
+      setMemo: (memo: string) => {
+        if (memoConfig) {
+          memoConfig.setMemo(memo);
+        }
+      },
     };
 
     return (
