@@ -20,8 +20,8 @@ import {
   useGasConfig,
   useFeeConfig,
   useMemoConfig,
+  useSignDocAmountConfig,
 } from "@keplr/hooks";
-import { useAmountConfig } from "@keplr/hooks/build/tx/amount";
 
 enum Tab {
   Details,
@@ -49,11 +49,10 @@ export const SignPage: FunctionComponent = observer(() => {
   const current = chainStore.current;
   // Make the gas config with 1 gas initially to prevent the temporary 0 gas error at the beginning.
   const gasConfig = useGasConfig(chainStore, current.chainId, 1);
-  const amountConfig = useAmountConfig(
+  const amountConfig = useSignDocAmountConfig(
     chainStore,
     current.chainId,
-    accountStore.getAccount(current.chainId).bech32Address,
-    queriesStore.get(current.chainId).getQueryBalances()
+    accountStore.getAccount(current.chainId).msgOpts
   );
   const feeConfig = useFeeConfig(
     chainStore,
@@ -67,6 +66,7 @@ export const SignPage: FunctionComponent = observer(() => {
 
   const signDoc = signInteractionStore.waitingData?.signDoc;
   const signDocHelper = useSignDocHelper(feeConfig, memoConfig);
+  amountConfig.setSignDocHelper(signDocHelper);
 
   const isSignDocInternalSend =
     interactionInfo.interaction &&

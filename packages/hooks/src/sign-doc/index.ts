@@ -3,6 +3,8 @@ import { Msg, StdSignDoc } from "@cosmjs/launchpad";
 import { useState } from "react";
 import { IFeeConfig, IMemoConfig } from "../tx";
 
+export * from "./amount";
+
 export class SignDocHelper {
   @observable.ref
   protected _signDoc?: StdSignDoc = undefined;
