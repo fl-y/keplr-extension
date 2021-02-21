@@ -5,10 +5,7 @@ import { ChainInfo } from "@keplr/types";
 import Axios from "axios";
 import { KVStore } from "@keplr/common";
 import { AppCurrency } from "@keplr/types";
-
-// IsVersionFormat checks if a chainID is in the format required for parsing versions
-// The chainID must be in the form: `{identifier}-{version}`
-const VersionFormatRegExp = /(.+)-([\d]+)/;
+import { ChainIdHelper } from "@keplr/cosmos";
 
 @singleton()
 export class ChainUpdaterService {
@@ -30,7 +27,7 @@ export class ChainUpdaterService {
   }
 
   async updateChainCurrencies(chainId: string, currencies: AppCurrency[]) {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const version = ChainIdHelper.parse(chainId);
 
     const chainInfo: Partial<ChainInfo> = {
       currencies,
@@ -40,10 +37,7 @@ export class ChainUpdaterService {
   }
 
   async clearUpdatedProperty(chainId: string) {
-    await this.kvStore.set(
-      ChainUpdaterService.getChainVersion(chainId).identifier,
-      null
-    );
+    await this.kvStore.set(ChainIdHelper.parse(chainId).identifier, null);
   }
 
   async tryUpdateChainId(chainInfo: ChainInfo): Promise<string> {
@@ -69,13 +63,11 @@ export class ChainUpdaterService {
     }>("/block");
 
     let resultChainId = chainInfo.chainId;
-    const version = ChainUpdaterService.getChainVersion(chainInfo.chainId);
+    const version = ChainIdHelper.parse(chainInfo.chainId);
     const fetchedChainId = result.data.result.block.header.chain_id;
 
     if (chainInfo.chainId !== fetchedChainId) {
-      const fetchedVersion = ChainUpdaterService.getChainVersion(
-        fetchedChainId
-      );
+      const fetchedVersion = ChainIdHelper.parse(fetchedChainId);
 
       // TODO: Should throw an error?
       if (version.identifier !== fetchedVersion.identifier) {
@@ -99,7 +91,7 @@ export class ChainUpdaterService {
   private async getUpdatedChainProperty(
     chainId: string
   ): Promise<Partial<ChainInfo>> {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const version = ChainIdHelper.parse(chainId);
 
     return await this.loadChainProperty(version.identifier);
   }
@@ -157,8 +149,8 @@ export class ChainUpdaterService {
 
     const resultChainId = result.data.result.block.header.chain_id;
 
-    const version = ChainUpdaterService.getChainVersion(chainId);
-    const fetchedVersion = ChainUpdaterService.getChainVersion(resultChainId);
+    const version = ChainIdHelper.parse(chainId);
+    const fetchedVersion = ChainIdHelper.parse(resultChainId);
 
     // TODO: Should throw an error?
     if (version.identifier !== fetchedVersion.identifier) {
@@ -168,22 +160,8 @@ export class ChainUpdaterService {
     return version.version < fetchedVersion.version;
   }
 
-  static getChainVersion(
-    chainId: string
-  ): { identifier: string; version: number } {
-    const split = chainId.split(VersionFormatRegExp).filter(Boolean);
-    if (split.length !== 2) {
-      return {
-        identifier: chainId,
-        version: 0,
-      };
-    } else {
-      return { identifier: split[0], version: parseInt(split[1]) };
-    }
-  }
-
   static hasChainVersion(chainId: string) {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const version = ChainIdHelper.parse(chainId);
     return version.identifier !== chainId;
   }
 }

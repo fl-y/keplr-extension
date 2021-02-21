@@ -8,11 +8,11 @@ import {
 import { KVStore } from "@keplr/common";
 import { LedgerService } from "../ledger";
 import { BIP44HDPath } from "./types";
-import { ChainUpdaterService } from "../updater";
 import { ChainInfo } from "@keplr/types";
 import { Env } from "@keplr/router";
 
 import { Buffer } from "buffer/";
+import { ChainIdHelper } from "@keplr/cosmos";
 
 export enum KeyRingStatus {
   NOTLOADED,
@@ -156,7 +156,7 @@ export class KeyRing {
     }
 
     return this.keyStore.coinTypeForChain[
-      ChainUpdaterService.getChainVersion(chainId).identifier
+      ChainIdHelper.parse(chainId).identifier
     ];
   }
 
@@ -180,9 +180,10 @@ export class KeyRing {
       throw new Error("Key Store is empty");
     }
 
-    const version = ChainUpdaterService.getChainVersion(chainId);
     return this.keyStore.coinTypeForChain
-      ? this.keyStore.coinTypeForChain[version.identifier] ?? defaultCoinType
+      ? this.keyStore.coinTypeForChain[
+          ChainIdHelper.parse(chainId).identifier
+        ] ?? defaultCoinType
       : defaultCoinType;
   }
 
@@ -366,7 +367,6 @@ export class KeyRing {
   private updateLegacyKeyStore(keyStore: KeyStore) {
     keyStore.version = "1.2";
     for (const chainInfo of this.embedChainInfos) {
-      const version = ChainUpdaterService.getChainVersion(chainInfo.chainId);
       const coinType = (() => {
         if (
           chainInfo.alternativeBIP44s &&
@@ -379,7 +379,7 @@ export class KeyRing {
       })();
       keyStore.coinTypeForChain = {
         ...keyStore.coinTypeForChain,
-        [version.identifier]: coinType,
+        [ChainIdHelper.parse(chainInfo.chainId).identifier]: coinType,
       };
     }
   }
@@ -389,11 +389,11 @@ export class KeyRing {
       throw new Error("Empty key store");
     }
 
-    const version = ChainUpdaterService.getChainVersion(chainId);
-
     return (
       this.keyStore.coinTypeForChain &&
-      this.keyStore.coinTypeForChain[version.identifier] !== undefined
+      this.keyStore.coinTypeForChain[
+        ChainIdHelper.parse(chainId).identifier
+      ] !== undefined
     );
   }
 
@@ -402,18 +402,18 @@ export class KeyRing {
       throw new Error("Empty key store");
     }
 
-    const version = ChainUpdaterService.getChainVersion(chainId);
-
     if (
       this.keyStore.coinTypeForChain &&
-      this.keyStore.coinTypeForChain[version.identifier] !== undefined
+      this.keyStore.coinTypeForChain[
+        ChainIdHelper.parse(chainId).identifier
+      ] !== undefined
     ) {
       throw new Error("Coin type already set");
     }
 
     this.keyStore.coinTypeForChain = {
       ...this.keyStore.coinTypeForChain,
-      [version.identifier]: coinType,
+      [ChainIdHelper.parse(chainId).identifier]: coinType,
     };
 
     const keyStoreInMulti = this.multiKeyStore.find((keyStore) => {

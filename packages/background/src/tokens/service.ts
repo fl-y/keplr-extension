@@ -13,12 +13,11 @@ import {
   CW20CurrencyShema,
   Secret20CurrencyShema,
 } from "../chains";
-import { Bech32Address } from "@keplr/cosmos";
+import { Bech32Address, ChainIdHelper } from "@keplr/cosmos";
 import { ChainsService } from "../chains";
 import { KeyRingService } from "../keyring";
 import { KVStore } from "@keplr/common";
 import { KeyRingStatus } from "../keyring";
-import { ChainUpdaterService } from "../updater";
 import { InteractionService } from "../interaction";
 import { PermissionService } from "../permission";
 
@@ -102,8 +101,6 @@ export class TokensService {
       }
     }
 
-    console.log(isTokenForAccount, isCurrencyUpdated);
-
     if (!isTokenForAccount) {
       const currencies = await this.getTokensFromChain(chainId);
       currencies.push(currency);
@@ -117,7 +114,6 @@ export class TokensService {
         const index = currencies.findIndex(
           (cur) => cur.coinMinimalDenom === currency.coinMinimalDenom
         );
-        console.log(index);
         if (index >= 0) {
           currencies[index] = currency;
           await this.saveTokensToChainAndAccount(chainId, currencies);
@@ -162,10 +158,10 @@ export class TokensService {
   }
 
   public async getTokens(chainId: string): Promise<AppCurrency[]> {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const chainIdHelper = ChainIdHelper.parse(chainId);
 
     const chainCurrencies =
-      (await this.kvStore.get<AppCurrency[]>(version.identifier)) ?? [];
+      (await this.kvStore.get<AppCurrency[]>(chainIdHelper.identifier)) ?? [];
 
     let keyCurrencies: AppCurrency[] = [];
     if (this.keyRingService.keyRingStatus === KeyRingStatus.UNLOCKED) {
@@ -173,9 +169,9 @@ export class TokensService {
 
       keyCurrencies =
         (await this.kvStore.get<AppCurrency[]>(
-          `${version.identifier}-${Buffer.from(currentKey.address).toString(
-            "hex"
-          )}`
+          `${chainIdHelper.identifier}-${Buffer.from(
+            currentKey.address
+          ).toString("hex")}`
         )) ?? [];
     }
 
@@ -183,38 +179,40 @@ export class TokensService {
   }
 
   public async clearTokens(chainId: string): Promise<void> {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const chainIdHelper = ChainIdHelper.parse(chainId);
 
-    await this.kvStore.set(version.identifier, null);
+    await this.kvStore.set(chainIdHelper.identifier, null);
 
     const reverse = await this.getTokensToAccountReverse(chainId);
     for (const hexAddress of reverse) {
-      await this.kvStore.set(`${version.identifier}-${hexAddress}`, null);
+      await this.kvStore.set(`${chainIdHelper.identifier}-${hexAddress}`, null);
     }
     await this.setTokensToAccountReverse(chainId, []);
   }
 
   private async getTokensFromChain(chainId: string): Promise<AppCurrency[]> {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const chainIdHelper = ChainIdHelper.parse(chainId);
 
-    return (await this.kvStore.get<AppCurrency[]>(version.identifier)) ?? [];
+    return (
+      (await this.kvStore.get<AppCurrency[]>(chainIdHelper.identifier)) ?? []
+    );
   }
 
   private async saveTokensToChain(chainId: string, currencies: AppCurrency[]) {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const chainIdHelper = ChainIdHelper.parse(chainId);
 
-    await this.kvStore.set(version.identifier, currencies);
+    await this.kvStore.set(chainIdHelper.identifier, currencies);
   }
 
   private async getTokensFromChainAndAccount(
     chainId: string
   ): Promise<AppCurrency[]> {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const chainIdHelper = ChainIdHelper.parse(chainId);
 
     const currentKey = await this.keyRingService.getKey(chainId);
     return (
       (await this.kvStore.get<Promise<AppCurrency[]>>(
-        `${version.identifier}-${Buffer.from(currentKey.address).toString(
+        `${chainIdHelper.identifier}-${Buffer.from(currentKey.address).toString(
           "hex"
         )}`
       )) ?? []
@@ -225,28 +223,33 @@ export class TokensService {
     chainId: string,
     currencies: AppCurrency[]
   ) {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const chainIdHelper = ChainIdHelper.parse(chainId);
 
     const currentKey = await this.keyRingService.getKey(chainId);
     const hexAddress = Buffer.from(currentKey.address).toString("hex");
-    await this.kvStore.set(`${version.identifier}-${hexAddress}`, currencies);
+    await this.kvStore.set(
+      `${chainIdHelper.identifier}-${hexAddress}`,
+      currencies
+    );
 
     await this.insertTokensToAccountReverse(chainId, hexAddress);
   }
 
   private async getTokensToAccountReverse(chainId: string): Promise<string[]> {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const chainIdHelper = ChainIdHelper.parse(chainId);
 
-    return (await this.kvStore.get(`${version.identifier}-addresses`)) ?? [];
+    return (
+      (await this.kvStore.get(`${chainIdHelper.identifier}-addresses`)) ?? []
+    );
   }
 
   private async setTokensToAccountReverse(
     chainId: string,
     addresses: string[]
   ) {
-    const version = ChainUpdaterService.getChainVersion(chainId);
+    const chainIdHelper = ChainIdHelper.parse(chainId);
 
-    await this.kvStore.set(`${version.identifier}-addresses`, addresses);
+    await this.kvStore.set(`${chainIdHelper.identifier}-addresses`, addresses);
   }
 
   private async insertTokensToAccountReverse(chainId: string, address: string) {

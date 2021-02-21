@@ -25,52 +25,67 @@ export class ChainsService {
     protected readonly chainUpdaterKeeper: ChainUpdaterService,
     @inject(delay(() => InteractionService))
     protected readonly interactionKeeper: InteractionService
-  ) {
-    // TODO: Handle the case that the embeded chains and dynamically added chain has overlaps.
-  }
+  ) {}
 
-  async getChainInfos(
-    applyUpdatedProperty: boolean = true
-  ): Promise<ChainInfoWithEmbed[]> {
+  async getChainInfos(): Promise<ChainInfoWithEmbed[]> {
     const chainInfos = this.embedChainInfos.map((chainInfo) => {
       return {
         ...chainInfo,
         embeded: true,
       };
     });
+    const embedChainInfoIdentifierMap: Map<
+      string,
+      true | undefined
+    > = new Map();
+    for (const embedChainInfo of chainInfos) {
+      embedChainInfoIdentifierMap.set(
+        ChainIdHelper.parse(embedChainInfo.chainId).identifier,
+        true
+      );
+    }
+
     const savedChainInfos: ChainInfoWithEmbed[] = (
       (await this.kvStore.get<ChainInfo[]>("chain-infos")) ?? []
-    ).map((chainInfo: ChainInfo) => {
-      return {
-        ...chainInfo,
-        embeded: false,
-      };
-    });
+    )
+      .filter((chainInfo) => {
+        // Filter the overlaped chain info with the embeded chain infos.
+        return !embedChainInfoIdentifierMap.get(
+          ChainIdHelper.parse(chainInfo.chainId).identifier
+        );
+      })
+      .map((chainInfo: ChainInfo) => {
+        return {
+          ...chainInfo,
+          embeded: false,
+        };
+      });
 
     let result: ChainInfoWithEmbed[] = chainInfos.concat(savedChainInfos);
 
-    if (applyUpdatedProperty) {
-      // Set the updated property of the chain.
-      result = await Promise.all(
-        result.map(async (chainInfo) => {
-          const updated: ChainInfo = await this.chainUpdaterKeeper.putUpdatedPropertyToChainInfo(
-            chainInfo
-          );
+    // Set the updated property of the chain.
+    result = await Promise.all(
+      result.map(async (chainInfo) => {
+        const updated: ChainInfo = await this.chainUpdaterKeeper.putUpdatedPropertyToChainInfo(
+          chainInfo
+        );
 
-          return {
-            ...updated,
-            embeded: chainInfo.embeded,
-          };
-        })
-      );
-    }
+        return {
+          ...updated,
+          embeded: chainInfo.embeded,
+        };
+      })
+    );
 
     return result;
   }
 
   async getChainInfo(chainId: string): Promise<ChainInfoWithEmbed> {
     const chainInfo = (await this.getChainInfos()).find((chainInfo) => {
-      return chainInfo.chainId === chainId;
+      return (
+        ChainIdHelper.parse(chainInfo.chainId).identifier ===
+        ChainIdHelper.parse(chainId).identifier
+      );
     });
 
     if (!chainInfo) {
@@ -80,25 +95,22 @@ export class ChainsService {
   }
 
   async getChainCoinType(chainId: string): Promise<number> {
-    const chainInfo = (await this.getChainInfos(false)).find((chainInfo) => {
-      return chainInfo.chainId === chainId;
-    });
+    const chainInfo = await this.getChainInfo(chainId);
 
     if (!chainInfo) {
       throw new Error(`There is no chain info for ${chainId}`);
     }
 
-    const updated = await this.chainUpdaterKeeper.putUpdatedPropertyToChainInfo(
-      chainInfo
-    );
-
-    return updated.bip44.coinType;
+    return chainInfo.bip44.coinType;
   }
 
   async hasChainInfo(chainId: string): Promise<boolean> {
     return (
       (await this.getChainInfos()).find((chainInfo) => {
-        return chainInfo.chainId === chainId;
+        return (
+          ChainIdHelper.parse(chainInfo.chainId).identifier ===
+          ChainIdHelper.parse(chainId).identifier
+        );
       }) != null
     );
   }
@@ -130,23 +142,6 @@ export class ChainsService {
       throw new Error("Same chain is already registered");
     }
 
-    const ambiguousChainInfo = (await this.getChainInfos()).find(
-      (savedChainInfo) => {
-        return (
-          ChainUpdaterService.getChainVersion(savedChainInfo.chainId)
-            .identifier ===
-          ChainUpdaterService.getChainVersion(chainInfo.chainId).identifier
-        );
-      }
-    );
-
-    // Prevent the ambiguous chain that has the same identifier.
-    if (ambiguousChainInfo) {
-      throw new Error(
-        `The chain ${ambiguousChainInfo.chainId} is already registered, and ${chainInfo.chainId} is ambiguous with it. So, this request is rejected`
-      );
-    }
-
     const savedChainInfos =
       (await this.kvStore.get<ChainInfo[]>("chain-infos")) ?? [];
 
@@ -169,8 +164,8 @@ export class ChainsService {
 
     const resultChainInfo = savedChainInfos.filter((chainInfo) => {
       return (
-        ChainUpdaterService.getChainVersion(chainInfo.chainId).identifier !==
-        ChainUpdaterService.getChainVersion(chainId).identifier
+        ChainIdHelper.parse(chainInfo.chainId).identifier !==
+        ChainIdHelper.parse(chainId).identifier
       );
     });
 

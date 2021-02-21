@@ -48,24 +48,9 @@ const handleSuggestChainInfoMsg: (
   service: ChainsService
 ) => InternalHandler<SuggestChainInfoMsg> = (service) => {
   return async (env, msg) => {
-    if (
-      (await service.getChainInfos()).find(
-        (chainInfo) => chainInfo.chainId === msg.chainInfo.chainId
-      )
-    ) {
+    if (await service.hasChainInfo(msg.chainInfo.chainId)) {
       // If suggested chain info is already registered, just return.
       return;
-    }
-
-    if (
-      (await service.getChainInfos(false)).find(
-        (chainInfo) => chainInfo.chainId === msg.chainInfo.chainId
-      )
-    ) {
-      // If suggested chain info is already registered without considering the chain update, throw an error because it probably needs to be updated.
-      throw new Error(
-        "The suggested chain was updated, probably frontend needs to be updated"
-      );
     }
 
     const chainInfo = msg.chainInfo as Writeable<ChainInfo>;
