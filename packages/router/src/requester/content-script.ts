@@ -6,7 +6,7 @@ import { JSONUint8Array } from "../json-uint8-array";
 // This will send message to the tab with the content script.
 // And, this can't handle the result of the message sending.
 // TODO: Research to improve this requester.
-export class ContentScriptRequester implements MessageRequester {
+export class ContentScriptMessageRequester implements MessageRequester {
   async sendMessage<M extends Message<unknown>>(
     port: string,
     msg: M

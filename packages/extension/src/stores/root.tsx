@@ -15,7 +15,8 @@ import {
 import { ExtensionKVStore } from "@keplr/common";
 import {
   Router,
-  ExtensionEnv,
+  ContentScriptEnv,
+  ContentScriptGuards,
   InExtensionMessageRequester,
   APP_PORT,
 } from "@keplr/router";
@@ -37,7 +38,8 @@ export class RootStore {
   public readonly tokensStore: TokensStore<ChainInfoWithEmbed>;
 
   constructor() {
-    const router = new Router(ExtensionEnv.produceEnv);
+    const router = new Router(ContentScriptEnv.produceEnv);
+    router.addGuard(ContentScriptGuards.checkMessageIsInternal);
 
     // Order is important.
     this.interactionStore = new InteractionStore(

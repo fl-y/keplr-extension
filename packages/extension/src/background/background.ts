@@ -3,7 +3,7 @@ import {
   ExtensionGuards,
   ExtensionEnv,
   BACKGROUND_PORT,
-  ContentScriptRequester,
+  ContentScriptMessageRequester,
 } from "@keplr/router";
 import { ExtensionKVStore } from "@keplr/common";
 import { init } from "@keplr/background";
@@ -17,7 +17,7 @@ router.addGuard(ExtensionGuards.checkMessageIsInternal);
 init(
   router,
   (prefix: string) => new ExtensionKVStore(prefix),
-  new ContentScriptRequester(),
+  new ContentScriptMessageRequester(),
   EmbedChainInfos,
   PrivilegedOrigins,
   (array) => {

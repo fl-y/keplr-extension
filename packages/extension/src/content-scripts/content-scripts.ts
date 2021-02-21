@@ -1,5 +1,6 @@
 import {
-  ExtensionEnv,
+  ContentScriptEnv,
+  ContentScriptGuards,
   InjectedMessageRequester,
   Router,
   WEBPAGE_PORT,
@@ -8,7 +9,8 @@ import { initEvents } from "./events";
 
 InjectedMessageRequester.startProxy();
 
-const router = new Router(ExtensionEnv.produceEnv);
+const router = new Router(ContentScriptEnv.produceEnv);
+router.addGuard(ContentScriptGuards.checkMessageIsInternal);
 initEvents(router);
 router.listen(WEBPAGE_PORT);
 
