@@ -72,8 +72,16 @@ export class ObservableQueryBalancesInner {
     this.balanceMap.forEach((bal) => bal.fetch());
   }
 
-  protected getBalanceInner(mininalDenom: string): ObservableQueryBalanceInner {
-    if (!this.balanceMap.has(mininalDenom)) {
+  protected getBalanceInner(
+    currency: AppCurrency
+  ): ObservableQueryBalanceInner {
+    let key = currency.coinMinimalDenom;
+    // If the currency is secret20, it will be different according to not only the minimal denom but also the viewing key of the currency.
+    if ("type" in currency && currency.type === "secret20") {
+      key = currency.coinMinimalDenom + "/" + currency.viewingKey;
+    }
+
+    if (!this.balanceMap.has(key)) {
       runInAction(() => {
         let balanceInner: ObservableQueryBalanceInner | undefined;
 
@@ -82,7 +90,7 @@ export class ObservableQueryBalancesInner {
             this.chainId,
             this.chainGetter,
             this.bech32Address,
-            mininalDenom
+            currency.coinMinimalDenom
           );
           if (balanceInner) {
             break;
@@ -90,24 +98,22 @@ export class ObservableQueryBalancesInner {
         }
 
         if (balanceInner) {
-          this.balanceMap.set(mininalDenom, balanceInner);
+          this.balanceMap.set(key, balanceInner);
         } else {
-          throw new Error(
-            `Failed to get and parse the balance for ${mininalDenom}`
-          );
+          throw new Error(`Failed to get and parse the balance for ${key}`);
         }
       });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.balanceMap.get(mininalDenom)!;
+    return this.balanceMap.get(key)!;
   }
 
   @computed
   get stakable(): ObservableQueryBalanceInner {
     const chainInfo = this.chainGetter.getChain(this.chainId);
 
-    return this.getBalanceInner(chainInfo.stakeCurrency.coinMinimalDenom);
+    return this.getBalanceInner(chainInfo.stakeCurrency);
   }
 
   @computed
@@ -118,7 +124,7 @@ export class ObservableQueryBalancesInner {
 
     for (let i = 0; i < chainInfo.currencies.length; i++) {
       const currency = chainInfo.currencies[i];
-      result.push(this.getBalanceInner(currency.coinMinimalDenom));
+      result.push(this.getBalanceInner(currency));
     }
 
     return result;
@@ -136,7 +142,7 @@ export class ObservableQueryBalancesInner {
 
     for (let i = 0; i < currencies.length; i++) {
       const currency = currencies[i];
-      result.push(this.getBalanceInner(currency.coinMinimalDenom));
+      result.push(this.getBalanceInner(currency));
     }
 
     return result;

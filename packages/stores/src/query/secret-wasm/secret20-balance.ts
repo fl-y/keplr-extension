@@ -1,4 +1,4 @@
-import { autorun, computed, makeObservable } from "mobx";
+import { computed, makeObservable, override } from "mobx";
 import { DenomHelper, KVStore } from "@keplr/common";
 import { ChainGetter, QueryResponse } from "../../common";
 import { ObservableQuerySecretContractCodeHash } from "./contract-hash";
@@ -34,22 +34,17 @@ export class ObservableQuerySecret20Balance extends ObservableSecretContractChai
     );
     makeObservable(this);
 
-    autorun(() => {
-      // The viewing key of the registered secret20 currency can be changed,
-      // because it permits the changing of the viewing key if the viewing key is invalid.
-      // So, should observe the viewing key changed.
-      if (!this.viewingKey) {
-        this.setError({
-          status: 0,
-          statusText: "Viewing key is empty",
-          message: "Viewing key is empty",
-        });
-      } else {
-        this.setObj({
-          balance: { address: bech32Address, key: this.viewingKey },
-        });
-      }
-    });
+    if (!this.viewingKey) {
+      this.setError({
+        status: 0,
+        statusText: "Viewing key is empty",
+        message: "Viewing key is empty",
+      });
+    } else {
+      this.setObj({
+        balance: { address: bech32Address, key: this.viewingKey },
+      });
+    }
   }
 
   @computed
@@ -100,6 +95,7 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
       "",
       denomHelper
     );
+
     makeObservable(this);
 
     this.querySecret20Balance = new ObservableQuerySecret20Balance(
@@ -118,6 +114,7 @@ export class ObservableQuerySecret20BalanceInner extends ObservableQueryBalanceI
     return false;
   }
 
+  @override
   *fetch() {
     yield* this.querySecret20Balance.fetch();
   }

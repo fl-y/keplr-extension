@@ -1,6 +1,6 @@
 import { DenomHelper, KVStore } from "@keplr/common";
 import { ChainGetter } from "../../../common";
-import { computed } from "mobx";
+import { computed, makeObservable, override } from "mobx";
 import { CoinPretty, Int } from "@keplr/unit";
 import { StoreUtils } from "../../../common";
 import { BalanceRegistry, ObservableQueryBalanceInner } from "../../balances";
@@ -23,6 +23,8 @@ export class ObservableQueryBalanceNative extends ObservableQueryBalanceInner {
       "",
       denomHelper
     );
+
+    makeObservable(this);
   }
 
   protected canFetch(): boolean {
@@ -41,6 +43,7 @@ export class ObservableQueryBalanceNative extends ObservableQueryBalanceInner {
     return this.nativeBalances.response;
   }
 
+  @override
   *fetch() {
     yield* this.nativeBalances.fetch();
   }
