@@ -179,12 +179,6 @@ export class ChainsService {
     }
   }
 
-  async tryUpdateChain(chainId: string): Promise<string> {
-    const chainInfo = await this.getChainInfo(chainId);
-
-    return await this.chainUpdaterKeeper.tryUpdateChainId(chainInfo);
-  }
-
   addChainRemovedHandler(handler: ChainRemovedHandler) {
     this.onChainRemovedHandlers.push(handler);
   }

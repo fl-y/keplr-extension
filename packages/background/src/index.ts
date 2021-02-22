@@ -11,7 +11,7 @@ import * as Ledger from "./ledger/internal";
 import * as KeyRing from "./keyring/internal";
 import * as SecretWasm from "./secret-wasm/internal";
 import * as BackgroundTx from "./tx/internal";
-// import * as Updater from "./updater/internal";
+import * as Updater from "./updater/internal";
 import * as Tokens from "./tokens/internal";
 import * as Interaction from "./interaction/internal";
 import * as Permission from "./permission/internal";
@@ -85,8 +85,8 @@ export function init(
   const permissionService = container.resolve(Permission.PermissionService);
   Permission.init(router, permissionService);
 
-  // Don't need
-  // const chainUpdaterService = container.resolve(Updater.ChainUpdaterService);
+  const chainUpdaterService = container.resolve(Updater.ChainUpdaterService);
+  Updater.init(router, chainUpdaterService);
 
   const tokensService = container.resolve(Tokens.TokensService);
   Tokens.init(router, tokensService);

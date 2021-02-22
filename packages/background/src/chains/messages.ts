@@ -74,31 +74,3 @@ export class RemoveSuggestedChainInfoMsg extends Message<ChainInfoWithEmbed[]> {
     return RemoveSuggestedChainInfoMsg.type();
   }
 }
-
-export class TryUpdateChainMsg extends Message<{
-  // Updated chain id
-  chainId: string;
-  chainInfos: ChainInfoWithEmbed[];
-}> {
-  public static type() {
-    return "try-update-chain";
-  }
-
-  constructor(public readonly chainId: string) {
-    super();
-  }
-
-  validateBasic(): void {
-    if (!this.chainId) {
-      throw new Error("Empty chain id");
-    }
-  }
-
-  route(): string {
-    return ROUTE;
-  }
-
-  type(): string {
-    return TryUpdateChainMsg.type();
-  }
-}

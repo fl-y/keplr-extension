@@ -4,7 +4,6 @@ import {
   GetChainInfosMsg,
   RemoveSuggestedChainInfoMsg,
   SuggestChainInfoMsg,
-  TryUpdateChainMsg,
 } from "./messages";
 import { ChainInfo } from "@keplr/types";
 
@@ -25,8 +24,6 @@ export const getHandler: (service: ChainsService) => Handler = (service) => {
           env,
           msg as RemoveSuggestedChainInfoMsg
         );
-      case TryUpdateChainMsg:
-        return handleTryUpdateChainMsg(service)(env, msg as TryUpdateChainMsg);
       default:
         throw new Error("Unknown msg type");
     }
@@ -67,17 +64,5 @@ const handleRemoveSuggestedChainInfoMsg: (
   return async (_, msg) => {
     await service.removeChainInfo(msg.chainId);
     return await service.getChainInfos();
-  };
-};
-
-const handleTryUpdateChainMsg: (
-  service: ChainsService
-) => InternalHandler<TryUpdateChainMsg> = (service) => {
-  return async (_, msg) => {
-    const chainId = await service.tryUpdateChain(msg.chainId);
-    return {
-      chainId: chainId,
-      chainInfos: await service.getChainInfos(),
-    };
   };
 };

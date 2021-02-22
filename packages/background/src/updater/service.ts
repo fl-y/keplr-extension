@@ -4,14 +4,22 @@ import { TYPES } from "../types";
 import { ChainInfo } from "@keplr/types";
 import Axios from "axios";
 import { KVStore } from "@keplr/common";
-import { AppCurrency } from "@keplr/types";
 import { ChainIdHelper } from "@keplr/cosmos";
+import { ChainsService } from "../chains";
 
 @singleton()
 export class ChainUpdaterService {
   constructor(
-    @inject(TYPES.UpdaterStore) protected readonly kvStore: KVStore
-  ) {}
+    @inject(TYPES.UpdaterStore) protected readonly kvStore: KVStore,
+    @inject(ChainsService)
+    protected readonly chainsService: ChainsService
+  ) {
+    this.chainsService.addChainRemovedHandler(this.onChainRemoved);
+  }
+
+  protected readonly onChainRemoved = (chainId: string) => {
+    this.clearUpdatedProperty(chainId);
+  };
 
   async putUpdatedPropertyToChainInfo(
     chainInfo: ChainInfo
@@ -20,30 +28,42 @@ export class ChainUpdaterService {
       chainInfo.chainId
     );
 
+    const chainId = ChainIdHelper.parse(chainInfo.chainId);
+    const updatedChainId = ChainIdHelper.parse(
+      updatedProperty.chainId || chainInfo.chainId
+    );
+
+    // If the saved property is lesser than the current chain id, just ignore.
+    if (updatedChainId.version < chainId.version) {
+      return chainInfo;
+    }
+
+    const features = chainInfo.features ?? [];
+    for (const updatedFeature of updatedProperty.features ?? []) {
+      if (!features.includes(updatedFeature)) {
+        features.push(updatedFeature);
+      }
+    }
+
     return {
       ...chainInfo,
-      ...updatedProperty,
+      ...{
+        chainId: updatedProperty.chainId || chainInfo.chainId,
+        features,
+      },
     };
-  }
-
-  async updateChainCurrencies(chainId: string, currencies: AppCurrency[]) {
-    const version = ChainIdHelper.parse(chainId);
-
-    const chainInfo: Partial<ChainInfo> = {
-      currencies,
-    };
-
-    await this.saveChainProperty(version.identifier, chainInfo);
   }
 
   async clearUpdatedProperty(chainId: string) {
     await this.kvStore.set(ChainIdHelper.parse(chainId).identifier, null);
   }
 
-  async tryUpdateChainId(chainInfo: ChainInfo): Promise<string> {
+  async tryUpdateChain(chainId: string) {
+    const chainInfo = await this.chainsService.getChainInfo(chainId);
+
     // If chain id is not fomatted as {chainID}-{version},
     // there is no way to deal with the updated chain id.
-    if (!ChainUpdaterService.hasChainVersion(chainInfo.chainId)) {
+    if (!ChainIdHelper.hasChainVersion(chainInfo.chainId)) {
       return chainInfo.chainId;
     }
 
@@ -62,30 +82,39 @@ export class ChainUpdaterService {
       };
     }>("/block");
 
-    let resultChainId = chainInfo.chainId;
-    const version = ChainIdHelper.parse(chainInfo.chainId);
+    const currentVersion = ChainIdHelper.parse(chainInfo.chainId);
     const fetchedChainId = result.data.result.block.header.chain_id;
+    const fetchedVersion = ChainIdHelper.parse(fetchedChainId);
 
-    if (chainInfo.chainId !== fetchedChainId) {
-      const fetchedVersion = ChainIdHelper.parse(fetchedChainId);
-
-      // TODO: Should throw an error?
-      if (version.identifier !== fetchedVersion.identifier) {
-        return chainInfo.chainId;
-      }
-
-      if (fetchedVersion.version > version.version) {
-        resultChainId = fetchedChainId;
-      }
-    }
-
-    if (resultChainId !== chainInfo.chainId) {
-      await this.saveChainProperty(version.identifier, {
-        chainId: resultChainId,
+    if (
+      currentVersion.identifier === fetchedVersion.identifier &&
+      currentVersion.version < fetchedVersion.version
+    ) {
+      await this.saveChainProperty(currentVersion.identifier, {
+        chainId: fetchedChainId,
       });
     }
 
-    return resultChainId;
+    try {
+      if (!chainInfo.features || !chainInfo.features.includes("stargate")) {
+        const restInstance = Axios.create({
+          baseURL: chainInfo.rest,
+        });
+
+        // If the chain doesn't have the stargate feature,
+        // but it can use the GRPC HTTP Gateway,
+        // assume that it can support the stargate and try to update the features.
+        await restInstance.get("/cosmos/base/tendermint/v1beta1/node_info");
+
+        const savedChainProperty = await this.getUpdatedChainProperty(
+          chainInfo.chainId
+        );
+
+        await this.saveChainProperty(currentVersion.identifier, {
+          features: (savedChainProperty.features ?? []).concat(["stargate"]),
+        });
+      }
+    } catch {}
   }
 
   private async getUpdatedChainProperty(
@@ -123,13 +152,19 @@ export class ChainUpdaterService {
    */
   public static async checkChainUpdate(
     chainInfo: Readonly<ChainInfo>
-  ): Promise<boolean> {
+  ): Promise<{
+    explicit: boolean;
+    slient: boolean;
+  }> {
     const chainId = chainInfo.chainId;
 
     // If chain id is not fomatted as {chainID}-{version},
     // there is no way to deal with the updated chain id.
-    if (!ChainUpdaterService.hasChainVersion(chainId)) {
-      return false;
+    if (!ChainIdHelper.hasChainVersion(chainId)) {
+      return {
+        explicit: false,
+        slient: false,
+      };
     }
 
     const instance = Axios.create({
@@ -154,14 +189,31 @@ export class ChainUpdaterService {
 
     // TODO: Should throw an error?
     if (version.identifier !== fetchedVersion.identifier) {
-      return false;
+      return {
+        explicit: false,
+        slient: false,
+      };
     }
 
-    return version.version < fetchedVersion.version;
-  }
+    let slient = false;
 
-  static hasChainVersion(chainId: string) {
-    const version = ChainIdHelper.parse(chainId);
-    return version.identifier !== chainId;
+    try {
+      if (!chainInfo.features || !chainInfo.features.includes("stargate")) {
+        const restInstance = Axios.create({
+          baseURL: chainInfo.rest,
+        });
+
+        // If the chain doesn't have the stargate feature,
+        // but it can use the GRPC HTTP Gateway,
+        // assume that it can support the stargate and try to update the features.
+        await restInstance.get("/cosmos/base/tendermint/v1beta1/node_info");
+        slient = true;
+      }
+    } catch {}
+
+    return {
+      explicit: version.version < fetchedVersion.version,
+      slient,
+    };
   }
 }

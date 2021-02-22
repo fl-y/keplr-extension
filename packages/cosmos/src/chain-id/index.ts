@@ -21,4 +21,9 @@ export class ChainIdHelper {
       return { identifier: split[0], version: parseInt(split[1]) };
     }
   }
+
+  static hasChainVersion(chainId: string): boolean {
+    const version = ChainIdHelper.parse(chainId);
+    return version.identifier !== chainId;
+  }
 }

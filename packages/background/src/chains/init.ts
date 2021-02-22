@@ -3,7 +3,6 @@ import {
   GetChainInfosMsg,
   SuggestChainInfoMsg,
   RemoveSuggestedChainInfoMsg,
-  TryUpdateChainMsg,
 } from "./messages";
 import { ROUTE } from "./constants";
 import { getHandler } from "./handler";
@@ -13,7 +12,6 @@ export function init(router: Router, service: ChainsService): void {
   router.registerMessage(GetChainInfosMsg);
   router.registerMessage(SuggestChainInfoMsg);
   router.registerMessage(RemoveSuggestedChainInfoMsg);
-  router.registerMessage(TryUpdateChainMsg);
 
   router.addHandler(ROUTE, getHandler(service));
 }
