@@ -40,11 +40,12 @@ import { CreditPage } from "./pages/setting/credit";
 import { ClearPage } from "./pages/setting/clear";
 import { ExportPage } from "./pages/setting/export";
 import { LedgerGrantPage, LedgerInitIndicator } from "./pages/ledger";
+import { AddTokenPage } from "./pages/setting/token/add";
+import { ManageTokenPage } from "./pages/setting/token/manage";
 
 // import * as BackgroundTxResult from "../../background/tx/foreground";
 
 import { AdditonalIntlMessages, LanguageToFiatCurrency } from "./config";
-import { AddTokenPage } from "./pages/setting/token/add";
 
 import { Keplr } from "@keplr/provider";
 import { InExtensionMessageRequester } from "@keplr/router";
@@ -180,6 +181,11 @@ ReactDOM.render(
                     exact
                     path="/setting/token/add"
                     component={AddTokenPage}
+                  />
+                  <Route
+                    exact
+                    path="/setting/token/manage"
+                    component={ManageTokenPage}
                   />
                   <Route path="/sign" component={SignPage} />
                   <Route path="/suggest-chain" component={ChainSuggestedPage} />
