@@ -110,7 +110,11 @@ export const AddTokenPage: FunctionComponent = observer(() => {
       <Form
         className={style.container}
         onSubmit={form.handleSubmit(async (data) => {
-          if (tokenInfo?.decimals && tokenInfo.name && tokenInfo.symbol) {
+          if (
+            tokenInfo?.decimals != null &&
+            tokenInfo.name &&
+            tokenInfo.symbol
+          ) {
             if (!isSecret20) {
               const currency: CW20Currency = {
                 type: "cw20",
