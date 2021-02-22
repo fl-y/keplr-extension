@@ -206,7 +206,8 @@ export const AddressBookPage: FunctionComponent<{
                 title={data.name}
                 paragraph={
                   data.address.indexOf(
-                    chainStore.current.bech32Config.bech32PrefixAccAddr
+                    chainStore.getChain(selectedChainId).bech32Config
+                      .bech32PrefixAccAddr
                   ) === 0
                     ? Bech32Address.shortenAddress(data.address, 34)
                     : data.address
