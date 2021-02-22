@@ -8,6 +8,7 @@ import {
   Modal,
   InputGroup,
   Button,
+  FormText,
 } from "reactstrap";
 import { AddressBookPage } from "../../pages/setting/address-book";
 
@@ -18,9 +19,13 @@ import {
   EmptyAddressError,
   IRecipientConfig,
   IMemoConfig,
+  ENSNotSupportedError,
+  ENSFailedToFetchError,
+  ENSIsFetchingError,
 } from "@keplr/hooks";
 import { observer } from "mobx-react-lite";
 import { useIntl } from "react-intl";
+import { ObservableEnsFetcher } from "@keplr/ens";
 
 export interface AddressInputProps {
   recipientConfig: IRecipientConfig;
@@ -44,6 +49,11 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
       return `input-${Buffer.from(bytes).toString("hex")}`;
     });
 
+    let isENSLoading: boolean = false;
+    const isENSAddress = ObservableEnsFetcher.isValidENS(
+      recipientConfig.rawRecipient
+    );
+
     const error = recipientConfig.getError();
     const errorText: string | undefined = useMemo(() => {
       if (error) {
@@ -55,6 +65,17 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
             return intl.formatMessage({
               id: "input.recipient.error.invalid-bech32",
             });
+          case ENSNotSupportedError:
+            return intl.formatMessage({
+              id: "input.recipient.error.ens-not-supported",
+            });
+          case ENSFailedToFetchError:
+            return intl.formatMessage({
+              id: "input.recipient.error.ens-failed-to-fetch",
+            });
+          case ENSIsFetchingError:
+            isENSLoading = true;
+            break;
           default:
             return intl.formatMessage({ id: "input.recipient.error.unknown" });
         }
@@ -63,7 +84,7 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
 
     const selectAddressFromAddressBook = {
       setRecipient: (recipient: string) => {
-        recipientConfig.setRecipient(recipient);
+        recipientConfig.setRawRecipient(recipient);
       },
       setMemo: (memo: string) => {
         if (memoConfig) {
@@ -102,9 +123,9 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
                 "form-control-alternative",
                 styleAddressInput.input
               )}
-              value={recipientConfig.recipient}
+              value={recipientConfig.rawRecipient}
               onChange={(e) => {
-                recipientConfig.setRecipient(e.target.value);
+                recipientConfig.setRawRecipient(e.target.value);
                 e.preventDefault();
               }}
               autoComplete="off"
@@ -121,6 +142,14 @@ export const AddressInput: FunctionComponent<AddressInputProps> = observer(
               </Button>
             ) : null}
           </InputGroup>
+          {isENSLoading ? (
+            <FormText>
+              <i className="fa fa-spinner fa-spin fa-fw" />
+            </FormText>
+          ) : null}
+          {!isENSLoading && isENSAddress && !error ? (
+            <FormText>{recipientConfig.recipient}</FormText>
+          ) : null}
           {errorText != null ? (
             <FormFeedback style={{ display: "block" }}>
               {errorText}

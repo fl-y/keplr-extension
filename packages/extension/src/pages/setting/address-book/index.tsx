@@ -26,6 +26,7 @@ import {
   useMemoConfig,
   useRecipientConfig,
 } from "@keplr/hooks";
+import { EthereumEndpoint } from "../../../config";
 
 export const AddressBookPage: FunctionComponent<{
   onBackButton?: () => void;
@@ -40,7 +41,11 @@ export const AddressBookPage: FunctionComponent<{
 
   const [selectedChainId, setSelectedChainId] = useState(current.chainId);
 
-  const recipientConfig = useRecipientConfig(chainStore, selectedChainId);
+  const recipientConfig = useRecipientConfig(
+    chainStore,
+    selectedChainId,
+    EthereumEndpoint
+  );
   const memoConfig = useMemoConfig(chainStore, selectedChainId);
 
   const addressBookConfig = useAddressBookConfig(

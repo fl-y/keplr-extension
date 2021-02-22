@@ -31,7 +31,7 @@ export const AddAddressModal: FunctionComponent<{
       if (index >= 0) {
         const data = addressBookConfig.addressBookDatas[index];
         setName(data.name);
-        recipientConfig.setRecipient(data.address);
+        recipientConfig.setRawRecipient(data.address);
         memoConfig.setMemo(data.memo);
       }
     }, [

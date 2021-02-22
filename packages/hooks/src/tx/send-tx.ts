@@ -9,7 +9,8 @@ export const useSendTxConfig = (
   chainId: string,
   sendMsgOpts: MsgOpts["send"],
   sender: string,
-  queryBalances: ObservableQueryBalances
+  queryBalances: ObservableQueryBalances,
+  ensEndpoint?: string
 ) => {
   const amountConfig = useAmountConfig(
     chainGetter,
@@ -33,7 +34,7 @@ export const useSendTxConfig = (
     amountConfig,
     gasConfig
   );
-  const recipientConfig = useRecipientConfig(chainGetter, chainId);
+  const recipientConfig = useRecipientConfig(chainGetter, chainId, ensEndpoint);
 
   return {
     amountConfig,

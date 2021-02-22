@@ -23,6 +23,7 @@
     "@keplr/common": "0.0.1-alpha.0",
     "@keplr/cosmos": "0.0.1-alpha.0",
     "@keplr/crypto": "0.0.1-alpha.0",
+    "@keplr/ens": "0.0.1-alpha.0",
     "@keplr/popup": "0.0.1-alpha.0",
     "@keplr/stores": "0.0.1-alpha.0",
     "@keplr/types": "0.0.1-alpha.0",

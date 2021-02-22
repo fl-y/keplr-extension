@@ -21,6 +21,7 @@ import { useHistory, useLocation } from "react-router";
 import queryString from "querystring";
 
 import { useSendTxConfig } from "@keplr/hooks";
+import { EthereumEndpoint } from "../../config";
 
 export const SendPage: FunctionComponent = observer(() => {
   const history = useHistory();
@@ -46,7 +47,8 @@ export const SendPage: FunctionComponent = observer(() => {
     current.chainId,
     accountInfo.msgOpts.send,
     accountInfo.bech32Address,
-    queriesStore.get(current.chainId).getQueryBalances()
+    queriesStore.get(current.chainId).getQueryBalances(),
+    EthereumEndpoint
   );
 
   useEffect(() => {

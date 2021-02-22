@@ -37,7 +37,8 @@ export interface IFeeConfig extends ITxChainSetter {
 
 export interface IRecipientConfig extends ITxChainSetter {
   recipient: string;
-  setRecipient(recipient: string): void;
+  rawRecipient: string;
+  setRawRecipient(recipient: string): void;
 
   getError(): Error | undefined;
 }
