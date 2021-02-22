@@ -6,11 +6,18 @@ export class GetPermissionOriginsMsg extends Message<string[]> {
     return "get-permission-origins";
   }
 
-  constructor(public readonly permissionType: string) {
+  constructor(
+    public readonly chainId: string,
+    public readonly permissionType: string
+  ) {
     super();
   }
 
   validateBasic(): void {
+    if (!this.chainId) {
+      throw new Error("chain id not set");
+    }
+
     if (!this.permissionType) {
       throw new Error("empty permission type");
     }
@@ -31,6 +38,7 @@ export class RemovePermissionOrigin extends Message<void> {
   }
 
   constructor(
+    public readonly chainId: string,
     public readonly permissionType: string,
     public readonly permissionOrigin: string
   ) {
@@ -38,6 +46,10 @@ export class RemovePermissionOrigin extends Message<void> {
   }
 
   validateBasic(): void {
+    if (!this.chainId) {
+      throw new Error("chain id not set");
+    }
+
     if (!this.permissionType) {
       throw new Error("empty permission type");
     }

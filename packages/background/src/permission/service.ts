@@ -11,13 +11,18 @@ import {
 import { KVStore } from "@keplr/common";
 import { ChainsService } from "../chains";
 import { KeyRingService } from "../keyring";
+import { ChainIdHelper } from "@keplr/cosmos";
 
 @singleton()
 export class PermissionService {
   protected permissionMap: {
-    [type: string]:
+    [chainIdentifier: string]:
       | {
-          [origin: string]: true | undefined;
+          [type: string]:
+            | {
+                [origin: string]: true | undefined;
+              }
+            | undefined;
         }
       | undefined;
   } = {};
@@ -46,7 +51,7 @@ export class PermissionService {
   }
 
   protected readonly onChainRemoved = (chainId: string) => {
-    this.removeAllPermissions(getBasicAccessPermissionType(chainId));
+    this.removeAllPermissions(chainId);
   };
 
   async checkOrGrantBasicAccessPermission(
@@ -57,7 +62,7 @@ export class PermissionService {
     // Try to unlock the key ring before checking or granting the basic permission.
     await this.keyRingService.enable(env);
 
-    if (!this.hasPermisson(getBasicAccessPermissionType(chainId), origin)) {
+    if (!this.hasPermisson(chainId, getBasicAccessPermissionType(), origin)) {
       await this.grantBasicAccessPermission(env, chainId, [origin]);
     }
 
@@ -67,6 +72,7 @@ export class PermissionService {
   async grantPermission(
     env: Env,
     url: string,
+    chainId: string,
     type: string,
     origins: string[]
   ) {
@@ -75,6 +81,7 @@ export class PermissionService {
     }
 
     const permissionData: PermissionData = {
+      chainId,
       type,
       origins,
     };
@@ -86,7 +93,7 @@ export class PermissionService {
       permissionData
     );
 
-    await this.addPermission(type, origins);
+    await this.addPermission(chainId, type, origins);
   }
 
   async grantBasicAccessPermission(
@@ -100,17 +107,18 @@ export class PermissionService {
     await this.grantPermission(
       env,
       "/access",
-      getBasicAccessPermissionType(chainId),
+      chainId,
+      getBasicAccessPermissionType(),
       origins
     );
   }
 
-  checkPermission(env: Env, type: string, origin: string) {
+  checkPermission(env: Env, chainId: string, type: string, origin: string) {
     if (env.isInternalMsg) {
       return;
     }
 
-    if (!this.hasPermisson(type, origin)) {
+    if (!this.hasPermisson(chainId, type, origin)) {
       throw new Error(`${origin} is not permitted`);
     }
   }
@@ -119,23 +127,37 @@ export class PermissionService {
     // Make sure that the chain info is registered.
     await this.chainsService.getChainInfo(chainId);
 
-    this.checkPermission(env, getBasicAccessPermissionType(chainId), origin);
+    this.checkPermission(env, chainId, getBasicAccessPermissionType(), origin);
   }
 
-  hasPermisson(type: string, origin: string): boolean {
+  hasPermisson(chainId: string, type: string, origin: string): boolean {
     // Privileged origin can pass the any permission.
     if (this.privilegedOrigins.get(origin)) {
       return true;
     }
 
-    const innerMap = this.permissionMap[type];
+    const permissionsInChain = this.permissionMap[
+      ChainIdHelper.parse(chainId).identifier
+    ];
+    if (!permissionsInChain) {
+      return false;
+    }
+
+    const innerMap = permissionsInChain[type];
     return !(!innerMap || !innerMap[origin]);
   }
 
-  getPermissionOrigins(type: string): string[] {
+  getPermissionOrigins(chainId: string, type: string): string[] {
     const origins = [];
 
-    const innerMap = this.permissionMap[type];
+    const permissionsInChain = this.permissionMap[
+      ChainIdHelper.parse(chainId).identifier
+    ];
+    if (!permissionsInChain) {
+      return [];
+    }
+
+    const innerMap = permissionsInChain[type];
     if (!innerMap) {
       return [];
     }
@@ -149,11 +171,25 @@ export class PermissionService {
     return origins;
   }
 
-  protected async addPermission(type: string, origins: string[]) {
-    let innerMap = this.permissionMap[type];
+  protected async addPermission(
+    chainId: string,
+    type: string,
+    origins: string[]
+  ) {
+    let permissionsInChain = this.permissionMap[
+      ChainIdHelper.parse(chainId).identifier
+    ];
+    if (!permissionsInChain) {
+      permissionsInChain = {};
+      this.permissionMap[
+        ChainIdHelper.parse(chainId).identifier
+      ] = permissionsInChain;
+    }
+
+    let innerMap = permissionsInChain[type];
     if (!innerMap) {
       innerMap = {};
-      this.permissionMap[type] = innerMap;
+      permissionsInChain[type] = innerMap;
     }
 
     for (const origin of origins) {
@@ -163,8 +199,15 @@ export class PermissionService {
     await this.save();
   }
 
-  async removePermission(type: string, origins: string[]) {
-    const innerMap = this.permissionMap[type];
+  async removePermission(chainId: string, type: string, origins: string[]) {
+    const permissionsInChain = this.permissionMap[
+      ChainIdHelper.parse(chainId).identifier
+    ];
+    if (!permissionsInChain) {
+      return;
+    }
+
+    const innerMap = permissionsInChain[type];
     if (!innerMap) {
       return;
     }
@@ -176,13 +219,8 @@ export class PermissionService {
     await this.save();
   }
 
-  async removeAllPermissions(type: string) {
-    const innerMap = this.permissionMap[type];
-    if (!innerMap) {
-      return;
-    }
-
-    delete this.permissionMap[type];
+  async removeAllPermissions(chainId: string) {
+    this.permissionMap[ChainIdHelper.parse(chainId).identifier] = undefined;
 
     await this.save();
   }

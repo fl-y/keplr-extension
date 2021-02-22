@@ -27,7 +27,7 @@ const handleGetPermissionOriginsMsg: (
   service: PermissionService
 ) => InternalHandler<GetPermissionOriginsMsg> = (service) => {
   return (_, msg) => {
-    return service.getPermissionOrigins(msg.permissionType);
+    return service.getPermissionOrigins(msg.chainId, msg.permissionType);
   };
 };
 
@@ -35,6 +35,8 @@ const handleRemovePermissionOrigin: (
   service: PermissionService
 ) => InternalHandler<RemovePermissionOrigin> = (service) => {
   return async (_, msg) => {
-    await service.removePermission(msg.permissionType, [msg.permissionOrigin]);
+    await service.removePermission(msg.chainId, msg.permissionType, [
+      msg.permissionOrigin,
+    ]);
   };
 };

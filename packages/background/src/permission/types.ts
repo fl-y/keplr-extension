@@ -1,18 +1,15 @@
-import { ChainIdHelper } from "@keplr/cosmos";
-
 export const INTERACTION_TYPE_PERMISSION = "permission";
 
-export function getBasicAccessPermissionType(chainId: string) {
-  const identifier = ChainIdHelper.parse(chainId).identifier;
-
-  return `basic-access/${identifier}`;
+export function getBasicAccessPermissionType() {
+  return "basic-access";
 }
 
-export function splitBasicAccessPermissionType(type: string): string {
-  return type.replace("basic-access/", "");
+export function isBasicAccessPermissionType(type: string) {
+  return type === getBasicAccessPermissionType();
 }
 
 export interface PermissionData {
+  chainId: string;
   type: string;
   origins: string[];
 }

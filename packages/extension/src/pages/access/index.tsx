@@ -35,7 +35,7 @@ export const AccessPage: FunctionComponent = observer(() => {
 
   useEffect(() => {
     if (waitingPermission) {
-      chainStore.selectChain(waitingPermission.data.chainIdentifier);
+      chainStore.selectChain(waitingPermission.data.chainId);
     }
   }, [chainStore, waitingPermission]);
 
@@ -68,8 +68,7 @@ export const AccessPage: FunctionComponent = observer(() => {
             values={{
               host,
               chainId: waitingPermission
-                ? chainStore.getChain(waitingPermission.data.chainIdentifier)
-                    .chainId
+                ? chainStore.getChain(waitingPermission.data.chainId).chainId
                 : "loading...",
               // eslint-disable-next-line react/display-name
               b: (...chunks: any) => <b>{chunks}</b>,
@@ -138,7 +137,7 @@ export const AccessPage: FunctionComponent = observer(() => {
             disabled={
               !waitingPermission ||
               ChainIdHelper.parse(chainStore.current.chainId).identifier !==
-                waitingPermission.data.chainIdentifier
+                ChainIdHelper.parse(waitingPermission.data.chainId).identifier
             }
             data-loading={permissionStore.isLoading}
           >

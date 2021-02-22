@@ -3,9 +3,9 @@ import {
   getBasicAccessPermissionType,
   GetPermissionOriginsMsg,
   INTERACTION_TYPE_PERMISSION,
+  isBasicAccessPermissionType,
   PermissionData,
   RemovePermissionOrigin,
-  splitBasicAccessPermissionType,
 } from "@keplr/background";
 import { computed, flow, makeObservable, observable } from "mobx";
 import { HasMapStore } from "../../common";
@@ -34,7 +34,8 @@ export class BasicAccessPermissionInnerStore {
     yield this.requester.sendMessage(
       BACKGROUND_PORT,
       new RemovePermissionOrigin(
-        getBasicAccessPermissionType(this.chainId),
+        this.chainId,
+        getBasicAccessPermissionType(),
         origin
       )
     );
@@ -46,7 +47,10 @@ export class BasicAccessPermissionInnerStore {
     this._origins = yield* toGenerator(
       this.requester.sendMessage(
         BACKGROUND_PORT,
-        new GetPermissionOriginsMsg(getBasicAccessPermissionType(this.chainId))
+        new GetPermissionOriginsMsg(
+          this.chainId,
+          getBasicAccessPermissionType()
+        )
       )
     );
   }
@@ -74,7 +78,7 @@ export class PermissionStore extends HasMapStore<any> {
   get waitingBasicAccessPermissions(): {
     id: string;
     data: {
-      chainIdentifier: string;
+      chainId: string;
       origins: string[];
     };
   }[] {
@@ -82,13 +86,15 @@ export class PermissionStore extends HasMapStore<any> {
 
     const result = [];
     for (const data of datas) {
-      result.push({
-        id: data.id,
-        data: {
-          chainIdentifier: splitBasicAccessPermissionType(data.data.type),
-          origins: data.data.origins,
-        },
-      });
+      if (isBasicAccessPermissionType(data.data.type)) {
+        result.push({
+          id: data.id,
+          data: {
+            chainId: data.data.chainId,
+            origins: data.data.origins,
+          },
+        });
+      }
     }
 
     return result;
