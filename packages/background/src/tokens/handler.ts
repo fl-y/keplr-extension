@@ -78,6 +78,13 @@ const handleGetSecret20ViewingKey: (
       msg.origin
     );
 
+    await service.checkOrGrantSecret20ViewingKeyPermission(
+      env,
+      msg.chainId,
+      msg.contractAddress,
+      msg.origin
+    );
+
     return await service.getSecret20ViewingKey(
       msg.chainId,
       msg.contractAddress

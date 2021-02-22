@@ -141,6 +141,13 @@
   "access.button.approve": "Approve",
   "access.button.reject": "Reject",
 
+  "access.viewing-key.title": "Requesting Viewing Key",
+  "access.viewing-key.paragraph": "<b>{host}</b> is requesting to get your token's viewing key on <b>{contractAddress}</b>.",
+  "access.viewing-key.permission.title": "By approving this request, the website will:",
+  "access.viewing-key.permission.secret": "Be able to know your balance of the token",
+  "access.viewing-key.button.approve": "Approve",
+  "access.viewing-key.button.reject": "Reject",
+
   "lock.input.password": "Password",
   "lock.input.password.error.required": "Empty password",
   "lock.input.password.error.invalid": "Invalid password",

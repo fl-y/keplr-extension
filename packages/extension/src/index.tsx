@@ -7,7 +7,7 @@ import "./styles/global.scss";
 
 import { HashRouter, Route } from "react-router-dom";
 
-import { AccessPage } from "./pages/access";
+import { AccessPage, Secret20ViewingKeyAccessPage } from "./pages/access";
 import { RegisterPage } from "./pages/register";
 import { MainPage } from "./pages/main";
 import { LockPage } from "./pages/lock";
@@ -133,6 +133,11 @@ ReactDOM.render(
                   <Route exact path="/" component={StateRenderer} />
                   <Route exact path="/unlock" component={LockPage} />
                   <Route exact path="/access" component={AccessPage} />
+                  <Route
+                    exact
+                    path="/access/viewing-key"
+                    component={Secret20ViewingKeyAccessPage}
+                  />
                   <Route exact path="/register" component={RegisterPage} />
                   <Route exact path="/send" component={SendPage} />
                   <Route exact path="/setting" component={SettingPage} />

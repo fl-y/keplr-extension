@@ -23,6 +23,7 @@ import { PermissionService } from "../permission";
 
 import { Buffer } from "buffer/";
 import { SuggestTokenMsg } from "./messages";
+import { getSecret20ViewingKeyPermissionType } from "./types";
 
 @singleton()
 export class TokensService {
@@ -275,6 +276,27 @@ export class TokensService {
     }
 
     throw new Error("There is no matched secret20");
+  }
+
+  async checkOrGrantSecret20ViewingKeyPermission(
+    env: Env,
+    chainId: string,
+    contractAddress: string,
+    origin: string
+  ) {
+    const type = getSecret20ViewingKeyPermissionType(contractAddress);
+
+    if (!this.permissionService.hasPermisson(chainId, type, origin)) {
+      await this.permissionService.grantPermission(
+        env,
+        "/access/viewing-key",
+        chainId,
+        type,
+        [origin]
+      );
+    }
+
+    this.permissionService.checkPermission(env, chainId, type, origin);
   }
 
   static async validateCurrency(

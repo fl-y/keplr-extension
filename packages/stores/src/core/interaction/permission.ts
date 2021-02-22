@@ -6,6 +6,8 @@ import {
   isBasicAccessPermissionType,
   PermissionData,
   RemovePermissionOrigin,
+  isSecret20ViewingKeyPermissionType,
+  splitSecret20ViewingKeyPermissionType,
 } from "@keplr/background";
 import { computed, flow, makeObservable, observable } from "mobx";
 import { HasMapStore } from "../../common";
@@ -91,6 +93,36 @@ export class PermissionStore extends HasMapStore<any> {
           id: data.id,
           data: {
             chainId: data.data.chainId,
+            origins: data.data.origins,
+          },
+        });
+      }
+    }
+
+    return result;
+  }
+
+  @computed
+  get waitingSecret20ViewingKeyAccessPermissions(): {
+    id: string;
+    data: {
+      chainId: string;
+      contractAddress: string;
+      origins: string[];
+    };
+  }[] {
+    const datas = this.waitingDatas;
+
+    const result = [];
+    for (const data of datas) {
+      if (isSecret20ViewingKeyPermissionType(data.data.type)) {
+        result.push({
+          id: data.id,
+          data: {
+            chainId: data.data.chainId,
+            contractAddress: splitSecret20ViewingKeyPermissionType(
+              data.data.type
+            ),
             origins: data.data.origins,
           },
         });

@@ -11,10 +11,6 @@ export class GetTokensMsg extends Message<AppCurrency[]> {
     super();
   }
 
-  approveExternal(): boolean {
-    return true;
-  }
-
   validateBasic(): void {
     if (!this.chainId) {
       throw new Error("Chain id is empty");
