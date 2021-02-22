@@ -9,6 +9,7 @@ import {
   GetPersistentMemoryMsg,
   GetChainInfosMsg,
   RemoveSuggestedChainInfoMsg,
+  TryUpdateChainMsg,
 } from "@keplr/background";
 import { BACKGROUND_PORT } from "@keplr/router";
 
@@ -19,7 +20,8 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
   @observable
   protected selectedChainId: string;
 
-  protected isInitializing: boolean = false;
+  @observable
+  protected _isInitializing: boolean = false;
   protected deferChainIdSelect: string = "";
 
   constructor(
@@ -44,9 +46,13 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
     this.init();
   }
 
+  get isInitializing(): boolean {
+    return this._isInitializing;
+  }
+
   @action
   selectChain(chainId: string) {
-    if (this.isInitializing) {
+    if (this._isInitializing) {
       this.deferChainIdSelect = chainId;
     }
     this.selectedChainId = chainId;
@@ -72,7 +78,7 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
 
   @flow
   protected *init() {
-    this.isInitializing = true;
+    this._isInitializing = true;
     yield this.getChainInfosFromBackground();
 
     // Get last view chain id to persistent background
@@ -86,7 +92,7 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
         this.selectChain(result.lastViewChainId);
       }
     }
-    this.isInitializing = false;
+    this._isInitializing = false;
 
     if (this.deferChainIdSelect) {
       this.selectChain(this.deferChainIdSelect);
@@ -114,18 +120,9 @@ export class ChainStore extends BaseChainStore<ChainInfoWithEmbed> {
   }
 
   @flow
-  *tryUpdateChain(_chainId: string) {
-    // TODO
-    /*
-    const selected = chainId === this.chainInfo.chainId;
-
+  *tryUpdateChain(chainId: string) {
     const msg = new TryUpdateChainMsg(chainId);
-    const result = await task(sendMessage(BACKGROUND_PORT, msg));
-    this.setChainList(result.chainInfos);
-    if (selected) {
-      this.setChain(result.chainId);
-      await this.saveLastViewChainId();
-    }
-     */
+    yield this.requester.sendMessage(BACKGROUND_PORT, msg);
+    yield this.getChainInfosFromBackground();
   }
 }

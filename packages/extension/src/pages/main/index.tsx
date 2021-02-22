@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import React, { FunctionComponent, useEffect, useRef } from "react";
 
 import { HeaderLayout } from "../../layouts";
 
@@ -17,23 +17,27 @@ import { observer } from "mobx-react-lite";
 import { useStore } from "../../stores";
 import { TokensView } from "./token";
 import { BIP44SelectModal } from "./bip44-select-modal";
+import { useIntl } from "react-intl";
+import { useConfirm } from "../../components/confirm";
+import { ChainUpdaterService } from "@keplr/background";
 
 export const MainPage: FunctionComponent = observer(() => {
   const history = useHistory();
-  // const intl = useIntl();
+  const intl = useIntl();
 
   const { chainStore, accountStore, queriesStore } = useStore();
 
-  // const confirm = useConfirm();
+  const confirm = useConfirm();
 
-  // TODO
-  /*
+  const currentChainId = chainStore.current.chainId;
   const prevChainId = useRef<string | undefined>();
   useEffect(() => {
-    if (prevChainId.current !== chainStore.current.chainId) {
-      // FIXME: This will be executed twice on initial because chain store set the chain info on constructor and init.
+    if (!chainStore.isInitializing && prevChainId.current !== currentChainId) {
       (async () => {
-        if (await ChainUpdaterKeeper.checkChainUpdate(chainStore.current)) {
+        const result = await ChainUpdaterService.checkChainUpdate(
+          chainStore.current
+        );
+        if (result.explicit) {
           // If chain info has been changed, warning the user wether update the chain or not.
           if (
             await confirm.confirm({
@@ -50,13 +54,14 @@ export const MainPage: FunctionComponent = observer(() => {
           ) {
             await chainStore.tryUpdateChain(chainStore.current.chainId);
           }
+        } else if (result.slient) {
+          await chainStore.tryUpdateChain(chainStore.current.chainId);
         }
       })();
-    }
 
-    prevChainId.current = chainStore.current.chainId;
-  }, [chainStore, chainStore.current, confirm, intl]);
-   */
+      prevChainId.current = currentChainId;
+    }
+  }, [chainStore, confirm, currentChainId, intl]);
 
   const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 
