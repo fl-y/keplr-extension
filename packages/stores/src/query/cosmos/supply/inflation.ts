@@ -48,10 +48,18 @@ export class ObservableQueryInflation {
       const bondedToken = new Dec(
         this._queryPool.response.data.result.bonded_tokens
       );
-      const total = new Dec(
+      const totalStr = (() => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this._querySupplyTotal.getQueryStakeDenom().response!.data.result
-      );
+        const response = this._querySupplyTotal.getQueryStakeDenom().response!
+          .data.result;
+
+        if (typeof response === "string") {
+          return response;
+        } else {
+          return response.amount;
+        }
+      })();
+      const total = new Dec(totalStr);
       if (total.gt(new Dec(0))) {
         const ratio = bondedToken.quo(total);
 

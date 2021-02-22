@@ -61,7 +61,7 @@ export const MainPage: FunctionComponent = observer(() => {
 
       prevChainId.current = currentChainId;
     }
-  }, [chainStore, confirm, currentChainId, intl]);
+  }, [chainStore, confirm, chainStore.isInitializing, currentChainId, intl]);
 
   const accountInfo = accountStore.getAccount(chainStore.current.chainId);
 

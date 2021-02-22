@@ -1,4 +1,4 @@
-import { inject, singleton } from "tsyringe";
+import { inject, singleton, delay } from "tsyringe";
 import { TYPES } from "../types";
 
 import { ChainInfo } from "@keplr/types";
@@ -11,15 +11,9 @@ import { ChainsService } from "../chains";
 export class ChainUpdaterService {
   constructor(
     @inject(TYPES.UpdaterStore) protected readonly kvStore: KVStore,
-    @inject(ChainsService)
+    @inject(delay(() => ChainsService))
     protected readonly chainsService: ChainsService
-  ) {
-    this.chainsService.addChainRemovedHandler(this.onChainRemoved);
-  }
-
-  protected readonly onChainRemoved = (chainId: string) => {
-    this.clearUpdatedProperty(chainId);
-  };
+  ) {}
 
   async putUpdatedPropertyToChainInfo(
     chainInfo: ChainInfo
